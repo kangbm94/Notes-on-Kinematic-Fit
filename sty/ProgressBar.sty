@@ -1,0 +1,47 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ProgressBar}[2019/11/14]
+%\RequirePackage{./sty/beamercolorthemetubs}
+
+\defbeamertemplate*{footline}{tubs theme}
+{
+	\pgfmathsetmacro{\progress}{\insertframenumber/\inserttotalframenumber}
+	
+	\leavevmode%
+	\includegraphics[width=\beamer@tubs@foot@logowidth]{./bonos/BonoWhy}
+	\vbox{}\vskip-0.7\beamer@tubs@foot@logoheight
+	
+	% line, text and second logo
+	\hbox{
+		\hskip\beamer@tubs@foot@logowidth%
+		\hskip-4pt
+		\vspace{-.1\beamer@tubs@foot@logoheight}
+		% line and text
+		\vbox{
+			%	  	  \vspace{5pt}
+			\begin{beamercolorbox}[wd=.81\paperwidth,ht=3pt,dp=1pt]{}%
+				\begin{tikzpicture}
+					\fill[BonoWhite] (-0.405\paperwidth,4pt)  rectangle (0.405\paperwidth,-4pt);
+					\fill[BonoBlue] (-0.405\paperwidth,4pt)  rectangle (-0.405\paperwidth+0.81\paperwidth*\progress,-4pt);
+					\draw node  {\textcolor{white}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}};
+				\end{tikzpicture}
+			\end{beamercolorbox}%
+
+			\begin{beamercolorbox}[wd=.81\paperwidth,leftskip=0.9cm,sep=3pt,ht=0.5\beamer@tubs@gaussmargin]{}
+				%			  \insertdate{} | \insertauthor{} | \insertshorttitle{} | Page \insertframenumber{} \beamer@tubs@pageofpages{} \inserttotalframenumber
+				\vspace{-7pt}
+				\insertauthor{} | \insertshorttitle{} | 
+			\end{beamercolorbox}
+			
+			\vspace{.7\beamer@tubs@foot@logoheight}
+			\vspace{.3\beamer@tubs@gaussmargin}  % (1 - 0.7)
+		}
+		
+		% second logo
+		\vbox{
+			\if\beamer@tubs@institutelogo\@empty\else%
+			\llap{\includegraphics[height=0.9\beamer@tubs@foot@logoheightr]{./logos/hanul}\hskip\beamer@tubs@gaussmargin\hskip.5\beamer@tubs@gaussmargin}
+			\fi%
+			\vspace{\beamer@tubs@gaussmargin}
+		}
+	}
+}

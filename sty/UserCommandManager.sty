@@ -1,0 +1,76 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{UserCommandManager}[2019/11/14]
+\newcommand{\beginbackup}{
+	\newcounter{framenumbervorappendix}
+	\setcounter{framenumbervorappendix}{\value{framenumber}}
+}
+\newcommand{\backupend}{
+	\addtocounter{framenumbervorappendix}{-\value{framenumber}}
+	\addtocounter{framenumber}{\value{framenumbervorappendix}} 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%custom comands
+\newcommand{\sol}{\textbf{Sol: }}
+\newcommand{\lag}{\mathcal{L}}
+\newcommand{\vecb}[1]{\mathbf{#1}}
+\newcommand{\ham}{\mathcal{H}}
+\newcommand{\hil}{\mathbb{H}}
+\newcommand{\four}{\mathcal{F}}
+\newcommand{\tran}{\mathcal{T}}
+\newcommand{\sch}{$\mathrm{Schr\ddot{o}dinger\:}$}
+\newcommand{\expi}[1]{e^{i #1}}
+\newcommand{\expim}[1]{e^{-i #1}}
+\newcommand{\vecip}[2]{\vec{#1}\cdot\vec{#2}}
+\newcommand{\vecbip}[2]{\vecb{#1}\cdot\vecb{#2}}
+\newcommand{\pdf}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pop}[1]{\frac{\partial }{\partial #1}}
+\newcommand{\dif}[2]{\frac{d #1}{d #2}}
+\newcommand{\dop}[1]{\frac{d }{d #1}}
+\newcommand{\dpdf}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\dpop}[1]{\frac{\partial^2 }{\partial #1^2}}
+\newcommand{\ddif}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\ddop}[1]{\frac{d^2 }{d #1^2}}
+\newcommand{\fdif}[2]{\frac{\delta #1}{\delta #2}}
+\newcommand{\fddif}[2]{\frac{\delta^2 #1}{\delta #2^2}}
+\newcommand{\vbar}{\text{\Large |}}
+\newcommand{\ez}{\epsilon_0}
+\newcommand{\curl}{\vecb{\nabla}\times}
+\newcommand{\grad}{\vecb{\nabla}}
+\newcommand{\dmat}[4]{\begin{pmatrix}
+		#1&#2\\
+		#3&#4
+\end{pmatrix}}
+\newcommand{\tmat}[9]{\begin{pmatrix}
+		#1&#2&#3\\
+		#4&#5&#6\\
+		#7&#8&#9
+\end{pmatrix}}
+\newcommand{\matg}[1]{\begin{pmatrix}
+		#1_{11}&#1_{21}&\cdots\\
+		#1_{12}&#1_{22}&\cdots\\
+		\vdots&\vdots&\ddots
+\end{pmatrix}}
+\newcommand{\matd}[1]{\begin{pmatrix}
+		#1_{11}&&\\
+		&#1_{22}&\\
+		\vdots&\vdots&\ddots
+\end{pmatrix}}
+\newcommand{\outp}[2]{|#1\rangle\langle #2|}
+\newcommand{\inp}[2]{\langle #1|#2\rangle}
+\newcommand{\bra}[1]{\langle #1|}
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\oper}[3]{\langle #1|#2|#3\rangle}
+\newcommand{\expt}[1]{\langle #1\rangle}
+\newcommand{\abs}[1]{|#1|}
+\newcommand{\ctz}[1]{\cancelto{0}{#1}}
+\newcommand{\fig}[2]{\includegraphics[width=#1 cm]{./fig/#2}}
+\newcommand{\tcl}[4]{\begin{columns}
+		\begin{column}{#1 cm}
+			#3
+		\end{column}		
+		\begin{column}{#2 cm}
+			#4
+		\end{column}
+\end{columns}}
+\newcommand{\el}[2]{^{#2}\mathrm{#1}}
+\newcommand{\unit}[1]{\mathrm{#1}}

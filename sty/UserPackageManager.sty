@@ -1,0 +1,45 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{UserPackageManager}[2019/11/14]
+
+\RequirePackage{"./sty/beamerthemeTUBS"}
+\RequirePackage{"./sty/UserCommandManager"}
+\RequirePackage{"./sty/ProgressBar"}
+
+\RequirePackage{circuitikz}
+\RequirePackage[english]{babel}
+\RequirePackage{euler}
+%\RequirePackage{pifont}
+%\RequirePackage{bookman}
+\RequirePackage{cancel}
+%\RequirePackage{CJKutf8}
+%\RequirePackage{ulem} 	
+\RequirePackage{tikz}
+%\RequirePackage{marvosym}
+\RequirePackage{graphics,subfigure}
+\RequirePackage{amsmath,xspace}
+
+
+\RequirePackage{fancybox} % shadow box available
+\makeatletter
+\def\beamer@calltheme#1#2#3{%
+	\def\beamer@themelist{#2}
+	\@for\beamer@themename:=\beamer@themelist\do
+	{\usepackage[{#1}]{\beamer@themelocation/#3\beamer@themename}}}
+
+\def\usefolder#1{
+	\def\beamer@themelocation{#1}
+}
+\def\beamer@themelocation{}
+\usefolder{sty}
+
+
+\usetikzlibrary{arrows,calc}
+\tikzset{
+	%Define standard arrow tip
+	>=stealth',
+	%Define style for different line styles
+	help lines/.style={dashed, thick},
+	axis/.style={<->},
+	important line/.style={thick},
+	connection/.style={thick, dotted},
+}
