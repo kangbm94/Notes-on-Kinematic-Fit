@@ -2,6 +2,11 @@
 \ProvidesPackage{ProgressBar}[2019/11/14]
 %\RequirePackage{./sty/beamercolorthemetubs}
 
+\pgfdeclareverticalshading{rainbow}{100bp}
+{color(0bp)=(red); color(25bp)=(red); color(35bp)=(yellow);
+	color(45bp)=(green); color(55bp)=(cyan); color(65bp)=(blue);
+	color(75bp)=(violet); color(100bp)=(violet)}
+\usetikzlibrary{shadings}
 \defbeamertemplate*{footline}{tubs theme}
 {
 	\pgfmathsetmacro{\progress}{\insertframenumber/\inserttotalframenumber}
@@ -21,8 +26,9 @@
 			\begin{beamercolorbox}[wd=.81\paperwidth,ht=3pt,dp=1pt]{}%
 				\begin{tikzpicture}
 					\fill[BonoWhite] (-0.405\paperwidth,4pt)  rectangle (0.405\paperwidth,-4pt);
-					\fill[BonoBlue] (-0.405\paperwidth,4pt)  rectangle (-0.405\paperwidth+0.81\paperwidth*\progress,-4pt);
-					\draw node  {\textcolor{white}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}};
+					\shade[shading=rainbow,shading angle=270] 
+					(-0.405\paperwidth,4pt)  rectangle (-0.405\paperwidth+0.81\paperwidth*\progress,-4pt);
+					\draw node  {\textcolor{black}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}};
 				\end{tikzpicture}
 			\end{beamercolorbox}%
 

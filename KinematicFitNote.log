@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.2.13)  21 NOV 2023 15:35
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.2.13)  21 NOV 2023 16:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -815,7 +815,16 @@ LaTeX Warning: You have requested package `"./sty/ProgressBar"',
                but the package provides `ProgressBar'.
 
 Package: ProgressBar 2019/11/14
-) (/usr/local/texlive/2018/texmf-dist/tex/latex/circuitikz/circuitikz.sty
+
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
+s/tikzlibraryshadings.code.tex
+File: tikzlibraryshadings.code.tex 2008/10/29 v3.0.1a (rcs-revision 1.1)
+
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/libraries/pgflibraryshading
+s.code.tex
+File: pgflibraryshadings.code.tex 2008/10/29 v3.0.1a (rcs-revision 1.2)
+)))
+(/usr/local/texlive/2018/texmf-dist/tex/latex/circuitikz/circuitikz.sty
 Package: circuitikz 2017/05/28{} The CircuiTikz circuit drawing package version
  0.8.3
 
@@ -1248,22 +1257,22 @@ LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
 (Font)                  OT1/cmr/m/it --> OT1/cmr/bx/it on input line 22.
  (./KinematicFitNote.nav)
-<./fig/./bonos/BonoWhy.png, id=37, 210.7875pt x 210.7875pt>
+<./fig/./bonos/BonoWhy.png, id=47, 210.7875pt x 210.7875pt>
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 22.
 (pdftex.def)             Requested size: 69.198pt x 69.19986pt.
-<./fig/./logos/BusyBono.png, id=40, 361.35pt x 361.35pt>
+<./fig/./logos/BusyBono.png, id=50, 361.35pt x 361.35pt>
 File: ./fig/./logos/BusyBono.png Graphic file (type png)
 <use ./fig/./logos/BusyBono.png>
 Package pdftex.def Info: ./fig/./logos/BusyBono.png  used on input line 29.
 (pdftex.def)             Requested size: 22.9427pt x 22.94469pt.
-<./fig/./bonos/Bonobono.jpeg, id=41, 136.51pt x 85.31876pt>
+<./fig/./bonos/Bonobono.jpeg, id=51, 136.51pt x 85.31876pt>
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 29.
 (pdftex.def)             Requested size: 171.1828pt x 106.53358pt.
-<./fig/./bonos/BonoMirror.jpeg, id=42, 136.51pt x 85.31876pt>
+<./fig/./bonos/BonoMirror.jpeg, id=52, 136.51pt x 85.31876pt>
 File: ./fig/./bonos/BonoMirror.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/BonoMirror.jpeg>
 Package pdftex.def Info: ./fig/./bonos/BonoMirror.jpeg  used on input line 29.
@@ -1305,7 +1314,7 @@ line 29.
 File: ot1mathkerncmss.fd 2013/03/27 Fontinst v1.933 font definitions for OT1/ma
 thkerncmss.
 )
-<./fig/./logos/BonoGood.png, id=43, 210.7875pt x 210.7875pt>
+<./fig/./logos/BonoGood.png, id=53, 210.7875pt x 210.7875pt>
 File: ./fig/./logos/BonoGood.png Graphic file (type png)
 <use ./fig/./logos/BonoGood.png>
 Package pdftex.def Info: ./fig/./logos/BonoGood.png  used on input line 29.
@@ -1650,13 +1659,13 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 28209 strings out of 492649
- 624416 string characters out of 6129622
- 809872 words of memory out of 5000000
- 31447 multiletter control sequences out of 15000+600000
+ 28267 strings out of 492649
+ 626274 string characters out of 6129622
+ 815082 words of memory out of 5000000
+ 31499 multiletter control sequences out of 15000+600000
  22627 words of font info for 86 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 76i,24n,79p,806b,900s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 76i,24n,79p,806b,894s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb><
 /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
@@ -1679,10 +1688,10 @@ ocal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/euler/eurm7.pfb></usr/
 local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/euler/eusm10.pfb></us
 r/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb
 >
-Output written on KinematicFitNote.pdf (14 pages, 263738 bytes).
+Output written on KinematicFitNote.pdf (14 pages, 264567 bytes).
 PDF statistics:
- 293 PDF objects out of 1000 (max. 8388607)
- 201 compressed objects within 3 object streams
+ 303 PDF objects out of 1000 (max. 8388607)
+ 202 compressed objects within 3 object streams
  46 named destinations out of 1000 (max. 500000)
- 164 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 210 words of extra memory for PDF output out of 10000 (max. 10000000)
 
