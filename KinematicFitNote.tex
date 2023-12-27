@@ -16,7 +16,7 @@
 \author[Author]{Kang Byungmin}
 \institute{Korea University}
 \date{\today}
-\subtitle{KANG, Byungmin$^1$\newline\today}
+\subtitle{KANG, Byungmin\footnotemark[1]\newline\today}
 
 
 \begin{document}
@@ -25,7 +25,7 @@
 %%%%%%%%%%%%%%% Title page 
 \begin{frame}[t,plain] % Cover slide
        \titlepage
-        \footnote{Korea University}
+        \footnotetext[1]{Korea University}
 \end{frame}
 \begin{frame}{Introduction}
 	\begin{block}{}
@@ -79,8 +79,9 @@
 \begin{frame}{Fitting in General}
 	\begin{block}{}
 		Assume that you have a set of measurements, $\textbf m =\{m_1,m_2\ldots m_N\}$, and some unmeasured data, $\textbf u =\{u_1,u_2\ldots u_J\}$ to be estimated. Kinematic constraints can be represented by sets of equations $\textbf f =\{f_1(m_1,m_2,\ldots m_N,u_1,u_2,\ldots u_N),f_2,\ldots f_K\}$. We will iteratively solve the problem by guessing the best parameter for each step and checking  $\chi^2$.  Let $\mathbf m^0$ denote our initial measured data, and $\mathbf m$ represent the 'guess' of the data in each iterative step.
+		\vspace{-2 mm}
 		\begin{align}
-			\chi^2(\textbf{m}) = (\textbf{m}^0-\textbf{m})^T V^{-1}(\textbf{m}^0-\textbf{m})+2\mathbf\lambda^T \textbf f(\textbf{m,u}).\label{KFChi2}
+			\chi^2(\textbf{m}) = (\textbf{m}^0-\textbf{m})^\dagger V^{-1}(\textbf{m}^0-\textbf{m})+2\mathbf\lambda^\dagger \textbf f(\textbf{m,u}).\label{KFChi2}
 		\end{align}
 		Here, the Lagrange multiplier $\mathbf \lambda =\{\lambda_1,\lambda_2,\ldots\lambda_K\}$ is not just a number but a column vector with k elements, corresponding to each kinematic constraint in $\mathbf f$. Our task is to minimize $\chi^2$ to obtain the best guesses in statistically fair method.	
 	\end{block}
@@ -89,8 +90,8 @@
 	\begin{block}{}
 		By (partially)differentiating with respect to all variables involved, we obtain the gradients of $\chi^2$. Setting all of them to zero indicates that we have reached a minimum point of $\chi^2$. We have 3 sets of gradient equations:
 		\begin{align}
-			\nabla_{\mathbf m} &= -2 V^{-1}(\mathbf m^0)(\mathbf m^0-\mathbf m) + 2 \mathbf F_\mathbf m^T(\mathbf{m,u})\mathbf\lambda=0\label{GradM}\\
-			\nabla_{\mathbf u} &= 2\mathbf F_\mathbf u^T(\mathbf{m,u})\mathbf \lambda =0\label{GradU}\\
+			\nabla_{\mathbf m} &= -2 V^{-1}(\mathbf m^0)(\mathbf m^0-\mathbf m) + 2 \mathbf F_\mathbf m^\dagger(\mathbf{m,u})\mathbf\lambda=0\label{GradM}\\
+			\nabla_{\mathbf u} &= 2\mathbf F_\mathbf u^\dagger(\mathbf{m,u})\mathbf \lambda =0\label{GradU}\\
 			\nabla_{\mathbf \lambda}& = \mathbf f(\mathbf{m,u})\label{GradL}.
 		\end{align}
 		Here, the subscripts denote partial derivatives. i.e. ($(\mathbf {F}_m)_{ki}\equiv\pdf {f_k}{m_i}$).
@@ -100,8 +101,8 @@
 	\begin{block}{}
 		We can express the following equations based on the ones provided above:
 		\begin{align}
-			&V^{-1}(\mathbf m^0)(\mathbf{m}^{\nu+1}-\mathbf{m}^0)+(\mathbf{F}_m^T)^\nu\mathbf\lambda^{\nu+1}=0\label{DelM}\\
-			&(\mathbf{F}_u^T)^\nu\mathbf\lambda^{\nu+1}=0\label{DelU}\\
+			&V^{-1}(\mathbf m^0)(\mathbf{m}^{\nu+1}-\mathbf{m}^0)+(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelM}\\
+			&(\mathbf{F}_u^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelU}\\
 			&\mathbf f^\nu + \mathbf F^\nu_m (\mathbf m^{\nu+1}-\mathbf m^\nu) + \mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu)=0\label{DelL}.
 		\end{align}
 		Equation \eqref{DelL} is not a direct consequence of Equation \eqref{GradU} but rather a linear approximation to proceed with our iteration step. Expanding the $\nabla_\lambda$ term with a Taylor series leads to this equation. 
@@ -111,18 +112,18 @@
 
 \begin{frame}{Solving the Equation(1)}
 	\begin{block}{}
-		Multiplying \textbf V to Equation \eqref{DelM} leads to:
+		Multiplying \textbf V to Equation \eqref{DelM} leads to:		\vspace{-2 mm}
 		\begin{align}
-			\mathbf{m}^{\nu+1}-\mathbf{m}^0=-V(\mathbf m^0)(\mathbf{F}_m^T)^\nu\mathbf\lambda^{\nu+1}.\label{Mnu}
+			\mathbf{m}^{\nu+1}-\mathbf{m}^0=-V(\mathbf m^0)(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1}.\label{Mnu}
 		\end{align}
-		Substituting Equation \eqref{Mnu} into Equation \eqref{DelL}, we get:
+		Substituting Equation \eqref{Mnu} into Equation \eqref{DelL}, we get:\vspace{-2 mm}
 		\begin{align}
-			\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) &= - \mathbf f^\nu - \mathbf F^\nu_m (-V(\mathbf m^0)(\mathbf{F}_m^T)^\nu\mathbf\lambda^{\nu+1} +\mathbf{m}^0-\mathbf{m}^\nu  )\nonumber\\
+			\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) &= - \mathbf f^\nu - \mathbf F^\nu_m (-V(\mathbf m^0)(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1} +\mathbf{m}^0-\mathbf{m}^\nu  )\nonumber\\
 			&=  S\lambda^{\nu+1}  - R\label{SLambda}
 		\end{align}
-		where $S\equiv \mathbf{F}_\mathbf{m}^\nu V(\mathbf m^0)(\mathbf{F}_\mathbf{m}^T )^\nu$ and $R\equiv \mathbf f^\nu + \mathbf{F}_\mathbf{m}^\nu(\mathbf{m}^0-\mathbf{m}^\nu)$. Multiplying $(\mathbf{F}_u^T)^\nu S^{-1}$ and substituting Equation \eqref{DelU}, we get:
+		where$S\equiv \mathbf{F}_\mathbf{m}^\nu V(\mathbf m^0)(\mathbf{F}_\mathbf{m}^\dagger )^\nu$  and $R\equiv \mathbf f^\nu + \mathbf{F}_\mathbf{m}^\nu(\mathbf{m}^0-\mathbf{m}^\nu)$. Multiplying $(\mathbf{F}_u^\dagger)^\nu S^{-1}$ and substituting Equation \eqref{DelU}, we get:\vspace{-2 mm}
 		\begin{align}
-			(\mathbf{F}_u^T)^\nu S^{-1}\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) = \ctz{(\mathbf F_u^T)^\nu\mathbf \lambda^{\nu+1}}-(\mathbf{F}_u^T)^\nu S^{-1}R.
+			(\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) = \ctz{(\mathbf F_u^\dagger)^\nu\mathbf \lambda^{\nu+1}}-(\mathbf{F}_u^\dagger)^\nu S^{-1}R.
 		\end{align}
 	\end{block}
 \end{frame}
@@ -130,7 +131,7 @@
 	\begin{block}{}
 		Then we naturally obtain:
 		\begin{align}
-			\mathbf{u}^{\nu+1}=\mathbf{u}^\nu - ((\mathbf{F}_u^T)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^T)^\nu S^{-1}R\label{Unu}.
+			\mathbf{u}^{\nu+1}=\mathbf{u}^\nu - ((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}R\label{Unu}.
 		\end{align} 
 		and from Equation \eqref{SLambda}
 		\begin{align}
@@ -139,17 +140,49 @@
 		For a summary, we have obtained all equations to proceed to the next step. All other matrices in the equation can be calculated from parameters of the current step, and $\chi^2$ can be evaluated from \eqref{KFChi2} .
 		\begin{align*}
 			\begin{cases}
-				\mathbf{u}^{\nu+1}=\mathbf{u}^\nu - ((\mathbf{F}_u^T)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^T)^\nu S^{-1}R&\eqref{Unu}\\
+				\mathbf{u}^{\nu+1}=\mathbf{u}^\nu - ((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}R&\eqref{Unu}\\
 				\mathbf\lambda^{\nu+1} = S^{-1}(\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) + R)&\eqref{Lnu}\\
-				\mathbf{m}^{\nu+1}=\mathbf{m}^0-V(\mathbf m^0)(\mathbf{F}_m^T)^\nu\mathbf\lambda^{\nu+1}&\eqref{Mnu}
+				\mathbf{m}^{\nu+1}=\mathbf{m}^0-V(\mathbf m^0)(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1}&\eqref{Mnu}
 			\end{cases}
 		\end{align*}
 	\end{block}
 \end{frame}
 \begin{frame}{Evolution of Variance Matrix}
-	\begin{itemize}
-		\item{to be filled...}
-	\end{itemize}
+	\begin{block}{}
+		Take a look at Eq.\eqref{Mnu}. We see that $m^{\nu+1} $ is an addition(subtraction) of some parameters to the initially measured data. As we already know the error, i.e. Variance matrix, of initial data, we can estimate how error propagates through the fitting process. 
+		\begin{align}
+			V(m) = J_{m,m^0}V(m^0)J_{m,m^0}^\dagger
+		\end{align}
+		We need to calculate the Jacobian, 
+		\begin{align}
+			J_{m,m^0(i,j)} = \pdf{m_i}{m^0_j}
+		\end{align}
+	\end{block}
+\end{frame}
+\begin{frame}{Evolution of Variance Matrix.}
+	\begin{block}{}
+		To begin with, let us express Eq \eqref{Mnu} in terms of $m^0$. At the moment we will drop the superscript $\nu$. As $\pdf{\vecb{F}_m} {m^0} $ should be 0, we only need to consider the derivatives of $\lambda$. By substituting \eqref{Unu} ,
+		\begin{align}
+	\mathbf\lambda = S^{-1}(-\mathbf F_u(((\mathbf{F}_u^\dagger) S^{-1}\mathbf F_u)^{-1}(\mathbf{F}_u^\dagger) S^{-1}R) + R)
+		\end{align}
+		and we have
+		\begin{align}
+			R\equiv \mathbf f + \mathbf{F}_\mathbf{m}(\mathbf{m}^0-\mathbf{m})\to \pdf{R}{m^0}= \vecb F_m
+		\end{align} 
+		so that 
+		\begin{align}
+			\pdf{\lambda}{m^0}= S^{-1}(-\mathbf F_u((\mathbf{F}_u^\dagger S^{-1}\mathbf F_u)^{-1}\mathbf{F}_u^\dagger S^{-1}\vecb F_m) + \vecb F_m).
+		\end{align}
+	\end{block}
+\end{frame}
+\begin{frame}{Evolution of Variance Matrix}
+	\begin{block}{}
+		Now define the symmetric matrices $G\equiv \vecb {F_m^\dagger} S^{-1}\vecb {F_m}$, $U\equiv (\mathbf{F}_u^\dagger S^{-1}\mathbf F_u)^{-1}$ and $H\equiv \mathbf{F}_m^\dagger S^{-1}\vecb {F_u}$. Then we have expressions for $\pdf{\lambda}{m^0}$ hence 
+		\begin{align}
+			J_{m,m^0}&=I - V\vecb{F}^\dagger_m(-S^{-1}\vecb F_u U^{-1}H^\dagger+S^{-1}\vecb F_m)=I-V(G-HUH^\dagger)\\
+			V(m)& = J_{m,m^0} VJ_{m,m^0}^\dagger = V -2 V(G-HUH^\dagger)V 
+		\end{align}
+	\end{block}
 \end{frame}
 \begin{frame}{Pull distribution}
 	\begin{itemize}
