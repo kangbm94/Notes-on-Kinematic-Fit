@@ -11,21 +11,21 @@
 	\includegraphics[width=\paperwidth,height=\paperheight]{./bonos/Bonobono}%
 }
 
-
+\usepackage{biblatex}
+\bibliography{Bibilography.bib}
 \title[]{Notes on Kinematic Fit}
-\author[Author]{Kang Byungmin}
-\institute{Korea University}
+\author[Author]{Bono Bono}
+\institute{Bono University}
 \date{\today}
-\subtitle{KANG, Byungmin\footnotemark[1]\newline\today}
+\subtitle{Bono, Bono\footnotemark[1]\newline\today}
 
 
 \begin{document}
 
-
 %%%%%%%%%%%%%%% Title page 
 \begin{frame}[t,plain] % Cover slide
        \titlepage
-        \footnotetext[1]{Korea University}
+        \footnotetext[1]{Bono University}
 \end{frame}
 \begin{frame}{Introduction}
 	\begin{block}{}
@@ -161,7 +161,7 @@
 \end{frame}
 \begin{frame}{Evolution of Variance Matrix.}
 	\begin{block}{}
-		To begin with, let us express Eq \eqref{Mnu} in terms of $m^0$. At the moment we will drop the superscript $\nu$. As $\pdf{\vecb{F}_m} {m^0} $ should be 0, we only need to consider the derivatives of $\lambda$. By substituting \eqref{Unu} ,
+		To begin with, let us express Eq \eqref{Mnu} in terms of $m^0$. At the moment we will drop the superscript $\nu$. As $\vecb f(\vecb m,\vecb u)$is a constant on $m^0$, $\vecb F_\vecb m$ also will be a constant to $m^0$. Then we only need to consider the derivatives of $\lambda$. By substituting \eqref{Unu} ,
 		\begin{align}
 	\mathbf\lambda = S^{-1}(-\mathbf F_u(((\mathbf{F}_u^\dagger) S^{-1}\mathbf F_u)^{-1}(\mathbf{F}_u^\dagger) S^{-1}R) + R)
 		\end{align}
@@ -179,16 +179,42 @@
 	\begin{block}{}
 		Now define the symmetric matrices $G\equiv \vecb {F_m^\dagger} S^{-1}\vecb {F_m}$, $U\equiv (\mathbf{F}_u^\dagger S^{-1}\mathbf F_u)^{-1}$ and $H\equiv \mathbf{F}_m^\dagger S^{-1}\vecb {F_u}$. Then we have expressions for $\pdf{\lambda}{m^0}$ hence 
 		\begin{align}
-			J_{m,m^0}&=I - V\vecb{F}^\dagger_m(-S^{-1}\vecb F_u U^{-1}H^\dagger+S^{-1}\vecb F_m)=I-V(G-HUH^\dagger)\\
-			V(m)& = J_{m,m^0} VJ_{m,m^0}^\dagger = V -2 V(G-HUH^\dagger)V 
+			J_{m,m^0}&=I - V(m^0)\vecb{F}_m^\dagger\pdf\lambda{m^0}=I - V\vecb{F}^\dagger_m(-S^{-1}\vecb F_u U^{-1}H^\dagger+S^{-1}\vecb F_m)\nonumber\\
+			&=I-V(G-HUH^\dagger)
 		\end{align}
+		If we let $C =G-HUH^\dagger$, we obtain
+		\begin{align}
+			V(m) = J_{m,m^0} VJ_{m,m^0}^\dagger =V -2 VCV  +VCVCV.\label{Vm}
+		\end{align}
+		You might want to neglect higher order term, but please keep 2nd order term at the moment. Some materials like \cite{Prob} had an error in this part.
 	\end{block}
 \end{frame}
 \begin{frame}{Pull distribution}
-	\begin{itemize}
-	\item{to be filled...}
-\end{itemize}
+	\begin{block}{}
+		It is better to check the pull distribution to check the quality of a fit. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, pull is defined as:, 
+		\begin{align}
+			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}
+		\end{align}
+		and
+		\begin{align}
+			V(\epsilon) \equiv V(m)+ V(m^0) - 2 Cov(m,m^0).\label{Ve}
+		\end{align}
+		We have already calculated $J_{m,m^0}$. Then we directly get the covariance matrix. 
+	\end{block}
 \end{frame} 
+\begin{frame}{Pull distribution}
+	\begin{block}{}
+		The covariance can be estimated as:
+		\begin{align}
+			Cov(m,m^0) = J_{m,m^0}V(m) = V - VCV.
+		\end{align}
+		If we substitute this and Eq.\eqref{Vm} into Eq.\eqref{Ve}, we get
+		\begin{align}
+			V(\epsilon) = VCVCV.
+		\end{align}
+		Note that 2nd order term affects the variance.	
+	\end{block}
+\end{frame}
 \begin{frame}{Example: 3-C Fit }
 	\begin{block}{}
 		Assuming a decay of $\Lambda\to p\pi^-$, let's represent the momentum of those particles in spherical coordinates:
@@ -234,5 +260,9 @@
 		We have all the matrices to calculate in each step. By applying an appropriate variance matrix and employing $\chi^2$ selection criteria, we can kinematically fit the particles.}
 		\end{adjustwidth}
 	\end{block}
+\end{frame}
+%\begin{frame}[allowframebreaks]{References}
+\begin{frame}{References}
+	 	\printbibliography
 \end{frame}
 \end{document}

@@ -1,0 +1,15 @@
+[0] Config.pm:302> INFO - This is Biber 2.11
+[0] Config.pm:305> INFO - Logfile is 'KinematicFitNote.blg'
+[24] biber-darwin:313> INFO - === Wed Feb 28, 2024, 10:44:54
+[43] Biber.pm:371> INFO - Reading 'KinematicFitNote.bcf'
+[100] Biber.pm:857> INFO - Found 1 citekeys in bib section 0
+[110] Biber.pm:3976> INFO - Processing section 0
+[119] Biber.pm:4136> INFO - Looking for bibtex format file 'Bibilography.bib' for section 0
+[119] bibtex.pm:1500> INFO - LaTeX decoding ...
+[122] bibtex.pm:1316> INFO - Found BibTeX data source 'Bibilography.bib'
+[147] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[147] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[147] Biber.pm:3804> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[147] Biber.pm:3810> INFO - No sort tailoring available for locale 'en-US'
+[148] bbl.pm:617> INFO - Writing 'KinematicFitNote.bbl' with encoding 'UTF-8'
+[149] bbl.pm:720> INFO - Output to KinematicFitNote.bbl

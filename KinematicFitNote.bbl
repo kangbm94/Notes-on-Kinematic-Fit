@@ -1,0 +1,53 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.9 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{Prob}{book}{}
+      \name{author}{1}{}{%
+        {{hash=7e9f57413afbb080c74f003b86d4728b}{%
+           family={Frodesen},
+           familyi={F\bibinitperiod},
+           given={O.\bibnamedelimi Skjeggestad},
+           giveni={O\bibinitperiod\bibinitdelim S\bibinitperiod},
+           suffix={A.G.},
+           suffixi={A\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Columbia University Press}%
+      }
+      \strng{namehash}{7e9f57413afbb080c74f003b86d4728b}
+      \strng{fullhash}{7e9f57413afbb080c74f003b86d4728b}
+      \strng{bibnamehash}{7e9f57413afbb080c74f003b86d4728b}
+      \strng{authorbibnamehash}{7e9f57413afbb080c74f003b86d4728b}
+      \strng{authornamehash}{7e9f57413afbb080c74f003b86d4728b}
+      \strng{authorfullhash}{7e9f57413afbb080c74f003b86d4728b}
+      \field{sortinit}{F}
+      \field{sortinithash}{669c706c6f1fbf3b5a83d26f1d9e9e72}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{8200019063}
+      \field{title}{Probability and Statistics in Particle Physics}
+      \field{year}{1980}
+      \keyw{physics}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

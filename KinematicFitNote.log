@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.2.13)  26 DEC 2023 17:17
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.2.13)  28 FEB 2024 10:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -659,11 +659,225 @@ y
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/beamer/beamerouterthemedefault.st
 y))) (./sty/UserPackageManager.sty
+Package: "./sty/UserPackageManager" 2019/11/14
 
-LaTeX Warning: You have requested package `"./sty/UserPackageManager"',
-               but the package provides `UserPackageManager'.
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/biblatex.sty
+Package: biblatex 2018/03/04 v3.11 programmable bibliographies (PK/MW)
 
-Package: UserPackageManager 2019/11/14
+(/usr/local/texlive/2018/texmf-dist/tex/latex/logreq/logreq.sty
+Package: logreq 2010/08/04 v1.0 xml request logger
+\lrq@indent=\count155
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/logreq/logreq.def
+File: logreq.def 2010/08/04 v1.0 logreq spec v1.0
+))
+(/usr/local/texlive/2018/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+)
+(/usr/local/texlive/2018/texmf-dist/tex/generic/xstring/xstring.sty
+(/usr/local/texlive/2018/texmf-dist/tex/generic/xstring/xstring.tex
+\@xs@message=\write5
+\integerpart=\count156
+\decimalpart=\count157
+)
+Package: xstring 2013/10/13  v1.7c  String manipulations (C Tellechea)
+)
+\c@tabx@nest=\count158
+\c@listtotal=\count159
+\c@listcount=\count160
+\c@liststart=\count161
+\c@liststop=\count162
+\c@citecount=\count163
+\c@citetotal=\count164
+\c@multicitecount=\count165
+\c@multicitetotal=\count166
+\c@instcount=\count167
+\c@maxnames=\count168
+\c@minnames=\count169
+\c@maxitems=\count170
+\c@minitems=\count171
+\c@citecounter=\count172
+\c@savedcitecounter=\count173
+\c@uniquelist=\count174
+\c@uniquename=\count175
+\c@refsection=\count176
+\c@refsegment=\count177
+\c@maxextratitle=\count178
+\c@maxextratitleyear=\count179
+\c@maxextradate=\count180
+\c@maxextraalpha=\count181
+\c@abbrvpenalty=\count182
+\c@highnamepenalty=\count183
+\c@lownamepenalty=\count184
+\c@maxparens=\count185
+\c@parenlevel=\count186
+\blx@tempcnta=\count187
+\blx@tempcntb=\count188
+\blx@tempcntc=\count189
+\blx@maxsection=\count190
+\blx@maxsegment@0=\count191
+\blx@notetype=\count192
+\blx@parenlevel@text=\count193
+\blx@parenlevel@foot=\count194
+\blx@sectionciteorder@0=\count195
+\labelnumberwidth=\skip57
+\labelalphawidth=\skip58
+\biblabelsep=\skip59
+\bibitemsep=\skip60
+\bibnamesep=\skip61
+\bibinitsep=\skip62
+\bibparsep=\skip63
+\bibhang=\skip64
+\blx@bcfin=\read2
+\blx@bcfout=\write6
+\c@mincomprange=\count196
+\c@maxcomprange=\count197
+\c@mincompwidth=\count198
+Package biblatex Info: Trying to load biblatex default data model...
+Package biblatex Info: ... file 'blx-dm.def' found.
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/blx-dm.def
+File: blx-dm.def 2018/03/04 v3.11 biblatex localization (PK/MW)
+)
+Package biblatex Info: Trying to load biblatex custom data model...
+Package biblatex Info: ... file 'biblatex-dm.cfg' not found.
+\c@afterword=\count199
+\c@savedafterword=\count266
+\c@annotator=\count267
+\c@savedannotator=\count268
+\c@author=\count269
+\c@savedauthor=\count270
+\c@bookauthor=\count271
+\c@savedbookauthor=\count272
+\c@commentator=\count273
+\c@savedcommentator=\count274
+\c@editor=\count275
+\c@savededitor=\count276
+\c@editora=\count277
+\c@savededitora=\count278
+\c@editorb=\count279
+\c@savededitorb=\count280
+\c@editorc=\count281
+\c@savededitorc=\count282
+\c@foreword=\count283
+\c@savedforeword=\count284
+\c@holder=\count285
+\c@savedholder=\count286
+\c@introduction=\count287
+\c@savedintroduction=\count288
+\c@namea=\count289
+\c@savednamea=\count290
+\c@nameb=\count291
+\c@savednameb=\count292
+\c@namec=\count293
+\c@savednamec=\count294
+\c@translator=\count295
+\c@savedtranslator=\count296
+\c@shortauthor=\count297
+\c@savedshortauthor=\count298
+\c@shorteditor=\count299
+\c@savedshorteditor=\count300
+\c@labelname=\count301
+\c@savedlabelname=\count302
+\c@institution=\count303
+\c@savedinstitution=\count304
+\c@lista=\count305
+\c@savedlista=\count306
+\c@listb=\count307
+\c@savedlistb=\count308
+\c@listc=\count309
+\c@savedlistc=\count310
+\c@listd=\count311
+\c@savedlistd=\count312
+\c@liste=\count313
+\c@savedliste=\count314
+\c@listf=\count315
+\c@savedlistf=\count316
+\c@location=\count317
+\c@savedlocation=\count318
+\c@organization=\count319
+\c@savedorganization=\count320
+\c@origlocation=\count321
+\c@savedoriglocation=\count322
+\c@origpublisher=\count323
+\c@savedorigpublisher=\count324
+\c@publisher=\count325
+\c@savedpublisher=\count326
+\c@language=\count327
+\c@savedlanguage=\count328
+\c@origlanguage=\count329
+\c@savedoriglanguage=\count330
+\c@pageref=\count331
+\c@savedpageref=\count332
+\shorthandwidth=\skip65
+\shortjournalwidth=\skip66
+\shortserieswidth=\skip67
+\shorttitlewidth=\skip68
+\shortauthorwidth=\skip69
+\shorteditorwidth=\skip70
+\locallabelnumberwidth=\skip71
+\locallabelalphawidth=\skip72
+\localshorthandwidth=\skip73
+\localshortjournalwidth=\skip74
+\localshortserieswidth=\skip75
+\localshorttitlewidth=\skip76
+\localshortauthorwidth=\skip77
+\localshorteditorwidth=\skip78
+Package biblatex Info: Trying to load compatibility code...
+Package biblatex Info: ... file 'blx-compat.def' found.
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/blx-compat.def
+File: blx-compat.def 2018/03/04 v3.11 biblatex compatibility (PK/MW)
+)
+Package biblatex Info: Trying to load generic definitions...
+Package biblatex Info: ... file 'biblatex.def' found.
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/biblatex.def
+File: biblatex.def 2018/03/04 v3.11 biblatex compatibility (PK/MW)
+\c@textcitecount=\count333
+\c@textcitetotal=\count334
+\c@textcitemaxnames=\count335
+\c@biburlnumpenalty=\count336
+\c@biburlucpenalty=\count337
+\c@biburllcpenalty=\count338
+\c@smartand=\count339
+)
+Package biblatex Info: Trying to load bibliography style 'numeric'...
+Package biblatex Info: ... file 'numeric.bbx' found.
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/bbx/numeric.bbx
+File: numeric.bbx 2018/03/04 v3.11 biblatex bibliography style (PK/MW)
+Package biblatex Info: Trying to load bibliography style 'standard'...
+Package biblatex Info: ... file 'standard.bbx' found.
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/bbx/standard.bbx
+File: standard.bbx 2018/03/04 v3.11 biblatex bibliography style (PK/MW)
+\c@bbx:relatedcount=\count340
+\c@bbx:relatedtotal=\count341
+))
+Package biblatex Info: Trying to load citation style 'numeric'...
+Package biblatex Info: ... file 'numeric.cbx' found.
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/cbx/numeric.cbx
+File: numeric.cbx 2018/03/04 v3.11 biblatex citation style (PK/MW)
+Package biblatex Info: Redefining '\cite'.
+Package biblatex Info: Redefining '\parencite'.
+Package biblatex Info: Redefining '\footcite'.
+Package biblatex Info: Redefining '\footcitetext'.
+Package biblatex Info: Redefining '\smartcite'.
+Package biblatex Info: Redefining '\supercite'.
+Package biblatex Info: Redefining '\textcite'.
+Package biblatex Info: Redefining '\textcites'.
+Package biblatex Info: Redefining '\cites'.
+Package biblatex Info: Redefining '\parencites'.
+Package biblatex Info: Redefining '\smartcites'.
+)
+Package biblatex Info: Trying to load configuration file...
+Package biblatex Info: ... file 'biblatex.cfg' found.
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/biblatex.cfg
+File: biblatex.cfg 
+))
 (./sty/beamerthemeTUBS.sty
 
 LaTeX Warning: You have requested package `"./sty/beamerthemeTUBS"',
@@ -726,7 +940,7 @@ Package: tikz 2015/08/07 v3.0.1a (rcs-revision 1.151)
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothan
 dlers.code.tex
 File: pgflibraryplothandlers.code.tex 2013/08/31 v3.0.1a (rcs-revision 1.20)
-\pgf@plot@mark@count=\count155
+\pgf@plot@mark@count=\count342
 \pgfplotmarksize=\dimen194
 )
 \tikz@lastx=\dimen195
@@ -739,19 +953,19 @@ File: pgflibraryplothandlers.code.tex 2013/08/31 v3.0.1a (rcs-revision 1.20)
 \tikz@figbox@bg=\box55
 \tikz@tempbox=\box56
 \tikz@tempbox@bg=\box57
-\tikztreelevel=\count156
-\tikznumberofchildren=\count157
-\tikznumberofcurrentchild=\count158
-\tikz@fig@count=\count159
+\tikztreelevel=\count343
+\tikznumberofchildren=\count344
+\tikznumberofcurrentchild=\count345
+\tikz@fig@count=\count346
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.cod
 e.tex
 File: pgfmodulematrix.code.tex 2013/09/17  (rcs-revision 1.8)
-\pgfmatrixcurrentrow=\count160
-\pgfmatrixcurrentcolumn=\count161
-\pgf@matrix@numberofcolumns=\count162
+\pgfmatrixcurrentrow=\count347
+\pgfmatrixcurrentcolumn=\count348
+\pgf@matrix@numberofcolumns=\count349
 )
-\tikz@expandcount=\count163
+\tikz@expandcount=\count350
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
 s/tikzlibrarytopaths.code.tex
@@ -764,36 +978,33 @@ File: tikzlibraryfadings.code.tex 2009/11/15 v3.0.1a (rcs-revision 1.2)
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/libraries/pgflibraryfadings
 .code.tex
 File: pgflibraryfadings.code.tex 2008/02/07 v3.0.1a (rcs-revision 1.3)
-)) (/usr/local/texlive/2018/texmf-dist/tex/latex/base/ifthen.sty
-Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
-)
-\beamer@tubs@gaussmargin=\skip57
-\beamer@tubs@gaussheight=\skip58
-\beamer@tubs@gausswidth=\skip59
-\beamer@tubs@gausswidthhalf=\skip60
-\beamer@tubs@gausstopfrst=\skip61
-\beamer@tubs@gausstopscnd=\skip62
-\beamer@tubs@logoheight=\skip63
-\beamer@tubs@topmargin=\skip64
-\beamer@tubs@logoheightr=\skip65
-\beamer@tubs@logovskip=\skip66
-\beamer@tubs@normalmargin=\skip67
+))
+\beamer@tubs@gaussmargin=\skip79
+\beamer@tubs@gaussheight=\skip80
+\beamer@tubs@gausswidth=\skip81
+\beamer@tubs@gausswidthhalf=\skip82
+\beamer@tubs@gausstopfrst=\skip83
+\beamer@tubs@gausstopscnd=\skip84
+\beamer@tubs@logoheight=\skip85
+\beamer@tubs@topmargin=\skip86
+\beamer@tubs@logoheightr=\skip87
+\beamer@tubs@logovskip=\skip88
+\beamer@tubs@normalmargin=\skip89
 \tubs@blockbox=\box58
-\tubs@blockboxwidth=\skip68
-\tubs@blockboxheight=\skip69
-)
-(./sty/beamerouterthemetubs.sty
+\tubs@blockboxwidth=\skip90
+\tubs@blockboxheight=\skip91
+) (./sty/beamerouterthemetubs.sty
 
 LaTeX Warning: You have requested package `"./sty/beamerouterthemetubs"',
                but the package provides `beamerouterthemetubs'.
 
 Package: beamerouterthemetubs 2010/06/16
-\headerheight=\skip70
-\beamer@tubs@foot@logowidth=\skip71
-\beamer@tubs@foot@logoheight=\skip72
-\beamer@tubs@foot@logoheightr=\skip73
-\beamer@tubs@headsep=\skip74
-\beamer@tubs@headmargin=\skip75
+\headerheight=\skip92
+\beamer@tubs@foot@logowidth=\skip93
+\beamer@tubs@foot@logoheight=\skip94
+\beamer@tubs@foot@logoheightr=\skip95
+\beamer@tubs@headsep=\skip96
+\beamer@tubs@headmargin=\skip97
 ) (./sty/beamerfontthemetubs.sty
 
 LaTeX Warning: You have requested package `"./sty/beamerfontthemetubs"',
@@ -872,12 +1083,12 @@ Language: english 2017/06/06 v3.3r English support from the babel system
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/babel/babel.def
 File: babel.def 2018/02/14 3.18 Babel common definitions
-\babel@savecnt=\count164
+\babel@savecnt=\count351
 \U@D=\dimen268
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/babel/txtbabel.def)
 LaTeX Info: Redefining \textlatin on input line 1839.
-\bbl@dirlevel=\count165
+\bbl@dirlevel=\count352
 )
 \l@canadian = a dialect from \language\l@american 
 \l@australian = a dialect from \language\l@british 
@@ -985,23 +1196,23 @@ Package: cancel 2013/04/12 v2.2 Cancel math terms
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/subfigure/subfigure.sty
 Package: subfigure 2002/03/15 v2.1.5 subfigure package
-\subfigtopskip=\skip76
-\subfigcapskip=\skip77
+\subfigtopskip=\skip98
+\subfigcapskip=\skip99
 \subfigcaptopadj=\dimen269
-\subfigbottomskip=\skip78
+\subfigbottomskip=\skip100
 \subfigcapmargin=\dimen270
-\subfiglabelskip=\skip79
-\c@subfigure=\count166
-\c@lofdepth=\count167
-\c@subtable=\count168
-\c@lotdepth=\count169
+\subfiglabelskip=\skip101
+\c@subfigure=\count353
+\c@lofdepth=\count354
+\c@subtable=\count355
+\c@lotdepth=\count356
 
 ****************************************
 * Local config file subfigure.cfg used *
 ****************************************
 (/usr/local/texlive/2018/texmf-dist/tex/latex/subfigure/subfigure.cfg)
-\subfig@top=\skip80
-\subfig@bottom=\skip81
+\subfig@top=\skip102
+\subfig@bottom=\skip103
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/fancybox/fancybox.sty
 Package: fancybox 2010/05/15 1.4
@@ -1014,8 +1225,8 @@ Style option: `fancybox' v1.4 <2010/05/15> (tvz)
 \the@fancyput=\toks46
 \this@fancyput=\toks47
 \EndVerbatimTokens=\toks48
-\Verbatim@Outfile=\write5
-\Verbatim@Infile=\read2
+\Verbatim@Outfile=\write7
+\Verbatim@Infile=\read3
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
 s/tikzlibraryarrows.code.tex
@@ -1023,17 +1234,28 @@ File: tikzlibraryarrows.code.tex 2008/01/09 v3.0.1a (rcs-revision 1.1)
 ))
 (/usr/local/texlive/2018/texmf-dist/tex/latex/changepage/changepage.sty
 Package: changepage 2009/10/20 v1.0c check page and change page layout
-\c@cp@cntr=\count170
-\cp@tempcnt=\count171
+\c@cp@cntr=\count357
+\cp@tempcnt=\count358
 )
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\@ifnextchar' on input line 22.
+(hyperref)                removing `\@ifnextchar' on input line 23.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\translate ' on input line 22.
+(hyperref)                removing `\translate ' on input line 23.
 
+Package biblatex Info: Trying to load language 'english'...
+Package biblatex Info: ... file 'english.lbx' found.
+(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/lbx/english.lbx
+File: english.lbx 2018/03/04 v3.11 biblatex localization (PK/MW)
+)
+
+Package biblatex Warning: 'babel/polyglossia' detected but 'csquotes' missing.
+(biblatex)                Loading 'csquotes' recommended.
+
+\@quotelevel=\count359
+\@quotereset=\count360
 (./KinematicFitNote.aux
 
 LaTeX Warning: Label `chi2' multiply defined.
@@ -1041,20 +1263,20 @@ LaTeX Warning: Label `chi2' multiply defined.
 )
 \openout1 = `KinematicFitNote.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1092,16 +1314,16 @@ LaTeX Font Info:    ... okay on input line 22.
 
 (/usr/local/texlive/2018/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count172
+\scratchcounter=\count361
 \scratchdimen=\dimen272
 \scratchbox=\box61
-\nofMPsegments=\count173
-\nofMParguments=\count174
+\nofMPsegments=\count362
+\nofMParguments=\count363
 \everyMPshowfont=\toks49
-\MPscratchCnt=\count175
+\MPscratchCnt=\count364
 \MPscratchDim=\dimen273
-\MPnumerator=\count176
-\makeMPintoPDFobject=\count177
+\MPnumerator=\count365
+\makeMPintoPDFobject=\count366
 \everyMPtoPDFconversion=\toks50
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
@@ -1122,7 +1344,7 @@ e
 ))
 ABD: EveryShipout initializing macros
 \AtBeginShipoutBox=\box62
-Package hyperref Info: Link coloring OFF on input line 22.
+Package hyperref Info: Link coloring OFF on input line 23.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
@@ -1130,68 +1352,68 @@ Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
 (/usr/local/texlive/2018/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
-\c@section@level=\count178
+\c@section@level=\count367
 )
-LaTeX Info: Redefining \ref on input line 22.
-LaTeX Info: Redefining \pageref on input line 22.
-LaTeX Info: Redefining \nameref on input line 22.
+LaTeX Info: Redefining \ref on input line 23.
+LaTeX Info: Redefining \pageref on input line 23.
+LaTeX Info: Redefining \nameref on input line 23.
 
 (./KinematicFitNote.out) (./KinematicFitNote.out)
-\@outlinefile=\write6
-\openout6 = `KinematicFitNote.out'.
+\@outlinefile=\write8
+\openout8 = `KinematicFitNote.out'.
 
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmr/m/n --> OT1/cmss/m/n on input line 22.
+(Font)                  OT1/cmr/m/n --> OT1/cmss/m/n on input line 23.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 22.
+(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 23.
 \symnumbers=\mathgroup10
 \sympureletters=\mathgroup11
 LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/cmr/m/n on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 22.
+(Font)                  OT1/cmss/m/n --> OT1/cmr/m/n on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 22.
+(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 22.
+(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/m/n on input line 22.
+(Font)                  OT1/cmss/m/n --> OT1/cmss/m/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/cmss/m/n on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 22.
+(Font)                  OT1/cmss/bx/n --> OT1/cmss/m/n on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/cmr/m/it --> OT1/cmss/m/it on input line 22.
+(Font)                  OT1/cmr/m/it --> OT1/cmss/m/it on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmr/bx/it --> OT1/cmss/m/it on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 22.
+(Font)                  OT1/cmr/bx/it --> OT1/cmss/m/it on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 22.
+(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 22.
+(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 23.
 LaTeX Font Info:    Overwriting symbol font `numbers' in version `bold'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 22.
+(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 23.
 LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
-(Font)                  OT1/cmss/m/it --> OT1/cmss/bx/it on input line 22.
+(Font)                  OT1/cmss/m/it --> OT1/cmss/bx/it on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/cmr/bx/n on input line 22.
+(Font)                  OT1/cmss/bx/n --> OT1/cmr/bx/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/cmss/bx/n on input line 22.
+(Font)                  OT1/cmss/bx/n --> OT1/cmss/bx/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 22.
+(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmss/m/it --> OT1/cmss/bx/it on input line 22.
+(Font)                  OT1/cmss/m/it --> OT1/cmss/bx/it on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/cmtt/m/n --> OT1/cmtt/bx/n on input line 22.
-LaTeX Font Info:    Redeclaring symbol font `pureletters' on input line 22.
+(Font)                  OT1/cmtt/m/n --> OT1/cmtt/bx/n on input line 23.
+LaTeX Font Info:    Redeclaring symbol font `pureletters' on input line 23.
 LaTeX Font Info:    Overwriting symbol font `pureletters' in version `normal'
 (Font)                  OT1/cmss/m/it --> OT1/mathkerncmss/m/sl on input line 2
-2.
+3.
 LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
 (Font)                  OT1/cmss/bx/it --> OT1/mathkerncmss/m/sl on input line 
-22.
+23.
 LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
 (Font)                  OT1/mathkerncmss/m/sl --> OT1/mathkerncmss/bx/sl on inp
-ut line 22.
+ut line 23.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/translator/translator-basic-dicti
 onary-English.dict
@@ -1217,54 +1439,64 @@ Dictionary: translator-numbers-dictionary, Language: English
 tionary-English.dict
 Dictionary: translator-theorem-dictionary, Language: English 
 )
-LaTeX Font Info:    Redeclaring symbol font `operators' on input line 22.
+Package biblatex Info: Input encoding 'utf8' detected.
+Package biblatex Info: Automatic encoding selection.
+(biblatex)             Assuming data encoding 'utf8'.
+\openout6 = `KinematicFitNote.bcf'.
+
+Package biblatex Info: Trying to load bibliographic data...
+Package biblatex Info: ... file 'KinematicFitNote.bbl' found.
+ (./KinematicFitNote.bbl)
+Package biblatex Info: Reference section=0 on input line 23.
+Package biblatex Info: Reference segment=0 on input line 23.
+LaTeX Font Info:    Redeclaring symbol font `operators' on input line 23.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/cmr/m/n on input line 22.
+(Font)                  OT1/cmss/m/n --> OT1/cmr/m/n on input line 23.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/cmr/m/n on input line 22.
+(Font)                  OT1/cmss/bx/n --> OT1/cmr/m/n on input line 23.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmr/m/n --> OT1/cmr/bx/n on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 22.
+(Font)                  OT1/cmr/m/n --> OT1/cmr/bx/n on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/cmss/bx/n --> OT1/cmr/bx/n on input line 22.
+(Font)                  OT1/cmss/bx/n --> OT1/cmr/bx/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/cmr/bx/n on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 22.
+(Font)                  OT1/cmss/bx/n --> OT1/cmr/bx/n on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/m/n on input line 22.
+(Font)                  OT1/cmss/m/n --> OT1/cmss/m/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/cmss/m/n on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 22.
+(Font)                  OT1/cmss/bx/n --> OT1/cmss/m/n on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/cmss/m/it --> OT1/cmr/m/it on input line 22.
+(Font)                  OT1/cmss/m/it --> OT1/cmr/m/it on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmss/bx/it --> OT1/cmr/m/it on input line 22.
-LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 22.
+(Font)                  OT1/cmss/bx/it --> OT1/cmr/m/it on input line 23.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 22.
+(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/cmtt/bx/n --> OT1/cmtt/m/n on input line 22.
+(Font)                  OT1/cmtt/bx/n --> OT1/cmtt/m/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 22.
+(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 23.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmr/m/it --> OT1/cmr/bx/it on input line 22.
+(Font)                  OT1/cmr/m/it --> OT1/cmr/bx/it on input line 23.
  (./KinematicFitNote.nav)
-<./fig/./bonos/BonoWhy.png, id=47, 210.7875pt x 210.7875pt>
+<./fig/./bonos/BonoWhy.png, id=51, 210.7875pt x 210.7875pt>
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 22.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 23.
 (pdftex.def)             Requested size: 69.198pt x 69.19986pt.
-<./fig/./logos/BusyBono.png, id=50, 361.35pt x 361.35pt>
+<./fig/./logos/BusyBono.png, id=54, 361.35pt x 361.35pt>
 File: ./fig/./logos/BusyBono.png Graphic file (type png)
 <use ./fig/./logos/BusyBono.png>
 Package pdftex.def Info: ./fig/./logos/BusyBono.png  used on input line 29.
 (pdftex.def)             Requested size: 22.9427pt x 22.94469pt.
-<./fig/./bonos/Bonobono.jpeg, id=51, 136.51pt x 85.31876pt>
+<./fig/./bonos/Bonobono.jpeg, id=55, 136.51pt x 85.31876pt>
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 29.
 (pdftex.def)             Requested size: 171.1828pt x 106.53358pt.
-<./fig/./bonos/BonoMirror.jpeg, id=52, 136.51pt x 85.31876pt>
+<./fig/./bonos/BonoMirror.jpeg, id=56, 136.51pt x 85.31876pt>
 File: ./fig/./bonos/BonoMirror.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/BonoMirror.jpeg>
 Package pdftex.def Info: ./fig/./bonos/BonoMirror.jpeg  used on input line 29.
@@ -1306,7 +1538,7 @@ line 29.
 File: ot1mathkerncmss.fd 2013/03/27 Fontinst v1.933 font definitions for OT1/ma
 thkerncmss.
 )
-<./fig/./logos/BonoGood.png, id=53, 210.7875pt x 210.7875pt>
+<./fig/./logos/BonoGood.png, id=57, 210.7875pt x 210.7875pt>
 File: ./fig/./logos/BonoGood.png Graphic file (type png)
 <use ./fig/./logos/BonoGood.png>
 Package pdftex.def Info: ./fig/./logos/BonoGood.png  used on input line 29.
@@ -1574,7 +1806,7 @@ Overfull \hbox (16.02567pt too wide) detected at line 177
  []
 
 
-Overfull \vbox (22.04791pt too high) detected at line 177
+Overfull \vbox (34.04791pt too high) detected at line 177
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
@@ -1593,26 +1825,14 @@ Overfull \hbox (3.08342pt too wide) has occurred while \output is active
 [12
 
 ]
-Overfull \hbox (16.02567pt too wide) detected at line 186
+Overfull \hbox (16.02567pt too wide) detected at line 191
 []
  []
 
-File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
-<use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 186.
-(pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
-File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
-<use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 186.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
-[] 
+Overfull \vbox (14.83029pt too high) detected at line 191
  []
 
-[13
-
-]
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 191.
@@ -1626,24 +1846,40 @@ Overfull \hbox (3.08342pt too wide) has occurred while \output is active
 [] 
  []
 
-[14
+[13
 
 ]
-Overfull \hbox (16.02567pt too wide) detected at line 211
+Overfull \hbox (16.02567pt too wide) detected at line 204
 []
- []
-
-
-Overfull \vbox (8.82977pt too high) detected at line 211
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 211.
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 204.
 (pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 211.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 204.
+(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+
+Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+[] 
+ []
+
+[14
+
+]
+Overfull \hbox (16.02567pt too wide) detected at line 217
+[]
+ []
+
+File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
+<use ./fig/./bonos/Bonobono.jpeg>
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 217.
+(pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
+File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
+<use ./fig/./bonos/BonoWhy.png>
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 217.
 (pdftex.def)             Requested size: 69.198pt x 69.19986pt.
 
 Overfull \hbox (3.08342pt too wide) has occurred while \output is active
@@ -1658,7 +1894,7 @@ Overfull \hbox (16.02567pt too wide) detected at line 237
  []
 
 
-Overfull \vbox (52.04224pt too high) detected at line 237
+Overfull \vbox (8.82977pt too high) detected at line 237
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
@@ -1677,37 +1913,85 @@ Overfull \hbox (3.08342pt too wide) has occurred while \output is active
 [16
 
 ]
-\tf@nav=\write7
-\openout7 = `KinematicFitNote.nav'.
+Overfull \hbox (16.02567pt too wide) detected at line 263
+[]
+ []
 
-\tf@toc=\write8
-\openout8 = `KinematicFitNote.toc'.
 
-\tf@snm=\write9
-\openout9 = `KinematicFitNote.snm'.
+Overfull \vbox (52.04224pt too high) detected at line 263
+ []
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 238.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 238.
+File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
+<use ./fig/./bonos/Bonobono.jpeg>
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 263.
+(pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
+File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
+<use ./fig/./bonos/BonoWhy.png>
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 263.
+(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+
+Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+[] 
+ []
+
+[17
+
+]
+
+LaTeX Font Warning: Font shape `OT1/cmss/m/sc' in size <10> not available
+(Font)              Font shape `OT1/cmr/m/sc' tried instead on input line 267.
+
+File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
+<use ./fig/./bonos/Bonobono.jpeg>
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 267.
+(pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
+File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
+<use ./fig/./bonos/BonoWhy.png>
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 267.
+(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+
+Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+[] 
+ []
+
+[18
+
+ </usr/local/texlive/2018/texmf-dist/tex/latex/beamer/beamericonarticle.pdf>]
+\tf@nav=\write9
+\openout9 = `KinematicFitNote.nav'.
+
+\tf@toc=\write10
+\openout10 = `KinematicFitNote.toc'.
+
+\tf@snm=\write11
+\openout11 = `KinematicFitNote.snm'.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 268.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 268.
  (./KinematicFitNote.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 238.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 238.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 268.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 268.
 Package rerunfilecheck Info: File `KinematicFitNote.out' has not changed.
-(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+(rerunfilecheck)             Checksum: 06E27B416B3B1946CD705C501CA5B3BD;45.
 
 
 LaTeX Warning: There were multiply-defined labels.
 
+Package logreq Info: Writing requests to 'KinematicFitNote.run.xml'.
+\openout1 = `KinematicFitNote.run.xml'.
+
  ) 
 Here is how much of TeX's memory you used:
- 28280 strings out of 492649
- 626414 string characters out of 6129622
- 815086 words of memory out of 5000000
- 31508 multiletter control sequences out of 15000+600000
- 22627 words of font info for 86 fonts, out of 8000000 for 9000
+ 34525 strings out of 492649
+ 744976 string characters out of 6129622
+ 1276503 words of memory out of 5000000
+ 37696 multiletter control sequences out of 15000+600000
+ 22928 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 76i,24n,79p,806b,894s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 76i,24n,79p,806b,1606s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb><
+/usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><
 /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
 usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
 sr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr
@@ -1728,10 +2012,10 @@ l/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/euler/eurm5.pfb></usr/loc
 al/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/euler/eurm7.pfb></usr/lo
 cal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/euler/eusm10.pfb></usr/
 local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb>
-Output written on KinematicFitNote.pdf (16 pages, 277807 bytes).
+Output written on KinematicFitNote.pdf (18 pages, 290985 bytes).
 PDF statistics:
- 323 PDF objects out of 1000 (max. 8388607)
- 219 compressed objects within 3 object streams
- 50 named destinations out of 1000 (max. 500000)
- 210 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 358 PDF objects out of 1000 (max. 8388607)
+ 248 compressed objects within 3 object streams
+ 58 named destinations out of 1000 (max. 500000)
+ 218 words of extra memory for PDF output out of 10000 (max. 10000000)
 
