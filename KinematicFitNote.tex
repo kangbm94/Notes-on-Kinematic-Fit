@@ -71,7 +71,7 @@
 	\begin{block}{}
 			 In a straightforward interpretation, $\lambda$ can be viewed as a kind of 'normalized variance' of the kinematic constraint. It quantifies the error in momentum conservation($P_{1,meas}+P_{2,meas}-P_0$) relative to the overall resolution($\sigma_1^2+\sigma_2^2$).  Equation \eqref{dxd1} implies that 
 \begin{align}
-	P_{1}=P_{1,meas}+\sigma_1^2\lambda,
+	P_{1}=P_{1,meas}-\sigma_1^2\lambda,
 \end{align}
 			suggesting that the corrected momentum($P_1$) is essentially the measured momentum($P_{1,meas}$) augmented by a term proportional to the detector resolution and the normalized error of the kinematic constraint. Thus, we can assert that we have applied a statistically fair correction to the momentum, taking into account both the detector resolution and kinematic constraints.
 	\end{block}
@@ -187,6 +187,19 @@
 			V(m) = J_{m,m^0} VJ_{m,m^0}^\dagger =V -2 VCV  +VCVCV.\label{Vm}
 		\end{align}
 		You might want to neglect higher order term, but please keep 2nd order term at the moment. Some materials like \cite{Prob} had an error in this part.
+	\end{block}
+\end{frame}
+\begin{frame}{Variance of the Unknowns}
+	\begin{block}{}
+			Just like how we derived  Eq.\eqref{Vm} we can estimate the variance matrix of the unknowns. 
+		\begin{align}
+			V_U = J_{u,m0} V J_{u,m0}^T
+		\end{align}
+		$J_{u,m0}$ can be obtained from Eq.\eqref{Unu}. Denoting\\ $((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}$ as $K$, 
+		\begin{align}
+			J_{u^{\nu+1},m^0} = \pdf {u^{\nu+1}} {m^0} = \pdf{u^{\nu}}{m^0} - K\pdf R {m^0} \simeq -K \vecb F_m.
+		\end{align}
+		We have initial "Guess" for the unknowns; In principle, it is not a driven value from measurements. Then, $\pdf {u^0}{m_0} = 0$. Also, we approximate that the terms in 2nd or higher iterations are negligible: $J_{u,m^0}\simeq J_{u^0,m^0}$.
 	\end{block}
 \end{frame}
 \begin{frame}{Pull distribution}
