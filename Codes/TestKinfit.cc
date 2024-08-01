@@ -63,13 +63,13 @@ void TestKinfit(){
 		V1.SetTheta(ThLdMeas);
 		V1.SetPhi(PhLdMeas);
 		TVector3 V2(0,0,0);
-		PPMeas = gRandom->Gaus(PP,PP*ResP);
+		PPMeas = gRandom->Gaus(PP*ScalePP,PP*ResP);
 		ThPMeas = gRandom->Gaus(ThP,ResThP);
 		PhPMeas = gRandom->Gaus(PhP,ResPhP);
-		PPi1Meas = gRandom->Gaus(PPi1,PPi1*ResPi1);
+		PPi1Meas = gRandom->Gaus(PPi1*ScalePPi1,PPi1*ResPi1);
 		ThPi1Meas = gRandom->Gaus(ThPi1,ResTh);
 		PhPi1Meas = gRandom->Gaus(PhPi1,ResPh);
-		PPi2Meas = gRandom->Gaus(PPi2,PPi2*ResPi2);
+		PPi2Meas = gRandom->Gaus(PPi2*ScalePPi2,PPi2*ResPi2);
 		ThPi2Meas = gRandom->Gaus(ThPi2,ResTh);
 		PhPi2Meas = gRandom->Gaus(PhPi2,ResPh);
 		
@@ -186,6 +186,11 @@ void TestKinfit(){
 		double Apy=FAfter.at(1);
 		double Apz=FAfter.at(2);
 		double AE=FAfter.at(3);
+		for(int i=0;i<6;++i){
+			hPullLd[i]->Fill(PullLd.at(i));
+			hPullXi[i]->Fill(PullXi.at(i));
+		}
+
 	}
 	TCanvas* cLd = new TCanvas("cLd","cLd",1200,800);
 	cLd->Divide(3,3);
@@ -215,5 +220,17 @@ void TestKinfit(){
 	hPvalLd->Draw();
 	cPval->cd(2);
 	hPvalXi->Draw();
+	TCanvas* cPullLd = new TCanvas("cPullLd","cPullLd",1200,800);
+	cPullLd->Divide(3,2);
+	for(int i=0;i<6;++i){
+		cPullLd->cd(i+1);
+		hPullLd[i]->Draw();
+	}
+	TCanvas* cPullXi = new TCanvas("cPullXi","cPullXi",1200,800);
+	cPullXi->Divide(3,2);
+	for(int i=0;i<6;++i){
+		cPullXi->cd(i+1);
+		hPullXi[i]->Draw();
+	}
 }
 

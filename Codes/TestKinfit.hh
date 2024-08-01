@@ -18,6 +18,9 @@ double ResPLd = 0.03;
 double ResThLd = 0.01;
 double ResPhLd = 0.01;
 
+double ScalePP = 1.05;
+double ScalePPi1 = 1.05;
+double ScalePPi2 = 1.05;
 double PLd,ThLd,PhLd; 
 double PP,ThP,PhP; 
 double PPi1,ThPi1,PhPi1; 
