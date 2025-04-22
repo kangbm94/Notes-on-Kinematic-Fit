@@ -76,7 +76,7 @@
 			suggesting that the corrected momentum($P_1$) is essentially the measured momentum($P_{1,meas}$) augmented by a term proportional to the detector resolution and the normalized error of the kinematic constraint. Thus, we can assert that we have applied a statistically fair correction to the momentum, taking into account both the detector resolution and kinematic constraints.
 	\end{block}
 \end{frame}
-\begin{frame}{Fitting in General}
+\begin{frame}{Generalization to Multi-Variables}
 	\begin{block}{}
 		Assume that you have a set of measurements, $\textbf m =\{m_1,m_2\ldots m_N\}$, and some unmeasured data, $\textbf u =\{u_1,u_2\ldots u_J\}$ to be estimated. Kinematic constraints can be represented by sets of equations $\textbf f =\{f_1(m_1,m_2,\ldots m_N,u_1,u_2,\ldots u_N),f_2,\ldots f_K\}$. We will iteratively solve the problem by guessing the best parameter for each step and checking  $\chi^2$.  Let $\mathbf m^0$ denote our initial measured data, and $\mathbf m$ represent the 'guess' of the data in each iterative step.
 		\vspace{-2 mm}
@@ -147,7 +147,7 @@
 		\end{align*}
 	\end{block}
 \end{frame}
-\begin{frame}{Evolution of Variance Matrix}
+\begin{frame}{Evolution of the Variance Matrix}
 	\begin{block}{}
 		Take a look at Eq.\eqref{Mnu}. We see that $m^{\nu+1} $ is an addition(subtraction) of some parameters to the initially measured data. As we already know the error, i.e. Variance matrix, of initial data, we can estimate how error propagates through the fitting process. 
 		\begin{align}
@@ -159,7 +159,7 @@
 		\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Evolution of Variance Matrix.}
+\begin{frame}{Evolution of the Variance Matrix.}
 	\begin{block}{}
 		To begin with, let us express Eq \eqref{Mnu} in terms of $m^0$. At the moment we will drop the superscript $\nu$. As $\vecb f(\vecb m,\vecb u)$is a constant on $m^0$, $\vecb F_\vecb m$ also will be a constant to $m^0$. Then we only need to consider the derivatives of $\lambda$. By substituting \eqref{Unu} ,
 		\begin{align}
@@ -175,7 +175,7 @@
 		\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Evolution of Variance Matrix}
+\begin{frame}{Evolution of the Variance Matrix}
 	\begin{block}{}
 		Now define the symmetric matrices $G\equiv \vecb {F_m^\dagger} S^{-1}\vecb {F_m}$, $U\equiv (\mathbf{F}_u^\dagger S^{-1}\mathbf F_u)^{-1}$ and $H\equiv \mathbf{F}_m^\dagger S^{-1}\vecb {F_u}$. Then we have expressions for $\pdf{\lambda}{m^0}$ hence 
 		\begin{align}
@@ -189,19 +189,7 @@
 		You might want to neglect higher order term, but please keep 2nd order term at the moment. Some materials like \cite{Prob} had an error in this part.
 	\end{block}
 \end{frame}
-\begin{frame}{Variance of the Unknowns}
-	\begin{block}{}
-			Just like how we derived  Eq.\eqref{Vm} we can estimate the variance matrix of the unknowns. 
-		\begin{align}
-			V_U = J_{u,m0} V J_{u,m0}^T
-		\end{align}
-		$J_{u,m0}$ can be obtained from Eq.\eqref{Unu}. Denoting\\ $((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}$ as $K$, 
-		\begin{align}
-			J_{u^{\nu+1},m^0} = \pdf {u^{\nu+1}} {m^0} = \pdf{u^{\nu}}{m^0} - K\pdf R {m^0} \simeq -K \vecb F_m.
-		\end{align}
-		We have initial "Guess" for the unknowns; In principle, it is not a driven value from measurements. Then, $\pdf {u^0}{m_0} = 0$. Also, we approximate that the terms in 2nd or higher iterations are negligible: $J_{u,m^0}\simeq J_{u^0,m^0}$.
-	\end{block}
-\end{frame}
+
 \begin{frame}{Pull distribution}
 	\begin{block}{}
 		It is better to check the pull distribution to check the quality of a fit. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, pull is defined as:, 
@@ -228,13 +216,28 @@
 		Note that 2nd order term affects the variance.	
 	\end{block}
 \end{frame}
-\begin{frame}{Example: 3-C Fit }
+\begin{frame}{Variance of the Unknowns}
 	\begin{block}{}
-		Assuming a decay of $\Lambda\to p\pi^-$, let's represent the momentum of those particles in spherical coordinates:
+		Just like how we derived  Eq.\eqref{Vm} we can estimate the variance matrix of the unknowns. 
+		\vspace{-3 mm}
+		\begin{align}
+			V_U = J_{u,m0} V J_{u,m0}^T
+		\end{align}
+		$J_{u,m0}$ can be obtained from Eq.\eqref{Unu}. Denoting\\ $((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}$ as $K$, 
+		\vspace{-3 mm}
+		\begin{align}
+			J_{u^{\nu+1},m^0} = \pdf {u^{\nu+1}} {m^0} = \pdf{u^{\nu}}{m^0} - K\pdf R {m^0} \simeq -K \vecb F_m.
+		\end{align}
+		Note that we only have initial "Guess" for the unknowns; In principle, it is not a driven value from measurements. Then, $\pdf {u^0}{m_0} = 0$. Also, we approximate that the terms in 2nd or higher iterations are negligible: $J_{u,m^0}\simeq J_{u^0,m^0}$.
+	\end{block}
+\end{frame}
+\begin{frame}{Example: Mass-Constraint Fit}
+	\begin{block}{}
+		Assume a decay of $\Lambda\to p\pi^-$. Momentum of the involved particles are represented in spherical coordinate as:
 		\begin{align}
 			\vec{P}_\Lambda = (P_\Lambda,\theta_\Lambda,\phi_\lambda),\cdots
 		\end{align}
-		Then the kinematic constraints can be expressed as:
+		Then we define the energy-momentum constraint equation as:
 		\begin{align}
 			\begin{pmatrix}
 				f_1\\f_2\\f_3\\f_4
@@ -246,32 +249,89 @@
 			-\sqrt{P_\Lambda^2+m_\Lambda^2}+\sqrt{P_p^2+m_p^2}+\sqrt{P_\pi^2+m_\pi^2}
 			\end{pmatrix}.\label{FMat}
 		\end{align}
+		where the mass constraint is naturally implemented in energy term.
 	\end{block}
 \end{frame}
-\begin{frame}{Example: 3-C Fit}
+\begin{frame}{Example: Mass-Constraint Fit}
 	\begin{block}{}
 		We have unmeasured and measured variables as:
 		\begin{align}
-			\mathbf{u} = \{P_\Lambda\};\quad \mathbf{m}=\{\theta_\Lambda,\phi_\Lambda,P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\}.\label{variables}
+			\mathbf{u} = \{P_\Lambda,\theta_\Lambda,\phi_\Lambda\};\quad \mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\}.\label{variables}
 		\end{align}		
-		Since there is 1 unmeasured variable with 4 kinematical constraints, this is a 4-1 = 3-Constrained fit. Let us substitute Eq \eqref{FMat} and \eqref{variables} into Eq \eqref{KFChi2}s and its resulting equations. We get $\mathbf{F_u}$ and $\mathbf{F_m}$ as
+		Since we have 3 unmeasured variable with 4 kinematical constraints, this is a 4-3 = 1-Constrained fit. Let us substitute Eq \eqref{FMat} and \eqref{variables} into Eq \eqref{KFChi2}s and its resulting equations. We get $\mathbf{F_u}$ and $\mathbf{F_m}$ as
 		\begin{align}
 			\mathbf{F_u}=
 			\begin{pmatrix}
-				\pdf{f_1}{P_\Lambda}\\
-				\pdf{f_2}{P_\Lambda}\\
-				\pdf{f_3}{P_\Lambda}\\
-				\pdf{f_4}{P_\Lambda}
+				\pdf{f_1}{P_\Lambda}&\pdf{f_1}{\theta_\Lambda}&\pdf{f_1}{\phi_\Lambda}\\
+				\pdf{f_2}{P_\Lambda}&\pdf{f_2}{\theta_\Lambda}&\pdf{f_2}{\phi_\Lambda}\\
+				\pdf{f_3}{P_\Lambda}&\pdf{f_3}{\theta_\Lambda}&\pdf{f_3}{\phi_\Lambda}\\
+				\pdf{f_4}{P_\Lambda}&\pdf{f_4}{\theta_\Lambda}&\pdf{f_4}{\phi_\Lambda}
 			\end{pmatrix};\quad \mathbf{F_m}=\begin{pmatrix}
-			\pdf{f_1}{\theta_\Lambda} &\cdots&\pdf{f_1}{\phi_\pi} \\
-			\pdf{f_2}{\theta_\Lambda} &\cdots&\pdf{f_2}{\phi_\pi}\\
-			\pdf{f_3}{\theta_\Lambda} &\cdots&\pdf{f_3}{\phi_\pi}\\
-			\pdf{f_4}{\theta_\Lambda} &\cdots&\pdf{f_4}{\phi_\pi}
+			\pdf{f_1}{P_p} &\cdots&\pdf{f_1}{\phi_\pi} \\
+			\pdf{f_2}{P_p} &\cdots&\pdf{f_2}{\phi_\pi}\\
+			\pdf{f_3}{P_p} &\cdots&\pdf{f_3}{\phi_\pi}\\
+			\pdf{f_4}{P_p} &\cdots&\pdf{f_4}{\phi_\pi}
 			\end{pmatrix}
 		\end{align}
-		\begin{adjustwidth}{13mm}{}{
-		We have all the matrices to calculate in each step. By applying an appropriate variance matrix and employing $\chi^2$ selection criteria, we can kinematically fit the particles.}
-		\end{adjustwidth}
+		We have all the matrices to calculate in each step. By applying an appropriate variance matrix and employing $\chi^2$ selection criteria, we can do kinematic fit for the particles.
+	\end{block}
+\end{frame}
+\iffalse
+\begin{frame}{Estimating the Covariance in Helix Track}
+	\begin{block}{}
+		In many cases, we measure the momentum of reconstructed particles from their helical trajectories. The decay vertex is reconstructed from the intersection of two helix tracks, and the corresponding momentum direction is defined at the vertex of the helix. Since the transverse momentum is inversely proportional to the radius of the helical track, any deviation in momentum results in a corresponding deviation in the radius. As the radius increases or decreases, the tangent line at the intersection vertex rotates, leading to a strong correlation between the transverse momentum and the azimuth angle. Meanwhile, the zenith angle is defined from the pitch of the helix, which corresponds to the slope in arc-length vs $\Delta$ y of the spatial points used in helix fit.
+	\end{block}
+\end{frame}
+\fi
+\begin{frame}{Covariance Matrix in Helix Track}
+	\begin{block}{}
+	\tcl{3}{6}{
+	\vspace{-7 mm}
+	\begin{figure}
+		\includegraphics[width=4 cm]{PT_Phi}
+	\end{figure}
+}
+{
+	The cartoon on the left illustrates the correlation between the helical (or circular) track and the azimuth angle at the intersection point (or decay vertex). Since the helical trajectory is defined by measured spatial points, a deviation in radius does not shift the arc itself but moves the center of the circle. It is also worth noting that the arc length, $l$, remains nearly constant. 
+}
+If we let the azimuth angle at the center of the track as $\phi_0$, we deduce following relations:
+\vspace{-4 mm}
+\begin{align}
+	\phi = \phi_0 \pm \frac{l}{2r};\quad  \delta\phi = \pm\frac{l}{2r}\frac{\delta r}{r}= \pm\frac{l}{r}\frac{\delta p_T}{p_T}
+\end{align}
+\vspace{-2 mm}
+and we naturally obtain:
+\vspace{-2 mm}
+\begin{align}
+	\sigma_{\phi}^2 = \langle\delta\phi\delta\phi\rangle=\frac{l^2}{r^2p_{T}^2}\sigma^2_{p_T};\quad \textrm{Cov}(\phi,p_T)= \langle\delta\phi\delta p_T \rangle = \pm \frac{l}{rp_T}\sigma_{p_T}^2
+\end{align}
+\end{block}
+\end{frame}
+\begin{frame}{Covariance Matrix in Helix Track}
+	\begin{block}{}
+			\tcl{3}{6}{
+			\vspace{-7 mm}
+			\begin{figure}
+				\includegraphics[width=4 cm]{Res_Th}
+			\end{figure}
+		}
+		{
+			The left figure illustrates the relationship between the pitch(dz) and the helix fit. The pitch is determined by fitting the vertical displacement along transverse path of the helical trajectory. Denoting the polar angle is expressed as 
+		}
+$\theta = \frac{\pi}{2}-\arctan(dz)$, we estimate the varaiance of $\theta$ based on the fitting error of dz, the slope parameter of linear fit.
+		\begin{align*}
+			\sigma_{dz}^2 =\frac{\sum\delta_z^2/(n-2) }{\sum(x-\bar x)^2} \simeq \frac{n \sigma_z^2/(n-2)}{n L^2/12};\quad \sigma_\theta = \pdf{dz}{\theta}\sigma_{dz}=\frac{1}{1+dz^2}\sigma_{dz}.
+		\end{align*}
+		Note that, the momentum $p_z=p_T dz$ would also have some covariance with $\theta$,
+		\begin{align*}
+			\langle \delta p\delta \theta\rangle = dz\langle  \ctz{\delta p_T  \delta \theta}\rangle+	p_T\langle \delta dz \delta \theta\rangle =\frac{p_T}{1+dz^2}\sigma_{dz}^2.
+		\end{align*}
+	
+	\end{block}
+\end{frame}
+\begin{frame}{Example: MassVertex-Constraint Fit}
+	\begin{block}{}
+To be Updated..
 	\end{block}
 \end{frame}
 %\begin{frame}[allowframebreaks]{References}

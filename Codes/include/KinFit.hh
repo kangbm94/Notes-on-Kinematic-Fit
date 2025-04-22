@@ -16,13 +16,12 @@ class KinematicFitter{
 		int nConst;
 		int nMeas;
 		int nUnkn;
-		double Chi2_cut = 0.1;
+		double Chi2_cut = 0.01;
 		double Best_Chi2 = 1e18;
 		vector<double> best_pull ;
 		vector<double> best_Upull ;
-		int MaxStep = 100;
+		int MaxStep = 200;
 		double Best_Chi22nd = 1e18;
-		double damping = 1.00;
 		vector<TMatrixD>ScalingMats;
 		
 		vector<vector<double>> Pulls;
@@ -47,6 +46,7 @@ class KinematicFitter{
 		vector<double>	initial_constraints;
 		bool UpdateVariancies = false;
 		bool ScaleParams = true;
+		double retard = 1.;
 
 	public:
 		KinematicFitter(){};

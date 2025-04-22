@@ -1,6 +1,9 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{ProgressBar}[2019/11/14]
 %\RequirePackage{./sty/beamercolorthemetubs}
+\newlength{\beamer@tubs@foot@barwidth}
+\setlength{\beamer@tubs@foot@barwidth}{\paperwidth}
+\addtolength{\beamer@tubs@foot@barwidth}{-\beamer@tubs@foot@logowidth}
 
 \pgfdeclareverticalshading{rainbow}{100bp}
 {color(0bp)=(red); color(25bp)=(red); color(35bp)=(yellow);
@@ -13,7 +16,7 @@
 	
 	\leavevmode%
 	\includegraphics[width=\beamer@tubs@foot@logowidth]{./bonos/BonoWhy}
-	\vbox{}\vskip-0.7\beamer@tubs@foot@logoheight
+	\vbox{}\vskip-0.3\beamer@tubs@foot@logoheight
 	
 	% line, text and second logo
 	\hbox{
@@ -23,23 +26,18 @@
 		% line and text
 		\vbox{
 			%	  	  \vspace{5pt}
-			\begin{beamercolorbox}[wd=.81\paperwidth,ht=3pt,dp=1pt]{}%
+			\begin{beamercolorbox}[wd=\beamer@tubs@foot@barwidth,ht=3pt,dp=1pt]{}%
 				\begin{tikzpicture}
-					\fill[BonoWhite] (-0.405\paperwidth,4pt)  rectangle (0.405\paperwidth,-4pt);
+					\fill[BonoWhite] (-0.5 * \beamer@tubs@foot@barwidth,4pt)  rectangle (0.5 * \beamer@tubs@foot@barwidth,-4pt);
 					\shade[shading=rainbow,shading angle=270] 
-					(-0.405\paperwidth,4pt)  rectangle (-0.405\paperwidth+0.81\paperwidth*\progress,-4pt);
+					(-0.5 * \beamer@tubs@foot@barwidth,4pt)  rectangle (-0.5 * \beamer@tubs@foot@barwidth+\beamer@tubs@foot@barwidth*\progress,-4pt);
 					\draw node  {\textcolor{black}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}};
 				\end{tikzpicture}
 			\end{beamercolorbox}%
 
-			\begin{beamercolorbox}[wd=.81\paperwidth,leftskip=0.9cm,sep=3pt,ht=0.5\beamer@tubs@gaussmargin]{}
-				%			  \insertdate{} | \insertauthor{} | \insertshorttitle{} | Page \insertframenumber{} \beamer@tubs@pageofpages{} \inserttotalframenumber
-				\vspace{-7pt}
-				\insertauthor{} | \insertshorttitle{} | 
-			\end{beamercolorbox}
 			
-			\vspace{.7\beamer@tubs@foot@logoheight}
-			\vspace{.3\beamer@tubs@gaussmargin}  % (1 - 0.7)
+%			\vspace{.7\beamer@tubs@foot@logoheight}
+%			\vspace{.3\beamer@tubs@gaussmargin}  % (1 - 0.7)
 		}
 		
 		% second logo

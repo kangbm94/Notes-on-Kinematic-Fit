@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.2.13)  6 JUN 2024 17:50
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.2.13)  22 APR 2025 15:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1026,6 +1026,7 @@ LaTeX Warning: You have requested package `"./sty/ProgressBar"',
                but the package provides `ProgressBar'.
 
 Package: ProgressBar 2019/11/14
+\beamer@tubs@foot@barwidth=\skip98
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
 s/tikzlibraryshadings.code.tex
@@ -1196,12 +1197,12 @@ Package: cancel 2013/04/12 v2.2 Cancel math terms
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/subfigure/subfigure.sty
 Package: subfigure 2002/03/15 v2.1.5 subfigure package
-\subfigtopskip=\skip98
-\subfigcapskip=\skip99
+\subfigtopskip=\skip99
+\subfigcapskip=\skip100
 \subfigcaptopadj=\dimen269
-\subfigbottomskip=\skip100
+\subfigbottomskip=\skip101
 \subfigcapmargin=\dimen270
-\subfiglabelskip=\skip101
+\subfiglabelskip=\skip102
 \c@subfigure=\count353
 \c@lofdepth=\count354
 \c@subtable=\count355
@@ -1211,8 +1212,8 @@ Package: subfigure 2002/03/15 v2.1.5 subfigure package
 * Local config file subfigure.cfg used *
 ****************************************
 (/usr/local/texlive/2018/texmf-dist/tex/latex/subfigure/subfigure.cfg)
-\subfig@top=\skip102
-\subfig@bottom=\skip103
+\subfig@top=\skip103
+\subfig@bottom=\skip104
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/fancybox/fancybox.sty
 Package: fancybox 2010/05/15 1.4
@@ -1485,18 +1486,18 @@ LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 23.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
-<./fig/./logos/BusyBono.png, id=54, 361.35pt x 361.35pt>
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
+<./fig/./logos/BusyBono.png, id=53, 361.35pt x 361.35pt>
 File: ./fig/./logos/BusyBono.png Graphic file (type png)
 <use ./fig/./logos/BusyBono.png>
 Package pdftex.def Info: ./fig/./logos/BusyBono.png  used on input line 29.
-(pdftex.def)             Requested size: 22.9427pt x 22.94469pt.
-<./fig/./bonos/Bonobono.jpeg, id=55, 136.51pt x 85.31876pt>
+(pdftex.def)             Requested size: 81.93983pt x 81.94377pt.
+<./fig/./bonos/Bonobono.jpeg, id=54, 136.51pt x 85.31876pt>
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 29.
 (pdftex.def)             Requested size: 171.1828pt x 106.53358pt.
-<./fig/./bonos/BonoMirror.jpeg, id=56, 136.51pt x 85.31876pt>
+<./fig/./bonos/BonoMirror.jpeg, id=55, 136.51pt x 85.31876pt>
 File: ./fig/./bonos/BonoMirror.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/BonoMirror.jpeg>
 Package pdftex.def Info: ./fig/./bonos/BonoMirror.jpeg  used on input line 29.
@@ -1538,7 +1539,7 @@ line 29.
 File: ot1mathkerncmss.fd 2013/03/27 Fontinst v1.933 font definitions for OT1/ma
 thkerncmss.
 )
-<./fig/./logos/BonoGood.png, id=57, 210.7875pt x 210.7875pt>
+<./fig/./logos/BonoGood.png, id=56, 210.7875pt x 210.7875pt>
 File: ./fig/./logos/BonoGood.png Graphic file (type png)
 <use ./fig/./logos/BonoGood.png>
 Package pdftex.def Info: ./fig/./logos/BonoGood.png  used on input line 29.
@@ -1556,10 +1557,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 41
 []
  []
 
-
-Overfull \vbox (25.3371pt too high) detected at line 41
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 41.
@@ -1567,9 +1564,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 41.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 41.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1591,7 +1588,7 @@ Overfull \hbox (16.02567pt too wide) detected at line 57
  []
 
 
-Overfull \vbox (51.98816pt too high) detected at line 57
+Overfull \vbox (9.38138pt too high) detected at line 57
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
@@ -1601,9 +1598,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 57.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 57.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1614,10 +1611,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 69
 []
  []
 
-
-Overfull \vbox (10.57617pt too high) detected at line 69
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 69.
@@ -1625,9 +1618,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 69.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 69.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1638,10 +1631,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 78
 []
  []
 
-
-Overfull \vbox (11.71756pt too high) detected at line 78
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 78.
@@ -1649,9 +1638,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 78.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 78.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1669,10 +1658,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 88
 []
  []
 
-
-Overfull \vbox (20.52176pt too high) detected at line 88
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 88.
@@ -1680,9 +1665,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 88.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 88.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1700,9 +1685,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 99.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 99.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1713,10 +1698,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 111
 []
  []
 
-
-Overfull \vbox (10.57477pt too high) detected at line 111
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 111.
@@ -1724,9 +1705,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 111.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 111.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1737,10 +1718,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 129
 []
  []
 
-
-Overfull \vbox (5.9473pt too high) detected at line 129
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 129.
@@ -1748,9 +1725,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 129.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 129.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1761,10 +1738,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 149
 []
  []
 
-
-Overfull \vbox (40.41742pt too high) detected at line 149
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 149.
@@ -1772,9 +1745,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 149.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 149.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1792,9 +1765,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 161.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 161.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1805,10 +1778,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 177
 []
  []
 
-
-Overfull \vbox (34.04791pt too high) detected at line 177
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 177.
@@ -1816,9 +1785,9 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 177.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 177.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
@@ -1829,10 +1798,6 @@ Overfull \hbox (16.02567pt too wide) detected at line 191
 []
  []
 
-
-Overfull \vbox (14.83029pt too high) detected at line 191
- []
-
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
 Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 191.
@@ -1840,145 +1805,227 @@ Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 191.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
 Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 191.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
 [13
 
 ]
-Overfull \hbox (16.02567pt too wide) detected at line 204
+Overfull \hbox (16.02567pt too wide) detected at line 205
 []
- []
-
-
-Overfull \vbox (20.68832pt too high) detected at line 204
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 204.
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 205.
 (pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 204.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 205.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
 [14
 
 ]
-Overfull \hbox (16.02567pt too wide) detected at line 217
+Overfull \hbox (16.02567pt too wide) detected at line 218
 []
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 217.
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 218.
 (pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 217.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 218.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
 [15
 
 ]
-Overfull \hbox (16.02567pt too wide) detected at line 230
+Overfull \hbox (16.02567pt too wide) detected at line 233
 []
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 230.
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 233.
 (pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 230.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 233.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
 [16
 
 ]
-Overfull \hbox (16.02567pt too wide) detected at line 250
+Overfull \hbox (16.02567pt too wide) detected at line 254
 []
- []
-
-
-Overfull \vbox (8.82977pt too high) detected at line 250
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 250.
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 254.
 (pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 250.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 254.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
 [17
 
 ]
-Overfull \hbox (16.02567pt too wide) detected at line 276
+Overfull \hbox (16.02567pt too wide) detected at line 278
 []
  []
 
 
-Overfull \vbox (52.04224pt too high) detected at line 276
+Overfull \vbox (12.02646pt too high) detected at line 278
  []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 276.
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 278.
 (pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 276.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 278.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
 [18
 
 ]
+<./fig/PT_Phi.jpeg, id=246, 404.51125pt x 374.39874pt>
+File: ./fig/PT_Phi.jpeg Graphic file (type jpg)
+<use ./fig/PT_Phi.jpeg>
+Package pdftex.def Info: ./fig/PT_Phi.jpeg  used on input line 309.
+(pdftex.def)             Requested size: 113.81102pt x 105.33366pt.
 
-LaTeX Font Warning: Font shape `OT1/cmss/m/sc' in size <10> not available
-(Font)              Font shape `OT1/cmr/m/sc' tried instead on input line 280.
+Overfull \hbox (28.45276pt too wide) in paragraph at lines 309--309
+ [] 
+ []
+
+
+Overfull \hbox (16.02567pt too wide) detected at line 309
+[]
+ []
+
+
+Overfull \vbox (27.52676pt too high) detected at line 309
+ []
 
 File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
 <use ./fig/./bonos/Bonobono.jpeg>
-Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 280.
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 309.
 (pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
 File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
 <use ./fig/./bonos/BonoWhy.png>
-Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 280.
-(pdftex.def)             Requested size: 69.198pt x 69.19986pt.
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 309.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
 
-Overfull \hbox (3.08342pt too wide) has occurred while \output is active
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
 [] 
  []
 
 [19
+
+ <./fig/PT_Phi.jpeg>]
+<./fig/Res_Th.jpeg, id=254, 331.2375pt x 179.67125pt>
+File: ./fig/Res_Th.jpeg Graphic file (type jpg)
+<use ./fig/Res_Th.jpeg>
+Package pdftex.def Info: ./fig/Res_Th.jpeg  used on input line 331.
+(pdftex.def)             Requested size: 113.81102pt x 61.73167pt.
+
+Overfull \hbox (28.45276pt too wide) in paragraph at lines 331--331
+ [] 
+ []
+
+
+Overfull \hbox (16.02567pt too wide) detected at line 331
+[]
+ []
+
+
+Overfull \vbox (11.82443pt too high) detected at line 331
+ []
+
+File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
+<use ./fig/./bonos/Bonobono.jpeg>
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 331.
+(pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
+File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
+<use ./fig/./bonos/BonoWhy.png>
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 331.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
+
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
+[] 
+ []
+
+[20
+
+ <./fig/Res_Th.jpeg>]
+Overfull \hbox (16.02567pt too wide) detected at line 336
+[]
+ []
+
+File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
+<use ./fig/./bonos/Bonobono.jpeg>
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 336.
+(pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
+File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
+<use ./fig/./bonos/BonoWhy.png>
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 336.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
+
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
+[] 
+ []
+
+[21
+
+]
+
+LaTeX Font Warning: Font shape `OT1/cmss/m/sc' in size <10> not available
+(Font)              Font shape `OT1/cmr/m/sc' tried instead on input line 340.
+
+File: ./fig/./bonos/Bonobono.jpeg Graphic file (type jpg)
+<use ./fig/./bonos/Bonobono.jpeg>
+Package pdftex.def Info: ./fig/./bonos/Bonobono.jpeg  used on input line 340.
+(pdftex.def)             Requested size: 364.22015pt x 273.16483pt.
+File: ./fig/./bonos/BonoWhy.png Graphic file (type png)
+<use ./fig/./bonos/BonoWhy.png>
+Package pdftex.def Info: ./fig/./bonos/BonoWhy.png  used on input line 340.
+(pdftex.def)             Requested size: 36.42175pt x 36.42198pt.
+
+Overfull \hbox (3.08344pt too wide) has occurred while \output is active
+[] 
+ []
+
+[22
 
  </usr/local/texlive/2018/texmf-dist/tex/latex/beamer/beamericonarticle.pdf>]
 \tf@nav=\write9
@@ -1990,11 +2037,11 @@ Overfull \hbox (3.08342pt too wide) has occurred while \output is active
 \tf@snm=\write11
 \openout11 = `KinematicFitNote.snm'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 281.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 281.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 341.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 341.
  (./KinematicFitNote.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 281.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 281.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 341.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 341.
 Package rerunfilecheck Info: File `KinematicFitNote.out' has not changed.
 (rerunfilecheck)             Checksum: 06E27B416B3B1946CD705C501CA5B3BD;45.
 
@@ -2006,10 +2053,10 @@ Package logreq Info: Writing requests to 'KinematicFitNote.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 34531 strings out of 492649
- 745051 string characters out of 6129622
- 1276489 words of memory out of 5000000
- 37700 multiletter control sequences out of 15000+600000
+ 34569 strings out of 492649
+ 745839 string characters out of 6129622
+ 1278147 words of memory out of 5000000
+ 37729 multiletter control sequences out of 15000+600000
  22928 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  76i,24n,79p,806b,1606s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -2038,10 +2085,10 @@ cal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/euler/eurm7.pfb></usr/l
 ocal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/euler/eusm10.pfb></usr
 /local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb>
 
-Output written on KinematicFitNote.pdf (19 pages, 296624 bytes).
+Output written on KinematicFitNote.pdf (22 pages, 354932 bytes).
 PDF statistics:
- 371 PDF objects out of 1000 (max. 8388607)
- 259 compressed objects within 3 object streams
- 60 named destinations out of 1000 (max. 500000)
- 218 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 372 PDF objects out of 1000 (max. 8388607)
+ 254 compressed objects within 3 object streams
+ 66 named destinations out of 1000 (max. 500000)
+ 228 words of extra memory for PDF output out of 10000 (max. 10000000)
 

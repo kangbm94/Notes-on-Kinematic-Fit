@@ -6,6 +6,7 @@
 // Author: Kang Byungmin, kangbmw2@naver.com
 // For the mathematics of the fitting, please refer to:
 // https://github.com/kangbm94/Notes-on-Kinematic-Fit
+#define InvMFit 0
 
 void FourVectorFitter::UseVertex(bool status,TVector3 Vert1,TVector3 Vert2){
 	MeasDir = status;
@@ -97,6 +98,23 @@ void FourVectorFitter::SetConstraints(){
 		th_Q= Meas(4,0); 
 		ph_Q= Meas(5,0); 
 	}
+	double E_R = sqrt(p_R*p_R+mR*mR);
+	double dEdp_R = p_R/E_R;
+	double p_Rx = p_R*sin(th_R)*cos(ph_R);
+	double p_Ry = p_R*sin(th_R)*sin(ph_R);
+	double p_Rz = p_R*cos(th_R);	
+
+	double E_P = sqrt(p_P*p_P+mP*mP);
+	double dEdp_P = p_P/E_P;
+	double p_Px = p_P*sin(th_P)*cos(ph_P);
+	double p_Py = p_P*sin(th_P)*sin(ph_P);
+	double p_Pz = p_P*cos(th_P);
+
+	double E_Q = sqrt(p_Q*p_Q+mQ*mQ);
+	double dEdp_Q = p_Q/E_Q;
+	double p_Qx = p_Q*sin(th_Q)*cos(ph_Q);
+	double p_Qy = p_Q*sin(th_Q)*sin(ph_Q);
+	double p_Qz = p_Q*cos(th_Q);
 
 	double f1 = 
 		-p_R*sin(th_R)*cos(ph_R) 
@@ -111,9 +129,12 @@ void FourVectorFitter::SetConstraints(){
 		+p_P*cos(th_P)
 		+p_Q*cos(th_Q);//Constraint on z momentum 
 	double f4	=
-		- sqrt(p_R*p_R+mR*mR)
-		+ sqrt(p_P*p_P+mP*mP)
-		+ sqrt(p_Q*p_Q+mQ*mQ);//Constraint on Energy
+#if InvMFit
+	mR*mR - (pow(E_P + E_Q,2)- pow(hypot(p_Px+p_Qx,hypot(p_Py+p_Qy,p_Pz+p_Qz)),2));//Constraint on Rambda Energy
+#else
+		-E_R + E_P + E_Q;//Constraint on Energy
+#endif
+
 
 	double df1du1 = -sin(th_R)*cos(ph_R);//df1 / d(P_R)
 	double df1du2 = -p_R*cos(th_R)*cos(ph_R);//It could be df1/dm1 in case of 3-C fit.However, I didnt want to change the token... Mathematically it should be df1 / d (Th_R)
@@ -144,17 +165,53 @@ void FourVectorFitter::SetConstraints(){
 	double df3dm4 = cos(th_Q);
 	double df3dm5 = -p_Q*sin(th_Q);
 	double df3dm6 = 0;
-	
-	double ER = sqrt(p_R*p_R+mR*mR);
-	double df4du1 = -p_R/ER;
+
+#if InvMFit
+	double df4du1 = 0;
 	double df4du2 = 0;
 	double df4du3 = 0;
-	double df4dm1 = p_P/sqrt(p_P*p_P+mP*mP);
+	double df4dm1 = -2*( (E_P+E_Q)*dEdp_P
+		- (p_Px+p_Qx)*cos(th_P)*cos(ph_P)
+		- (p_Py+p_Qy)*cos(th_P)*sin(ph_P)
+		- (p_Pz+p_Qz)*cos(th_P) 
+	);  
+	double df4dm2 = -2*(
+		-(p_Px+p_Qx)*p_P*cos(th_P)*cos(ph_P)
+		-(p_Py+p_Qy)*p_P*cos(th_P)*sin(ph_P)
+		+(p_Pz+p_Qz)*p_P*sin(th_P)
+	);
+	double df4dm3 = -2*(
+		-(p_Px+p_Qx)*p_P*sin(th_P)*sin(ph_P)
+		+(p_Py+p_Qy)*p_P*sin(th_P)*cos(ph_P)
+	);
+	
+	
+	double df4dm4 = -2*( (E_P+E_Q)*dEdp_Q
+		- (p_Px+p_Qx)*sin(th_Q)*cos(ph_Q)
+		- (p_Py+p_Qy)*sin(th_Q)*sin(ph_Q)
+		- (p_Pz+p_Qz)*cos(th_Q) 
+	);
+	double df4dm5 = -2*(
+		-(p_Px+p_Qx)*p_Q*cos(th_Q)*cos(ph_Q)
+		-(p_Py+p_Qy)*p_Q*cos(th_Q)*sin(ph_Q)
+		+(p_Pz+p_Qz)*p_Q*sin(th_Q)
+	);
+	double df4dm6 = -2*(
+		-(p_Px+p_Qx)*p_Q*sin(th_Q)*sin(ph_Q)
+		+(p_Py+p_Qy)*p_Q*sin(th_Q)*cos(ph_Q)
+	);
+#else
+	double df4du1 = -p_R/E_R;
+	double df4du2 = 0;
+	double df4du3 = 0;
+	double df4dm1 = p_P/E_P;
 	double df4dm2 = 0;
 	double df4dm3 = 0;
-	double df4dm4 = p_Q/sqrt(p_Q*p_Q+mQ*mQ);
+	double df4dm4 = p_Q/E_Q;
 	double df4dm5 = 0;
 	double df4dm6 = 0;
+#endif	
+
 
 
 	double df1du1du1 = 0;
@@ -192,7 +249,7 @@ void FourVectorFitter::SetConstraints(){
 	double df3du3du2 = 0;
 	double df3du3du3 = 0;
 	
-	double df4du1du1 = -mR*mR/ER/ER/ER;
+	double df4du1du1 = -mR*mR/E_R/E_R/E_R;
 	double df4du1du2 = 0;
 	double df4du1du3 = 0;
 	

@@ -47,6 +47,8 @@
 \newlength{\beamer@tubs@logoheight}
 \setlength{\beamer@tubs@logoheight}{.25\paperheight}
 
+
+
 \newlength{\beamer@tubs@topmargin}
 \setlength{\beamer@tubs@topmargin}{.21\paperheight}
 
@@ -74,17 +76,18 @@
   \@tempdima=\textwidth\textwidth=\paperwidth\hsize=\textwidth\def\\{,}\vbox{}\vskip-1.5ex%
 
   \begin{beamercolorbox}[ht=\beamer@tubs@topmargin]{}
-%    \vbox{}\vskip\beamer@tubs@topmargin
-	 \llap{\includegraphics[height=\beamer@tubs@logoheightr]{./logos/BusyBono}\hskip-\paperwidth\hskip\beamer@tubs@gaussmargin}
-	 \vspace{\beamer@tubs@gaussmargin}
+    \vbox{}\vskip\beamer@tubs@gaussmargin
+    %	\vbox{}\vskip-\beamer@tubs@logovskip
+	 \llap{
+	 	\includegraphics[height=1.2\beamer@tubs@logoheight]{./logos/BusyBono}\hskip-\paperwidth\hskip\beamer@tubs@gaussmargin
+	 	}
+%	 \vspace{\beamer@tubs@gaussmargin}
   \end{beamercolorbox}
-
 	\hbox{}\hskip\beamer@tubs@gaussmargin
 	\vbox{
 	 % header / picture
 	 \begin{beamercolorbox}[wd=\beamer@tubs@gausswidth,ht=\beamer@tubs@gausstopfrst]{title page header}\includegraphics[width=\beamer@tubs@gausswidthhalf,height=\beamer@tubs@gausstopfrst]{./bonos/Bonobono}\includegraphics[width=\beamer@tubs@gausswidthhalf,height=\beamer@tubs@gausstopfrst]{./bonos/BonoMirror}
     \end{beamercolorbox}%
-  
 	 % title area
 	 \begin{beamercolorbox}[wd=\beamer@tubs@gausswidth,ht=\beamer@tubs@gausstopscnd,leftskip=\beamer@tubs@normalmargin,sep=\beamer@tubs@gaussmargin]{title page text}
 		 		 \usebeamerfont{title}\inserttitle\par%
@@ -97,14 +100,11 @@
        \fi%  
       \vspace{1em}%
 	 \end{beamercolorbox}
-
 	 \vbox{}\vskip-\beamer@tubs@gaussmargin%
-
 	 % bottom line
     \begin{beamercolorbox}[wd=\beamer@tubs@gausswidth,ht=\beamer@tubs@gaussmargin,dp=0pt]{title page bottom}%
     \end{beamercolorbox}%
 	}
-
 	\vbox{}\vskip-\beamer@tubs@logovskip
 	\includegraphics[height=\beamer@tubs@logoheight]{./logos/BonoGood}
     
