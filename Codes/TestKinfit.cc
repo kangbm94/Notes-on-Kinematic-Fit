@@ -126,8 +126,8 @@ void TestCascadeFit()
 //		cout<<Form("dE = %f",E_Xi-E_P-E_Pi1-E_Pi2)<<endl;
 		CascadeFitter KFCascade(PMeas, Pi1Meas, Pi2Meas);
 //		CascadeFitter KFCascade(P, Pi1, Pi2);
-		KFCascade.SetMaximumStep(200);
-//		KFCascade.UpdateVariance(true);
+		KFCascade.SetMaximumStep(5);
+		KFCascade.UpdateVariance(true);
 //		KFCascade.ScaleParameters(false);
 		double Variance[9] = {
 			rp * rp, ResThP * ResThP, ResPhP * ResPhP,

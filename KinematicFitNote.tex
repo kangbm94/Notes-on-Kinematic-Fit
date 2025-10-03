@@ -1,5 +1,6 @@
 \documentclass[
 	xcolor=dvipsnames,
+	aspectratio=169,	
 	10pt, 
 	]{beamer}
 \graphicspath{{./fig/}}
@@ -10,7 +11,27 @@
 {
 	\includegraphics[width=\paperwidth,height=\paperheight]{./bonos/Bonobono}%
 }
+\setbeamercolor{section page}{fg = white}
+\setbeamertemplate{section page}
+{
+	\begin{centering}
+		\vfill
+		\usebeamercolor[fg]{section page}
+			\usebeamerfont{section title}\Huge \insertsection\par
+		\vfill
+	\end{centering}
+}
 
+\AtBeginSection[] % show section page automatically
+{
+	\begin{frame}
+		\sectionpage
+	\end{frame}
+}
+\setbeamertemplate{section in toc}{\Large \inserttocsectionnumber.~\inserttocsection}
+\setbeamertemplate{subsection in toc}{\hspace{1.2em} $\bullet$~\inserttocsubsection}
+\setbeamercolor{section in toc}{fg=white}
+\setbeamercolor{subsection in toc}{fg=white}
 \usepackage{biblatex}
 \bibliography{Bibilography.bib}
 \title[]{Notes on Kinematic Fit}
@@ -27,68 +48,107 @@
        \titlepage
         \footnotetext[1]{Bono University}
 \end{frame}
-\begin{frame}{Introduction}
+\begin{frame}{Outline}
+	\tableofcontents
+\end{frame}
+\section{Introduction}
+\begin{frame}{Measurement Error}	
+	\tcl{8}{8}{
+		\begin{figure}
+			\includegraphics[width=.9\textwidth]{TwoBodyDecay}
+		\end{figure}
+	}{
 	\begin{block}{}
-	Assume that we have measured a momentum of two particles, which decay from a mother particle with an exact momentum $P_0$. In the real world, every measurement inherently carries some errors. Consequently, the measured momentum may not satisfy momentum conservation:
-	\begin{align}
-	P_{0}=P_{1}+P_{2};\quad P_{1,meas}+P_{2,meas}\neq P_{0} 
-	\end{align}
-	However, since these measurements did not incorporate our prior knowledge from physics, we can make a more informed estimate of the measured parameters. If the momentum resolution of particles 1 and 2 is well-known, then we can express $\chi^2$ as
+		\large
+		Assume a beam with momentum $\vec P^-$ decays into $\vec P_1$ and $\vec P_2$. Measured momentum are smeared due to detector resolution, leading to unbalance in the momentum conservation.
+		\begin{align}
+			\vec P_{0}=\vec P_{1}+\vec P_{2};\quad \vec P_{1,meas} + \vec P_{2,meas}\neq \vec P_{0} 
+		\end{align}
+		
+	\end{block}
+	}
+	\begin{block}{}
+		\large
+	We can define the $\chi^2$ to quantitatively represent our measurement error. However, we can't derive meaningful expressions from this $\chi^2$. 
 	\begin{align}
 		\chi^2= \frac{(P_{1}-P_{1,meas})^2}{\sigma_1^2}+\frac{(P_{2}-P_{2,meas})^2}{\sigma_2^2}\label{chi2}
 	\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Introduction}
+\begin{frame}{Constrained Optimization with The Lagrange Multiplier}
 	\begin{block}{}
-		By incorporating the \textit{Kinematic Constraints}, specifically \textit{momentum conservation}, into our example, we introduce additional terms known as \textit{Lagrange Multiplier} to Equation \eqref{chi2}:
-		\vspace{-5 mm}
+		By incorporating the \textit{Kinematic Constraints}, specifically \textit{momentum conservation}, we involve additional knowledge to \eqref{chi2}. This is known as the \textit{Lagrange Multiplier}
 		\begin{align}
-			\chi^2= \frac{(P_{1}-P_{1,meas})^2}{\sigma_1^2}+\frac{(P_{2}-P_{2,meas})^2}{\sigma_2^2}\label{chi2} + 2\mathbf{\lambda(P_{1,meas}+P_{2,meas}-P_0)}
+			\chi^2= \frac{(P_{1,KF}-P_{1,meas})^2}{\sigma_1^2}+\frac{(P_{2,KF}-P_{2,meas})^2}{\sigma_2^2} + 2\mathbf{\lambda(P_{1,KF}+P_{2,KF}-P_0)}\label{LagMulti}
 		\end{align} 
-		We then proceed to evaluate the conditions for local minima, i.e. setting the partial derivatives equal to zero:
+		Now we have meaningful expressions to minimize $\chi^2$, hence get better estimations for the measurement.
 		\begin{align}
-			\frac{1}{2}\pdf{\chi2}{P_{1}}&=\frac{(P_{1}-P_{1,meas})}{\sigma_1^2}+\lambda=0\label{dxd1}\\
-			\frac{1}{2}\pdf{\chi2}{P_{2}}&=\frac{(P_{2}-P_{2,meas})}{\sigma_2^2}+\lambda=0\label{dxd2}
+			\frac{1}{2}\pdf{\chi2}{P_{1,KF}}&=\frac{(P_{1,KF}-P_{1,meas})}{\sigma_1^2}+\lambda=0\label{dxd1}\\
+			\frac{1}{2}\pdf{\chi2}{P_{2,KF}}&=\frac{(P_{2,KF}-P_{2,meas})}{\sigma_2^2}+\lambda=0\label{dxd2}
 			\\
-			\frac{1}{2}\pdf{\chi2}{\lambda}&=(P_{1}+P_{2}-P_0)=0\label{dxdl}
+			\frac{1}{2}\pdf{\chi2}{\lambda}&=(P_{1,KF}+P_{2,KF}-P_0)=0\label{dxdl}
 		\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Introduction}
+\begin{frame}{Why Better Resolution?}
 	\begin{block}{}
-		By solving the equations \ref{dxd1},\ref{dxd2},\ref{dxdl}, we obtain the following expressions:
+		By solving the equations \ref{dxd1},\ref{dxd2},\ref{dxdl} and defining $\delta_i = P_{i,meas} - P_i$, we obtain the following expressions:
 		\begin{align}
-			P_1& =\frac{\sigma_2^2 P_{1,meas}-\sigma_1^2P_{2,meas}+\sigma_1^2P_0}{\sigma_1^2+\sigma_2^2}\\
-			P_2& = \frac{\sigma_1^2 P_{2,meas}-\sigma_2^2P_{1,meas}+\sigma_2^2P_0}{\sigma_1^2+\sigma_2^2}\\
-			\lambda&=\frac{P_{1,meas}+P_{2,meas}-P_0}{\sigma_1^2+\sigma_2^2}.
+			\lambda&=\frac{P_{1,meas}+P_{2,meas}-P_0}{\sigma_1^2+\sigma_2^2} = \frac{\delta_1 + \delta_2}{\sigma_1^2+\sigma_2^2}\\
+			P_{1,KF}&=P_{1,meas}-\sigma_1^2\lambda\\
+			P_{2,KF}&=P_{2,meas}-\sigma_2^2\lambda
 		\end{align}
-			Now, we have obtained the 'corrected' measurements with minimized $\chi^2$, which incorporates momentum conservation.
-			Let us delve into the interpretation of these equations.
+		\begin{align}
+		<P_{1,KF}-P_{1}>& =<P_{1,KF}-P_{1,meas}+\delta_{1}>  = <-\sigma_1^2\lambda+\delta_1>\nonumber\\
+		&=<\frac{-\sigma_1^2}{\sigma_1^2+\sigma_2^2}(\delta_{1}+\delta_{2})+\delta_1>=<\frac{\sigma_2^2\delta_1 -\sigma_1^2\delta_2}{\sigma_1^2+\sigma_2^2}> \\
+		\sigma_{1,KF}^2 &= <(P_{1,KF}- P_1)^2> =\frac{\sigma_2^4\cancelto{\sigma_1^2}{<\delta_1^2>}+\sigma_1^4\cancelto{\sigma_2^2}{<\delta_2^2>}}{(\sigma_1^2+\sigma_2^2)^2} = \frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}<\sigma_1^2
+	\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Introduction}
+\begin{frame}{The Covariance After Kinematic Fit}
 	\begin{block}{}
-			 In a straightforward interpretation, $\lambda$ can be viewed as a kind of 'normalized variance' of the kinematic constraint. It quantifies the error in momentum conservation($P_{1,meas}+P_{2,meas}-P_0$) relative to the overall resolution($\sigma_1^2+\sigma_2^2$).  Equation \eqref{dxd1} implies that 
-\begin{align}
-	P_{1}=P_{1,meas}-\sigma_1^2\lambda,
-\end{align}
-			suggesting that the corrected momentum($P_1$) is essentially the measured momentum($P_{1,meas}$) augmented by a term proportional to the detector resolution and the normalized error of the kinematic constraint. Thus, we can assert that we have applied a statistically fair correction to the momentum, taking into account both the detector resolution and kinematic constraints.
+		\begin{align}
+			cov(P_{1},P_{2})_{KF}& = <\delta_{1,KF}\delta_{2,KF}> = <(\delta_1 -\sigma_1^2\lambda)(\delta_2-\sigma_2^2\lambda)> \nonumber\\
+			&= \sigma_1^2\sigma_2^2\cancelto{\frac{1}{\sigma_1^2+\sigma_2^2}}{<\lambda^2>}\quad -\quad \frac{\sigma_1^2<\delta_2^2>+\sigma_2^2<\delta_1^2>}{\sigma_1^2+\sigma_2^2} =-\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}
+		\end{align}
+		\begin{align}
+			V=\begin{pmatrix}
+				\sigma_1^2&0\\
+				0&\sigma_2^2
+			\end{pmatrix}\to V_{KF} =
+			\begin{pmatrix}
+\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}&-\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}\\
+-\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}&\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}
+			\end{pmatrix}
+		\end{align}
+		\begin{itemize}
+			\item Improved momentum resolution
+			\item Negative correlation between $P_1$ and $P_2$
+		\end{itemize}
 	\end{block}
 \end{frame}
 \begin{frame}{Generalization to Multi-Variables}
 	\begin{block}{}
-		Assume that you have a set of measurements, $\textbf m =\{m_1,m_2\ldots m_N\}$, and some unmeasured data, $\textbf u =\{u_1,u_2\ldots u_J\}$ to be estimated. Kinematic constraints can be represented by sets of equations $\textbf f =\{f_1(m_1,m_2,\ldots m_N,u_1,u_2,\ldots u_N),f_2,\ldots f_K\}$. We will iteratively solve the problem by guessing the best parameter for each step and checking  $\chi^2$.  Let $\mathbf m^0$ denote our initial measured data, and $\mathbf m$ represent the 'guess' of the data in each iterative step.
-		\vspace{-2 mm}
+		Assume that we have a set of measured data $\mathbf{m^0}$, unknown parameters $\mathbf {u^0}$ and constraints $\mathbf f^0$.
 		\begin{align}
-			\chi^2(\textbf{m}) = (\textbf{m}^0-\textbf{m})^\dagger V^{-1}(\textbf{m}^0-\textbf{m})+2\mathbf\lambda^\dagger \textbf f(\textbf{m,u}).\label{KFChi2}
+			\mathbf {m^0} =\{m_1^0,m_2^0\ldots m_N^0\};\quad \mathbf {u^0} =\{u_1^0,u_2^0\ldots u_J^0\}\nonumber\\
+			\mathbf f =\{f_1(m_1^0,m_2^0,\ldots m_N^0,u_1^0,u_2^0,\ldots u_N^0),f_2^0,\ldots f_K^0\}
 		\end{align}
-		Here, the Lagrange multiplier $\mathbf \lambda =\{\lambda_1,\lambda_2,\ldots\lambda_K\}$ is not just a number but a column vector with k elements, corresponding to each kinematic constraint in $\mathbf f$. Our task is to minimize $\chi^2$ to obtain the best guesses in statistically fair method.	
+		 Let $\mathbf m^0$ denote our initial measured data, and $\mathbf m$ represent the 'guess' of the data in each iterative step, just alike $P_{KF}$s in the previous example. Equation \eqref{LagMulti} is generalized to:
+		\begin{align}
+			\chi^2(\mathbf{m}) = (\mathbf{m}^0-\mathbf{m})^\dagger V^{-1}(\mathbf{m}^0-\mathbf{m})+2\mathbf\lambda^\dagger \mathbf {f}(\mathbf{m,u}).\label{KFChi2}
+		\end{align}
+		Here, the Lagrange multiplier $\mathbf \lambda =\{\lambda_1,\lambda_2,\ldots\lambda_K\}$ is not just a number but a column vector with k elements, corresponding to each kinematic constraint in $\mathbf f$. 
 	\end{block}
 \end{frame}
+
 \begin{frame}{$\chi^2$ Minimization}
 	\begin{block}{}
-		By (partially)differentiating with respect to all variables involved, we obtain the gradients of $\chi^2$. Setting all of them to zero indicates that we have reached a minimum point of $\chi^2$. We have 3 sets of gradient equations:
+		We want to solve the equation
+		\begin{align}
+			\vec \nabla \chi^2 =0
+		\end{align}
+		to obtain the minimized state. The differential term are listed within three groups.
 		\begin{align}
 			\nabla_{\mathbf m} &= -2 V^{-1}(\mathbf m^0)(\mathbf m^0-\mathbf m) + 2 \mathbf F_\mathbf m^\dagger(\mathbf{m,u})\mathbf\lambda=0\label{GradM}\\
 			\nabla_{\mathbf u} &= 2\mathbf F_\mathbf u^\dagger(\mathbf{m,u})\mathbf \lambda =0\label{GradU}\\
@@ -96,7 +156,92 @@
 		\end{align}
 		Here, the subscripts denote partial derivatives. i.e. ($(\mathbf {F}_m)_{ki}\equiv\pdf {f_k}{m_i}$).
 	\end{block}
+	\begin{block}{User Should Define...}
+		\begin{table}
+			\begin{tabular}{c|c|c|c}
+				$\mathbf{m}$&$\mathbf{u}$&$\mathbf{f}$&$\mathbf{V}$\\\hline
+				Measured Data&Unknown parameters&Constraints&Covariance Matrix
+			\end{tabular}
+		\end{table}
+	\end{block}
 \end{frame}
+\section{Example: Mass-Constraint Fit}
+\begin{frame}{Example: $\Lambda\to p\pi$, Defining Variables and Constraints}
+	\begin{block}{}
+		Assume a decay of $\Lambda\to p\pi^-$. We define the measurements and unknowns as:
+		\begin{align}
+			\mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\};\quad\mathbf{u} = \{P_\Lambda,\theta_\Lambda,\phi_\Lambda\}
+		\end{align}
+		Then we define the energy-momentum constraint equation as:
+		\begin{align}
+			\begin{pmatrix}
+				f_1\\f_2\\f_3\\f_4
+			\end{pmatrix}=
+			\begin{pmatrix}
+				-P_\Lambda\sin\theta_\Lambda\cos\phi_\Lambda+P_p\sin\theta_p\cos\phi_p+P_\pi\sin\theta_\pi\cos\phi_\pi\\
+				-P_\Lambda\sin\theta_\Lambda\sin\phi_\Lambda+P_p\sin\theta_p\sin\phi_p+P_\pi\sin\theta_\pi\sin\phi_\pi\\
+				-P_\Lambda\cos\theta_\Lambda+P_p\cos\theta_p+p_\pi\cos\theta_\pi\\
+				-\sqrt{P_\Lambda^2+m_\Lambda^2}+\sqrt{P_p^2+m_p^2}+\sqrt{P_\pi^2+m_\pi^2}
+			\end{pmatrix}.\label{FMat}
+		\end{align}
+		where the mass constraint is naturally implemented in energy term.
+		
+		Since we have 3 unmeasured variable with 4 kinematical constraints, this is a 4-3 = 1-Constrained fit.
+	\end{block}
+\end{frame}
+\begin{frame}{Example: $\Lambda\to p\pi$, The Derivatives}
+	\begin{block}{}
+		 We get $\mathbf{F_u}$ and $\mathbf{F_m}$ as
+		\begin{align}
+			\mathbf{F_u}=
+			\begin{pmatrix}
+				\pdf{f_1}{P_\Lambda}&\pdf{f_1}{\theta_\Lambda}&\pdf{f_1}{\phi_\Lambda}\\
+				\pdf{f_2}{P_\Lambda}&\pdf{f_2}{\theta_\Lambda}&\pdf{f_2}{\phi_\Lambda}\\
+				\pdf{f_3}{P_\Lambda}&\pdf{f_3}{\theta_\Lambda}&\pdf{f_3}{\phi_\Lambda}\\
+				\pdf{f_4}{P_\Lambda}&\pdf{f_4}{\theta_\Lambda}&\pdf{f_4}{\phi_\Lambda}
+			\end{pmatrix};\quad \mathbf{F_m}=\begin{pmatrix}
+				\pdf{f_1}{P_p} &\cdots&\pdf{f_1}{\phi_\pi} \\
+				\pdf{f_2}{P_p} &\cdots&\pdf{f_2}{\phi_\pi}\\
+				\pdf{f_3}{P_p} &\cdots&\pdf{f_3}{\phi_\pi}\\
+				\pdf{f_4}{P_p} &\cdots&\pdf{f_4}{\phi_\pi}
+			\end{pmatrix}
+		\end{align}
+		We have all the matrices to calculate in each step. By applying an appropriate variance matrix and employing $\chi^2$ selection criteria, we can do kinematic fit for the particles.
+	\end{block}
+\end{frame}
+\begin{frame}{Example: $\Xi\to \Lambda\pi$, $\Lambda\to p\pi$}
+	\begin{block}{}
+		We require two mass constraints for $\Xi\to \Lambda\pi;\quad \Lambda\to p\pi$. In this case, careful considerations on the selection of variables. We will select
+		\begin{align}
+			\mathbf{u} = \{P_\Xi,\theta_\Xi,\phi_\Xi\};\quad \mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\}
+		\end{align}
+		and define five constraints as:
+		\begin{align}
+			\begin{pmatrix}
+				f_1\\f_2\\f_3\\f_4\\f_5
+			\end{pmatrix}=
+			\begin{pmatrix}
+				-P_{\Xi,x}+P_{p,x}+P_{{\pi_\Lambda},x}+P_{{\pi_\Xi},x}\\
+				-P_{\Xi,y}+P_{p,y}+P_{{\pi_\Lambda},y}+P_{{\pi_\Xi},y}\\
+				-P_{\Xi,z}+P_{p,z}+P_{{\pi_\Lambda},z}+P_{{\pi_\Xi},z}\\
+				-E_\Lambda +E_p+E_{\pi_\Lambda}\\
+				-E_\Lambda +E_p+E_{\pi_\Lambda}+E_{\pi_\Xi}
+			\end{pmatrix}.
+		\end{align}
+		$\Lambda$ variables are not selected in $\mathbf u$ to avoid negative DoF.($N_{f} - N_{u} = 5 - 6 = -1$)
+			
+		Note that \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters.  
+	\end{block}
+\end{frame}
+\section{Example: $\Xi $ decay at J-PARC}
+\section{Tricks}
+\begin{frame}{Off-diagonal Reduction}
+	content...
+\end{frame}
+\begin{frame}{Parameter Normalization}
+	content...
+\end{frame}
+\section{Calculations}
 \begin{frame}{Processing Iterative Steps.}
 	\begin{block}{}
 		We can express the following equations based on the ones provided above:
@@ -105,7 +250,7 @@
 			&(\mathbf{F}_u^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelU}\\
 			&\mathbf f^\nu + \mathbf F^\nu_m (\mathbf m^{\nu+1}-\mathbf m^\nu) + \mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu)=0\label{DelL}.
 		\end{align}
-		Equation \eqref{DelL} is not a direct consequence of Equation \eqref{GradU} but rather a linear approximation to proceed with our iteration step. Expanding the $\nabla_\lambda$ term with a Taylor series leads to this equation. 
+		Equation \eqref{DelL} is not a direct consequence of Equation \eqref{GradU} but rather a \textit{linear approximation} to proceed with our iteration step. Expanding the $\nabla_\lambda$ term with a Taylor series leads to this equation. 
 		Note that, as our parameters $\mathbf m$ and $\mathbf u$ are updated during the step, our constraint matrix $\mathbf f$ should also be updated during the iteration. Here, $\lambda$ should be indexed as $\nu+1$ since it is a parameter to be guessed in the next step.
 	\end{block}
 \end{frame}
@@ -231,49 +376,19 @@
 		Note that we only have initial "Guess" for the unknowns; In principle, it is not a driven value from measurements. Then, $\pdf {u^0}{m_0} = 0$. Also, we approximate that the terms in 2nd or higher iterations are negligible: $J_{u,m^0}\simeq J_{u^0,m^0}$.
 	\end{block}
 \end{frame}
-\begin{frame}{Example: Mass-Constraint Fit}
-	\begin{block}{}
-		Assume a decay of $\Lambda\to p\pi^-$. Momentum of the involved particles are represented in spherical coordinate as:
-		\begin{align}
-			\vec{P}_\Lambda = (P_\Lambda,\theta_\Lambda,\phi_\lambda),\cdots
-		\end{align}
-		Then we define the energy-momentum constraint equation as:
-		\begin{align}
-			\begin{pmatrix}
-				f_1\\f_2\\f_3\\f_4
-			\end{pmatrix}=
-			\begin{pmatrix}
-			-P_\Lambda\sin\theta_\Lambda\cos\phi_\Lambda+P_p\sin\theta_p\cos\phi_p+P_\pi\sin\theta_\pi\cos\phi_\pi\\
-			-P_\Lambda\sin\theta_\Lambda\sin\phi_\Lambda+P_p\sin\theta_p\sin\phi_p+P_\pi\sin\theta_\pi\sin\phi_\pi\\
-			-P_\Lambda\cos\theta_\Lambda+P_p\cos\theta_p+p_\pi\cos\theta_\pi\\
-			-\sqrt{P_\Lambda^2+m_\Lambda^2}+\sqrt{P_p^2+m_p^2}+\sqrt{P_\pi^2+m_\pi^2}
-			\end{pmatrix}.\label{FMat}
-		\end{align}
-		where the mass constraint is naturally implemented in energy term.
-	\end{block}
+\begin{frame}{Applications}
+
 \end{frame}
-\begin{frame}{Example: Mass-Constraint Fit}
+
+\begin{frame}{Example: Chained Mass-Constraint Fit}
+	content...
+\end{frame}
+\begin{frame}{Mass-Constraint Kinematic Fit with HypTPC.}
 	\begin{block}{}
-		We have unmeasured and measured variables as:
-		\begin{align}
-			\mathbf{u} = \{P_\Lambda,\theta_\Lambda,\phi_\Lambda\};\quad \mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\}.\label{variables}
-		\end{align}		
-		Since we have 3 unmeasured variable with 4 kinematical constraints, this is a 4-3 = 1-Constrained fit. Let us substitute Eq \eqref{FMat} and \eqref{variables} into Eq \eqref{KFChi2}s and its resulting equations. We get $\mathbf{F_u}$ and $\mathbf{F_m}$ as
-		\begin{align}
-			\mathbf{F_u}=
-			\begin{pmatrix}
-				\pdf{f_1}{P_\Lambda}&\pdf{f_1}{\theta_\Lambda}&\pdf{f_1}{\phi_\Lambda}\\
-				\pdf{f_2}{P_\Lambda}&\pdf{f_2}{\theta_\Lambda}&\pdf{f_2}{\phi_\Lambda}\\
-				\pdf{f_3}{P_\Lambda}&\pdf{f_3}{\theta_\Lambda}&\pdf{f_3}{\phi_\Lambda}\\
-				\pdf{f_4}{P_\Lambda}&\pdf{f_4}{\theta_\Lambda}&\pdf{f_4}{\phi_\Lambda}
-			\end{pmatrix};\quad \mathbf{F_m}=\begin{pmatrix}
-			\pdf{f_1}{P_p} &\cdots&\pdf{f_1}{\phi_\pi} \\
-			\pdf{f_2}{P_p} &\cdots&\pdf{f_2}{\phi_\pi}\\
-			\pdf{f_3}{P_p} &\cdots&\pdf{f_3}{\phi_\pi}\\
-			\pdf{f_4}{P_p} &\cdots&\pdf{f_4}{\phi_\pi}
-			\end{pmatrix}
-		\end{align}
-		We have all the matrices to calculate in each step. By applying an appropriate variance matrix and employing $\chi^2$ selection criteria, we can do kinematic fit for the particles.
+		\begin{figure}
+			\includegraphics[width=0.9\textwidth]{Coords_K18_KF}
+		\end{figure}
+		For Kinematic FIt in HypTPC analysis, we want our coordinate system to be aligned with $\vec B$, so that our covariance matrix representation fits the representations in KF coordinate. We correlated $\phi$ angle with $p$ as an feature of helix fit, where $\phi$ is the angle lying on the circle of the helix. 
 	\end{block}
 \end{frame}
 \iffalse
