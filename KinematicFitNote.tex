@@ -165,6 +165,27 @@
 		\end{table}
 	\end{block}
 \end{frame}
+\begin{frame}{The p-value}
+	content...
+\end{frame}
+\begin{frame}{Pull distribution}
+	\begin{block}{}
+		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, the pull is defined as:
+		\begin{align}
+			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}
+		\end{align}
+		and
+		\begin{align}
+			V(\epsilon) \equiv V(m)+ V(m^0) - 2 Cov(m,m^0).\label{Ve}
+		\end{align}
+		The variance of the fitted variables, $V(m)$, is evaluated as
+		\begin{align}
+			V(m) = J_{m,m^0}V(m^0) J^\dagger_{m,m^0} 
+		\end{align}
+		 where $J_{m,m^0}$ is the Jacobian for $m$ and $m^0$. Detailed calculations are provided in the appendix. 
+	\end{block}
+\end{frame} 
+
 \section{Example: Mass-Constraint Fit}
 \begin{frame}{Example: $\Lambda\to p\pi$, Defining Variables and Constraints}
 	\begin{block}{}
@@ -234,6 +255,102 @@
 	\end{block}
 \end{frame}
 \section{Example: $\Xi $ decay at J-PARC}
+\begin{frame}{$p(K^-,K^+)X$ at J-PARC E42}
+	\tcl{5}{10}{
+		\begin{block}{}
+		\begin{figure}
+	\begin{picture}(100,200)
+		\put(20,0){\includegraphics[width = 3.3 cm]{K18}}
+	\end{picture}
+\end{figure}
+\end{block}
+	}
+	{
+			\begin{figure}
+		\begin{picture}(200,200)
+			\put(0,10){\includegraphics[width = .75\textwidth]{XiRestore}}
+			\put(75,160){\large $\Xi^-$}	
+			\put(125,120){\large $\Xi^{*-}$}	
+			\put(60,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+		\end{picture}
+	\end{figure}
+	}
+\end{frame}
+\begin{frame}{HypTPC}
+	\tcl{8}{8}{
+				\begin{picture}(200,200)
+			\put(20,-10){
+				\includegraphics[width=.87\textwidth]{HypTPC}		
+			}
+		\end{picture}		
+	}{
+		\begin{picture}(200,200)
+			\put(0,00){
+				\includegraphics[width=.9\textwidth]{Run5641_Evt61424_adjusted_3D}
+				\put(-150,80){\textcolor{Magenta}{\Large $K^-$}}
+				\put(-90,90){\textcolor{gray}{\Large $K^+$}}
+				\put(-160,110){\textcolor{Blue}{\Large $\pi_{\Xi}^-$}}
+				\put(-120,150){\textcolor{Green}{\Large $\pi_{\Lambda}^-$}}
+				\put(-90,125){\textcolor{Red}{\Large $p$}}
+			}
+		\end{picture}
+		\begin{figure}
+\end{figure}
+	}
+\end{frame}
+\begin{frame}{Covariance Matrix in Helix Track}
+	\begin{block}{}
+		\tcl{3}{6}{
+			\vspace{-7 mm}
+			\begin{figure}
+				\includegraphics[width=4 cm]{PT_Phi}
+			\end{figure}
+		}
+		{
+			\begin{itemize}
+				\item Variance in momentum modifies the curvature of the helix $\to$ direction at the vertex changes.
+				\item 'Position' of the helix is defined from the TPC hits. $\to $ Center-of-gravity should be fixed.
+			\end{itemize} 
+		}
+		Denote the tangent angle at the center be $\phi_0$ and path length to the vertex $l$.
+		\begin{align}
+			\phi = \phi_0 \pm \frac{l}{2r};\quad  \delta\phi = \pm\frac{l}{2r}\frac{\delta r}{r}= \pm\frac{l}{r}\frac{\delta p_T}{p_T}
+		\end{align}
+		\begin{align}
+			\sigma_{\phi}^2 = \langle\delta\phi\delta\phi\rangle=\frac{l^2}{r^2p_{T}^2}\sigma^2_{p_T};\quad \textrm{Cov}(\phi,p_T)= \langle\delta\phi\delta p_T \rangle = \pm \frac{l}{rp_T}\sigma_{p_T}^2
+		\end{align}
+	\end{block}
+\end{frame}
+\begin{frame}{Covariance Matrix in Helix Track}
+	\begin{block}{}
+		\tcl{4}{7}{
+			\vspace{-7 mm}
+			\begin{figure}
+				\includegraphics[width=5 cm]{Res_Th}
+			\end{figure}
+		}
+		{
+			\begin{align}
+				h(t): \{r\cos(\phi ) - c_x , r\sin\phi - c_y,  dz*r\phi - z_0\}\label{EqHelix}
+			\end{align}
+			\begin{itemize}
+				\item The 'pitch' parameter, dz, is the slope along the circular trajectory
+			\end{itemize}
+		}
+		\vspace{3 mm}
+		$\theta = \frac{\pi}{2}-\arctan(dz)$, we estimate the variance of $\theta$ based on the fitting error of dz. The error is estimated from the slope error of a linear fit: 
+		\begin{align*}
+			\sigma_{dz}^2 =\frac{\sum\delta_z^2/(n-2) }{\sum(x-\bar x)^2} \simeq \frac{n \sigma_z^2/(n-2)}{n L^2/12};\quad \sigma_\theta = \pdf{dz}{\theta}\sigma_{dz}=\frac{1}{1+dz^2}\sigma_{dz}.
+		\end{align*}
+		Note that, the momentum $p_z=p_T dz$ would also have some covariance with $\theta$,
+		\begin{align*}
+			\langle \delta p\delta \theta\rangle = dz\langle  \ctz{\delta p_T  \delta \theta}\rangle+	p_T\langle \delta dz \delta \theta\rangle =\frac{p_T}{1+dz^2}\sigma_{dz}^2.
+		\end{align*}
+	\end{block}
+\end{frame}
+\begin{frame}{Hello}
+	content...
+\end{frame}
 \section{Tricks}
 \begin{frame}{Off-diagonal Reduction}
 	content...
@@ -335,32 +452,6 @@
 	\end{block}
 \end{frame}
 
-\begin{frame}{Pull distribution}
-	\begin{block}{}
-		It is better to check the pull distribution to check the quality of a fit. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, pull is defined as:, 
-		\begin{align}
-			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}
-		\end{align}
-		and
-		\begin{align}
-			V(\epsilon) \equiv V(m)+ V(m^0) - 2 Cov(m,m^0).\label{Ve}
-		\end{align}
-		We have already calculated $J_{m,m^0}$. Then we directly get the covariance matrix. 
-	\end{block}
-\end{frame} 
-\begin{frame}{Pull distribution}
-	\begin{block}{}
-		The covariance can be estimated as:
-		\begin{align}
-			Cov(m,m^0) = J_{m,m^0}V(m) = V - VCV.
-		\end{align}
-		If we substitute this and Eq.\eqref{Vm} into Eq.\eqref{Ve}, we get
-		\begin{align}
-			V(\epsilon) = VCVCV.
-		\end{align}
-		Note that 2nd order term affects the variance.	
-	\end{block}
-\end{frame}
 \begin{frame}{Variance of the Unknowns}
 	\begin{block}{}
 		Just like how we derived  Eq.\eqref{Vm} we can estimate the variance matrix of the unknowns. 
@@ -374,6 +465,36 @@
 			J_{u^{\nu+1},m^0} = \pdf {u^{\nu+1}} {m^0} = \pdf{u^{\nu}}{m^0} - K\pdf R {m^0} \simeq -K \vecb F_m.
 		\end{align}
 		Note that we only have initial "Guess" for the unknowns; In principle, it is not a driven value from measurements. Then, $\pdf {u^0}{m_0} = 0$. Also, we approximate that the terms in 2nd or higher iterations are negligible: $J_{u,m^0}\simeq J_{u^0,m^0}$.
+	\end{block}
+\end{frame}
+\begin{frame}{Pull distribution}
+	\begin{block}{}
+		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, the pull is defined as:
+		\begin{align}
+			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}
+		\end{align}
+		and
+		\begin{align}
+			V(\epsilon) \equiv V(m)+ V(m^0) - 2 Cov(m,m^0).\label{Ve}
+		\end{align}
+		The variance of the fitted variables, $V(m)$, is evaluated as
+		\begin{align}
+			V(m) = J_{m,m^0}V(m^0) J^\dagger_{m,m^0} 
+		\end{align}
+		where $J_{m,m^0}$ is the Jacobian for $m$ and $m^0$. Detailed calculations are provided in the appendix. 
+	\end{block}
+\end{frame} 
+\begin{frame}{Pull distribution}
+	\begin{block}{}
+		The covariance can be estimated as:
+		\begin{align}
+			Cov(m,m^0) = J_{m,m^0}V(m) = V - VCV.
+		\end{align}
+		If we substitute this and Eq.\eqref{Vm} into Eq.\eqref{Ve}, we get
+		\begin{align}
+			V(\epsilon) = VCVCV.
+		\end{align}
+		Note that 2nd order term affects the variance.	
 	\end{block}
 \end{frame}
 \begin{frame}{Applications}
@@ -398,52 +519,7 @@
 	\end{block}
 \end{frame}
 \fi
-\begin{frame}{Covariance Matrix in Helix Track}
-	\begin{block}{}
-	\tcl{3}{6}{
-	\vspace{-7 mm}
-	\begin{figure}
-		\includegraphics[width=4 cm]{PT_Phi}
-	\end{figure}
-}
-{
-	The cartoon on the left illustrates the correlation between the helical (or circular) track and the azimuth angle at the intersection point (or decay vertex). Since the helical trajectory is defined by measured spatial points, a deviation in radius does not shift the arc itself but moves the center of the circle. It is also worth noting that the arc length, $l$, remains nearly constant. 
-}
-If we let the azimuth angle at the center of the track as $\phi_0$, we deduce following relations:
-\vspace{-4 mm}
-\begin{align}
-	\phi = \phi_0 \pm \frac{l}{2r};\quad  \delta\phi = \pm\frac{l}{2r}\frac{\delta r}{r}= \pm\frac{l}{r}\frac{\delta p_T}{p_T}
-\end{align}
-\vspace{-2 mm}
-and we naturally obtain:
-\vspace{-2 mm}
-\begin{align}
-	\sigma_{\phi}^2 = \langle\delta\phi\delta\phi\rangle=\frac{l^2}{r^2p_{T}^2}\sigma^2_{p_T};\quad \textrm{Cov}(\phi,p_T)= \langle\delta\phi\delta p_T \rangle = \pm \frac{l}{rp_T}\sigma_{p_T}^2
-\end{align}
-\end{block}
-\end{frame}
-\begin{frame}{Covariance Matrix in Helix Track}
-	\begin{block}{}
-			\tcl{3}{6}{
-			\vspace{-7 mm}
-			\begin{figure}
-				\includegraphics[width=4 cm]{Res_Th}
-			\end{figure}
-		}
-		{
-			The left figure illustrates the relationship between the pitch(dz) and the helix fit. The pitch is determined by fitting the vertical displacement along transverse path of the helical trajectory. Denoting the polar angle is expressed as 
-		}
-$\theta = \frac{\pi}{2}-\arctan(dz)$, we estimate the varaiance of $\theta$ based on the fitting error of dz, the slope parameter of linear fit.
-		\begin{align*}
-			\sigma_{dz}^2 =\frac{\sum\delta_z^2/(n-2) }{\sum(x-\bar x)^2} \simeq \frac{n \sigma_z^2/(n-2)}{n L^2/12};\quad \sigma_\theta = \pdf{dz}{\theta}\sigma_{dz}=\frac{1}{1+dz^2}\sigma_{dz}.
-		\end{align*}
-		Note that, the momentum $p_z=p_T dz$ would also have some covariance with $\theta$,
-		\begin{align*}
-			\langle \delta p\delta \theta\rangle = dz\langle  \ctz{\delta p_T  \delta \theta}\rangle+	p_T\langle \delta dz \delta \theta\rangle =\frac{p_T}{1+dz^2}\sigma_{dz}^2.
-		\end{align*}
-	
-	\end{block}
-\end{frame}
+
 \begin{frame}{Example: MassVertex-Constraint Fit}
 	\begin{block}{}
 To be Updated..
