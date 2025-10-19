@@ -1,9 +1,11 @@
-
 double mXi = 1.321;
+double mXi0 = 1.315;
+double mXi1530 = 1.535;
 double mL = 1.115;
 double mP = 0.938;
 double mK = 0.493;
 double mPi = 0.139;
+double mPi0 = 0.135;
 double ResP = 0.15;
 double ResPi1 = 0.1;
 double ResPi2 = 0.1;
@@ -57,10 +59,20 @@ TString ElemLd[9] = {
 "P_{p}","#Theta_{p}","#Phi_{p}",
 "P_{#pi1}","#Theta_{#pi1}","#Phi_{#pi1}"
 };
+TString TitleLd[9] = {
+	"P_Ld","Theta_Ld","Phi_Ld",
+"P_p","Theta_p","Phi_p",
+"P_pi1","Theta_pi1","Phi_pi1"
+};
 TString ElemXi[9] = {
 	"P_{#Xi}","#Theta_{#Xi}","#Phi_{#Xi}",
 "P_{#Lambda}","#Theta_{#Lambda}","#Phi_{#Lambda}",
 "P_{#pi2}","#Theta_{#pi2}","#Phi_{#pi2}"
+};
+TString TitleXi[9] = {
+"P_Xi","Theta_Xi","Phi_Xi",
+"P_Ld","Theta_Ld","Phi_Ld",
+"P_pi2","Theta_pi2","Phi_pi2"
 };
 TString Elem[15] = {
 "P_{p}","#Theta_{p}","#Phi_{p}",
@@ -68,6 +80,13 @@ TString Elem[15] = {
 "P_{#pi2}","#Theta_{#pi2}","#Phi_{#pi2}",
 "P_{#Lambda}","#Theta_{#Lambda}","#Phi_{#Lambda}",
 "P_{#Xi}","#Theta_{#Xi}","#Phi_{#Xi}"
+};
+TString Title[15] = {
+"P_p","Theta_p","Phi_p",
+"P_pi1","Theta_pi1","Phi_pi1",
+"P_pi2","Theta_pi2","Phi_pi2",
+"P_Ld","Theta_Ld","Phi_Ld",
+"P_Xi","Theta_Xi","Phi_Xi",
 };
 TH1D* hLdMeasResi[9];
 TH1D* hLdFitResi[9];
@@ -80,14 +99,42 @@ TH1D* hPvalXi;
 vector<double> pulls;
 vector<double> constsAfter;
 vector<double> constsIni;
-
+map<TString,TH1D*> hMap;
+map<TString,double> parMap;
 double range[15] = {0.5,0.3,0.3,0.5,0.3,0.3,0.5,0.3,0.3,0.5,0.3,0.3,0.5,0.3,0.3};
+void SetStyle(){
+  gStyle -> SetPalette(kRainBow);
+  gStyle->SetOptTitle(0);
+  gStyle->SetOptStat(0);
+  gStyle->SetMarkerStyle(24);
+  gStyle->SetStatX(0.9);
+  gStyle->SetStatY(0.9);
+  gStyle->SetStatW(0.3);
+  gStyle->SetStatH(0.3);
+
+  gStyle->SetTitleFontSize(0.06);
+  gStyle->SetTitleFont(132,"x");//,“t”);
+  gStyle->SetTitleFont(132,"t");//,“t”);
+  gStyle->SetTitleFont(132,"y");//,“t”);
+  gStyle->SetTitleOffset(0.9,"xy");
+  gStyle->SetNdivisions(5);
+  gStyle->SetNdivisions(5,"Y");
+  gStyle->SetTitleSize(0.06,"X");
+  gStyle->SetTitleSize(0.06,"Y");
+  gStyle->SetLabelSize(0.05,"X");
+  gStyle->SetLabelSize(0.05,"Y");
+  gStyle -> SetPadLeftMargin(0.15);
+  gStyle -> SetPadBottomMargin(0.15);
+  gROOT->ForceStyle();
+}
+
+
 void MakeHists(){
 	for(int i=0;i<9;++i){
-		hLdMeasResi[i] = new TH1D(ElemLd[i]+"MeasResi",ElemLd[i]+"MeasResi;#Delta"+ElemLd[i]+ElemUnit[i%3],100,-range[i],range[i]);
-		hLdFitResi[i] = new TH1D(ElemLd[i]+"FitResi",ElemLd[i]+"FitResi;#Delta"+ElemLd[i]+ElemUnit[i%3],100,-range[i],range[i]);
-		hXiMeasResi[i] = new TH1D(ElemXi[i]+"MeasResi",ElemXi[i]+"MeasResi;#Delta"+ElemXi[i]+ElemUnit[i%3],100,-range[i],range[i]);
-		hXiFitResi[i] = new TH1D(ElemXi[i]+"FitResi",ElemXi[i]+"FitResi;#Delta"+ElemXi[i]+ElemUnit[i%3],100,-range[i],range[i]);
+		hLdMeasResi[i] = new TH1D(TitleLd[i]+"MeasResi",TitleLd[i]+"MeasResi;#Delta"+ElemLd[i]+ElemUnit[i%3],100,-range[i],range[i]);
+		hLdFitResi[i] = new TH1D(TitleLd[i]+"FitResi",TitleLd[i]+"FitResi;#Delta"+ElemLd[i]+ElemUnit[i%3],100,-range[i],range[i]);
+		hXiMeasResi[i] = new TH1D(TitleXi[i]+"MeasResi",TitleXi[i]+"MeasResi;#Delta"+ElemXi[i]+ElemUnit[i%3],100,-range[i],range[i]);
+		hXiFitResi[i] = new TH1D(TitleXi[i]+"FitResi",TitleXi[i]+"FitResi;#Delta"+ElemXi[i]+ElemUnit[i%3],100,-range[i],range[i]);
 		hLdMeasResi[i]->SetLineColor(kRed);
 		hLdFitResi[i]->SetLineColor(kBlue);
 		hXiMeasResi[i]->SetLineColor(kRed);
@@ -140,49 +187,98 @@ void FillHists(){
 	hPvalLd->Fill(pvalLd);
 	hPvalXi->Fill(pvalXi);
 }
-
 TH1D* hMeasResi[15];
 TH1D* hCorResi[15];
 TH1D* hPull[9];
 TH1D* hConst[9];
 TH1D* hConstIni[9];
 TH1D* hPval;
+TH1D* hChi2;
 TH1D* hInvMLd;
 TH1D* hInvMXi;
 TH1D* hInvMLdCor;
 TH1D* hInvMXiCor;
 double Pval; 
-void MakeHistCascade(){
+void MakeHistXi(TString mother = "Xi_"){
 	for(int i=0;i<15;++i){
-		TString title = Form("%s",Elem[i].Data());
-		hMeasResi[i]= new TH1D(title,title+";"+title+ElemUnit[i%3],100,-range[i],range[i]);
-		hMeasResi[i]->SetLineColor(kRed);
-		title = title + "Cor" ;
-		hCorResi[i]= new TH1D(title,title+";"+title+ElemUnit[i%3],100,-range[i],range[i]);
-		hCorResi[i]->SetLineColor(kBlue);
+		TString key = mother + Form("%s",Title[i].Data());
+		cout<<key<<endl;
+		hMap[key]= new TH1D(key,key+";"+ElemUnit[i%3],100,-range[i],range[i]);
+		hMap[key]->SetLineColor(kRed);
+		key = key + "Cor" ;
+		hMap[key]= new TH1D(key,key+";"+ElemUnit[i%3],100,-range[i],range[i]);
+		hMap[key]->SetLineColor(kBlue);
 		if(i<9){
-		title = (TString)"Pull_"+ Form("%s",Elem[i].Data());
-		hPull[i]= new TH1D(title,title+";",100,-5,5);
-		title = (TString)"Consts_"+ Form("%s",Elem[i].Data());
-		hConst[i]= new TH1D("Const_"+title,"Const_"+title+";",1000,-1,1);
-		hConst[i]->SetLineColor(kBlue);
-		title = (TString)"IniConsts_"+ Form("%s",Elem[i].Data());
-		hConstIni[i]= new TH1D("Const_"+title,"Const_"+title+";",1000,-1,1);
-		hConstIni[i]->SetLineColor(kRed);
+			key = mother + "Pull_"+ Form("%s",Title[i].Data());
+			hMap[key]= new TH1D(key,key+";",100,-5,5);
+			key = mother + "Consts_"+ Form("%s",Title[i].Data());
+			hMap[key]= new TH1D(key,key+";",1000,-1,1);
+			hMap[key]->SetLineColor(kBlue);
+			key = mother + "IniConsts_"+ Form("%s",Title[i].Data());
+			hMap[key]= new TH1D(key,key+";",1000,-1,1);
+			hMap[key]->SetLineColor(kRed);
 		}
 	}
-	hPval = new TH1D("PVal","PVal",100,0,1);
-	hInvMLd = new TH1D("InvMLd","InvMLd",100,1.04,1.2);
-	hInvMXi = new TH1D("InvMXi","InvMXi",100,1.25,1.4);
-	hInvMLdCor = new TH1D("InvMLdCor","InvMLdCor",100,1.04,1.2);
-	hInvMXiCor = new TH1D("InvMXiCor","InvMXiCor",100,1.25,1.4);
-	hInvMLd->SetLineColor(kRed);
-	hInvMXi->SetLineColor(kRed);
-	hInvMLdCor->SetLineColor(kBlue);
-	hInvMXiCor->SetLineColor(kBlue);
-
+	hMap[mother + "Chi2"] = new TH1D(mother + "Chi2",mother + "Chi2;#chi^{2}",1000,0,10);
+	hMap[mother + "Pval"] = new TH1D(mother + "Pval",mother + "Pval;P-value",1000,0,1);
+	hMap[mother + "InvMLd"] = new TH1D(mother + "InvMLd",mother +"InvMLd;M(p#pi)[GeV/c^{2}]",1000,1.04,1.2);
+	hMap[mother + "InvMXi"] = new TH1D(mother + "InvMXi",mother +"InvMXi;M(p#pi#pi)[GeV/c^{2}]",1000,mXi - 0.075,mXi+0.075);
+	hMap[mother + "InvMLd"]->SetLineColor(kRed);
+	hMap[mother + "InvMXi"]->SetLineColor(kRed);
+	hMap[mother + "InvMLdCor"] = new TH1D(mother + "InvMLdCor",mother + "InvMLdCor;M(p#pi)[GeV/c^{2}]",1000,1.04,1.2);
+	hMap[mother + "InvMXiCor"] = new TH1D(mother + "InvMXiCor",mother + "InvMXiCor;M(p#pi#pi)[GeV/c^{2}]",1000,mXi-0.075,mXi+0.075);
+	hMap[mother + "InvMLdCor"]->SetLineColor(kBlue);
+	hMap[mother + "InvMXiCor"]->SetLineColor(kBlue);
 }
-void FillHistCascade(){
+void FillHistsXi(TString mother = "Xi_"){
+	for(auto h:hMap){
+		TString key = h.first;
+		if(key.Contains(mother)){
+			h.second->Fill(parMap[key]);
+		}
+	}
+}
+void AssignXiParam(TString mother = "Xi_"){
+	parMap[mother + "Chi2"]      = Chi2;
+	parMap[mother + "Pval"]      = Pval;
+	parMap[mother + "InvMLd"]    = InvMLd;
+	parMap[mother + "InvMXi"]    = InvMXi;
+	parMap[mother + "InvMLdCor"] = InvMLdCor;
+	parMap[mother + "InvMXiCor"] = InvMXiCor;
+	double parResi[15] ={
+	PP-PPMeas,ThP-ThPMeas,PhP-PhPMeas,
+	PPi1-PPi1Meas,ThPi1-ThPi1Meas,PhPi1-PhPi1Meas,
+	PPi2-PPi2Meas,ThPi2-ThPi1Meas,PhPi2-PhPi2Meas,
+	PLd-PLdMeas,ThLd-ThLdMeas,PhLd-PhLdMeas,
+	PXi-PXiMeas,ThXi-ThXiMeas,PhXi-PhXiMeas
+	};
+
+	double parResiCor[15] ={
+		PP-PPCor,ThP-ThPCor,PhP-PhPCor,
+		PPi1-PPi1Cor,ThPi1-ThPi1Cor,PhPi1-PhPi1Cor,
+		PPi2-PPi2Cor,ThPi2-ThPi2Cor,PhPi2-PhPi2Cor,
+		PLd-PLdCor,ThLd-ThLdCor,PhLd-PhLdCor,
+		PXi-PXiCor,ThXi-ThXiCor,PhXi-PhXiCor
+	};
+	for(int i=0;i<15;++i){
+		TString key = mother + Form("%s",Title[i].Data());
+		parMap[key] = parResi[i];
+		key += "Cor";
+		parMap[key] = parResiCor[i];
+	}
+	for(int i=0;i<9;++i){
+		TString key = mother + "Pull_"+ Form("%s",Title[i].Data());
+		parMap[key] = pulls[i];
+	}
+	for(int i=0;i<8;++i){
+		TString key = mother + "Consts_"+ Form("%s",Title[i].Data());
+		parMap[key] = constsAfter[i];
+		key = mother + "IniConsts_"+ Form("%s",Title[i].Data());
+		parMap[key] = constsIni[i];
+	}
+}
+void FillHistXi(){
+	hChi2->Fill(Chi2);
 	hPval->Fill(Pval);
 	hMeasResi[0]->Fill(PP-PPMeas);
 	hMeasResi[1]->Fill(ThP-ThPMeas);
@@ -229,4 +325,15 @@ void FillHistCascade(){
 		hConstIni[i]->Fill(constsIni[i]);
 		}
 	}
+}
+void ShakeParamsXi(){
+	PPMeas = gRandom->Gaus(PP * ScalePP, PP * ResP);
+	ThPMeas = gRandom->Gaus(ThP, ResThP);
+	PhPMeas = gRandom->Gaus(PhP, ResPhP);
+	PPi1Meas = gRandom->Gaus(PPi1 * ScalePPi1, PPi1 * ResPi1);
+	ThPi1Meas = gRandom->Gaus(ThPi1, ResTh);
+	PhPi1Meas = gRandom->Gaus(PhPi1, ResPh);
+	PPi2Meas = gRandom->Gaus(PPi2 * ScalePPi2, PPi2 * ResPi2);
+	ThPi2Meas = gRandom->Gaus(ThPi2, ResThPi2);
+	PhPi2Meas = gRandom->Gaus(PhPi2, ResPhPi2);
 }

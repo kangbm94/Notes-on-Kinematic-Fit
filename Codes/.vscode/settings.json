@@ -1,6 +1,22 @@
 {
     "files.associations": {
         "iostream": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "__availability": "cpp",
+        "ostream": "cpp",
+        "bitset": "cpp",
+        "s_string": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp",
+        "random": "cpp",
+        "array": "cpp",
+        "mem": "cpp",
+        "__config": "cpp",
+        "iosfwd": "cpp",
+        "queue": "cpp",
+        "version": "cpp",
+        "chrono": "cpp",
+        "functional": "cpp",
+        "format": "cpp"
     }
 }

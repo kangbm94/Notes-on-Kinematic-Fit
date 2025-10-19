@@ -6,35 +6,498 @@
 // Author: Kang Byungmin, kangbmw2@naver.com
 // https://github.com/kangbm94/Notes-on-Kinematic-Fit
 
-int nev = 1000;
+int nev = 100000;
 TGenPhaseSpace EvVert;
+TGenPhaseSpace EvXi1530;
+TGenPhaseSpace EvXi0;
 TGenPhaseSpace EvXi;
 TGenPhaseSpace EvLd;
+TGenPhaseSpace EvLd_Xi0;
 double pK18 = 1.8;
 TLorentzVector KM(0, 0, pK18, hypot(mK, pK18));
 TLorentzVector PT(0, 0, 0, mP);
 TLorentzVector Vertex = KM + PT;
 double VertMass[2] = {mXi, mK};
 double XiDecayMass[2] = {mL, mPi};
+double Xi0DecayMass[2] = {mL, mPi0};
 double LdDecayMass[2] = {mP, mPi};
+double VertMassXi1530[2] = {mXi1530,mK};
+double Xi1530_to_XiPi0[2] = {mXi,mPi0};
+double Xi1530_to_Xi0Pi[2] = {mXi0,mPi};
 void TestKinfit()
 {
 	gStyle->SetOptTitle(0);
 	gStyle->SetOptStat(0);
+	SetStyle();
 //	MakeHists();
-	cout << "TestCascadeFit()" << endl;
+	cout << "TestXi1530Fit()" << endl;
+	cout << "TestXiFit()" << endl;
 	cout << "TestFourVectorFit()" << endl;
 }
-void TestCascadeFit()
-{
-	MakeHistCascade();
-	for (int i = 0; i < nev; ++i)
-	{
-		EvVert.SetDecay(Vertex, 2, VertMass);
+void TestXi1530Fit(){
+	MakeHistXi();
+	MakeHistXi("Xi0");
+	TString figdir = "figs/Xi1530Fit/";
+	gSystem->mkdir(figdir,1);
+	EvVert.SetDecay(Vertex, 2, VertMassXi1530);
+	for (int i = 0; i < nev; ++i){
 		EvVert.Generate();
 		iev = i;
-		if (iev % 1000 == 0)
-		{
+		if (iev % 1000 == 0){
+			cout << Form("Event %d", iev) << endl;
+		}
+		auto Xi1530 = *EvVert.GetDecay(0);
+		auto KP = *EvVert.GetDecay(1);
+		EvXi1530.SetDecay(Xi1530, 2, Xi1530_to_XiPi0);
+		EvXi1530.Generate();
+		auto Xi = *EvXi1530.GetDecay(0);
+		EvXi.SetDecay(Xi,2,XiDecayMass);
+		EvXi.Generate();
+		auto Ld = *EvXi.GetDecay(0);
+		auto Pi2 = *EvXi.GetDecay(1);
+		EvLd.SetDecay(Ld, 2, LdDecayMass);
+		EvLd.Generate();
+		auto P = *EvLd.GetDecay(0);
+		auto Pi1 = *EvLd.GetDecay(1);
+		
+		auto TVXi = Xi.Vect();
+		PXi = TVXi.Mag();
+		ThXi = TVXi.Theta();
+		PhXi = TVXi.Phi();
+		auto TVLd = Ld.Vect();
+		PLd = TVLd.Mag();
+		ThLd = Ld.Theta();
+		PhLd = Ld.Phi();
+		auto TVP = P.Vect();
+		PP = TVP.Mag();
+		ThP = TVP.Theta();
+		PhP = TVP.Phi();
+		auto TVPi1 = Pi1.Vect();
+		PPi1 = TVPi1.Mag();
+		ThPi1 = TVPi1.Theta();
+		PhPi1 = TVPi1.Phi();
+		auto TVPi2 = Pi2.Vect();
+		PPi2 = TVPi2.Mag();
+		ThPi2 = TVPi2.Theta();
+		PhPi2 = TVPi2.Phi();
+		ShakeParamsXi();
+
+		TVector3 TVPMeas(0, 0, PPMeas);
+		TVPMeas.SetTheta(ThPMeas);
+		TVPMeas.SetPhi(PhPMeas);
+		TVector3 TVPi1Meas(0, 0, PPi1Meas);
+		TVPi1Meas.SetTheta(ThPi1Meas);
+		TVPi1Meas.SetPhi(PhPi1Meas);
+		TVector3 TVPi2Meas(0, 0, PPi2Meas);
+		TVPi2Meas.SetTheta(ThPi2Meas);
+		TVPi2Meas.SetPhi(PhPi2Meas);
+		TLorentzVector PMeas(TVPMeas, hypot(PPMeas, mP));
+		TLorentzVector Pi1Meas(TVPi1Meas, hypot(PPi1Meas, mPi));
+		TLorentzVector Pi2Meas(TVPi2Meas, hypot(PPi2Meas, mPi));
+		double rp = PPMeas * ResP;
+		double rpi1 = PPi1Meas * ResPi1;
+		double rpi2 = PPi2Meas * ResPi2;
+
+		auto LdMeas = PMeas + Pi1Meas;
+		InvMLd = LdMeas.Mag();
+		auto TVLdMeas = LdMeas.Vect();
+		PLdMeas = TVLdMeas.Mag();
+		ThLdMeas = TVLdMeas.Theta();
+		PhLdMeas = TVLdMeas.Phi();
+		LdMeas = TLorentzVector(TVLdMeas,hypot(mL,TVLdMeas.Mag()));//Invariant Mass is fixed to physical value
+		auto XiMeas = LdMeas + Pi2Meas;
+		InvMXi = (LdMeas + Pi2).Mag();
+		auto TVXiMeas = XiMeas.Vect();
+		PXiMeas = TVXiMeas.Mag();
+		ThXiMeas = TVXiMeas.Theta();
+		PhXiMeas = TVXiMeas.Phi();
+
+		CascadeFitter KFXi(PMeas, Pi1Meas, Pi2Meas);
+		KFXi.SetMaximumStep(5);
+//		KFXi.UpdateVariance(true);
+//		KFXi.ScaleParameters(false);
+		double Variance[9] = {
+			rp * rp, ResThP * ResThP, ResPhP * ResPhP,
+			rpi1 * rpi1, ResTh * ResTh, ResPh * ResPh,
+			rpi2 * rpi2, ResThPi2 * ResThPi2, ResPhPi2 * ResPhPi2
+		};//Diagonal components for 9 X 9 matrix
+		KFXi.SetInvMass(mL,mXi);
+		KFXi.SetVariance(Variance);
+		Chi2 = KFXi.DoKinematicFit();
+		Pval = KFXi.GetPValue();
+		auto Pull = KFXi.GetPull();
+		pulls = Pull;
+		auto LVCont = KFXi.GetFittedLV();
+		auto LVPCor = LVCont.at(0);
+		auto LVPi1Cor = LVCont.at(1);
+		auto LVPi2Cor = LVCont.at(2);
+		auto LVLdCor = LVCont.at(3);
+		auto LVXiCor = LVCont.at(4);
+
+		auto TVPCor = LVPCor.Vect();
+		auto TVPi1Cor = LVPi1Cor.Vect();
+		auto TVPi2Cor = LVPi2Cor.Vect();
+		auto TVLdCor = LVLdCor.Vect();
+		auto TVXiCor = LVXiCor.Vect();
+
+		InvMLdCor = LVLdCor.Mag();
+		InvMXiCor = LVXiCor.Mag();
+		PXiCor = TVXiCor.Mag();
+		ThXiCor = TVXiCor.Theta();
+		PhXiCor = TVXiCor.Phi();
+		PLdCor = TVLdCor.Mag();
+		ThLdCor = TVLdCor.Theta();
+		PhLdCor = TVLdCor.Phi();
+		PPCor = TVPCor.Mag();
+		ThPCor = TVPCor.Theta();
+		PhPCor = TVPCor.Phi();
+		PPi1Cor = TVPi1Cor.Mag();
+		ThPi1Cor = TVPi1Cor.Theta();
+		PhPi1Cor = TVPi1Cor.Phi();
+		PPi2Cor = TVPi2Cor.Mag();
+		ThPi2Cor = TVPi2Cor.Theta();
+		PhPi2Cor = TVPi2Cor.Phi();
+		constsAfter = KFXi.GetKinematicConstraints();
+		constsIni = KFXi.GetInitialConstraints();
+//		if(Pval<0.01)continue;
+		AssignXiParam();
+		FillHistsXi();
+	
+		//Mis-identified combinatorial background 
+		EvXi1530.SetDecay(Xi1530, 2, Xi1530_to_Xi0Pi);
+		EvXi1530.Generate();
+		auto Xi0 = *EvXi1530.GetDecay(0);
+		Pi2 = *EvXi.GetDecay(1); // pi- from Xi1530 is misidentified as pi- from Xi-> L pi- decay.
+		EvXi.SetDecay(Xi0,2,Xi0DecayMass);
+		EvXi.Generate();
+		Ld = *EvXi.GetDecay(0);
+		EvLd.SetDecay(Ld, 2, LdDecayMass);
+		EvLd.Generate();
+		P = *EvLd.GetDecay(0);
+		Pi1 = *EvLd.GetDecay(1);
+
+		TVLd = Ld.Vect();
+		PLd = TVLd.Mag();
+		ThLd = Ld.Theta();
+		PhLd = Ld.Phi();
+
+		TVP = P.Vect();
+		TVPi1 = Pi1.Vect();
+		TVPi2 = Pi2.Vect();
+		PP = TVP.Mag();
+		ThP = TVP.Theta();
+		PhP = TVP.Phi();
+		PPi1 = TVPi1.Mag();
+		ThPi1 = TVPi1.Theta();
+		PhPi1 = TVPi1.Phi();
+		PPi2 = TVPi2.Mag();
+		ThPi2 = TVPi2.Theta();
+		PhPi2 = TVPi2.Phi();
+
+		ShakeParamsXi();
+		
+		TVPMeas = TVector3(0, 0, PPMeas);
+		TVPMeas.SetTheta(ThPMeas);
+		TVPMeas.SetPhi(PhPMeas);
+		TVPi1Meas = TVector3(0, 0, PPi1Meas);
+		TVPi1Meas.SetTheta(ThPi1Meas);
+		TVPi1Meas.SetPhi(PhPi1Meas);
+		TVPi2Meas = TVector3(0, 0, PPi2Meas);
+		TVPi2Meas.SetTheta(ThPi2Meas);
+		TVPi2Meas.SetPhi(PhPi2Meas);
+		PMeas = TLorentzVector(TVPMeas, hypot(PPMeas, mP));
+		Pi1Meas = TLorentzVector(TVPi1Meas, hypot(PPi1Meas, mPi));
+		Pi2Meas = TLorentzVector(TVPi2Meas, hypot(PPi2Meas, mPi));
+		rp = PPMeas * ResP;
+		rpi1 = PPi1Meas * ResPi1;
+		rpi2 = PPi2Meas * ResPi2;
+
+		LdMeas = PMeas + Pi1Meas;
+		InvMLd = LdMeas.Mag();
+		TVLdMeas = LdMeas.Vect();
+		PLdMeas = TVLdMeas.Mag();
+		ThLdMeas = TVLdMeas.Theta();
+		PhLdMeas = TVLdMeas.Phi();
+		LdMeas = TLorentzVector(TVLdMeas,hypot(mL,TVLdMeas.Mag()));
+		XiMeas = LdMeas + Pi2Meas;
+		InvMXi = (XiMeas).Mag();
+		TVXiMeas = XiMeas.Vect();
+		TVXi = Xi.Vect();
+		PXiMeas = TVXiMeas.Mag();
+		ThXiMeas = TVXiMeas.Theta();
+		PhXiMeas = TVXiMeas.Phi();
+		PXi = TVXi.Mag();
+		ThXi = TVXi.Theta();
+		PhXi = TVXi.Phi();
+		CascadeFitter KFXi0(PMeas, Pi1Meas, Pi2Meas);
+		KFXi0.SetMaximumStep(5);
+		KFXi0.UpdateVariance(true);
+		double VarianceXi0[9] = {
+			rp * rp, ResThP * ResThP, ResPhP * ResPhP,
+			rpi1 * rpi1, ResTh * ResTh, ResPh * ResPh,
+			rpi2 * rpi2, ResThPi2 * ResThPi2, ResPhPi2 * ResPhPi2
+		};
+		KFXi0.SetInvMass(mL,mXi);
+		KFXi0.SetVariance(VarianceXi0);
+		Chi2 = KFXi0.DoKinematicFit();
+		Pval = KFXi0.GetPValue();
+		Pull = KFXi0.GetPull();
+		pulls = Pull;
+		LVCont = KFXi.GetFittedLV();
+		LVPCor = LVCont.at(0);
+		LVPi1Cor = LVCont.at(1);
+		LVPi2Cor = LVCont.at(2);
+		LVLdCor = LVCont.at(3);
+		LVXiCor = LVCont.at(4);
+
+		TVPCor = LVPCor.Vect();
+		TVPi1Cor = LVPi1Cor.Vect();
+		TVPi2Cor = LVPi2Cor.Vect();
+		TVLdCor = LVLdCor.Vect();
+		TVXiCor = LVXiCor.Vect();
+
+		InvMLdCor = LVLdCor.Mag();
+		InvMXiCor = LVXiCor.Mag();
+
+		PXiCor = TVXiCor.Mag();
+		ThXiCor = TVXiCor.Theta();
+		PhXiCor = TVXiCor.Phi();
+		PLdCor = TVLdCor.Mag();
+		ThLdCor = TVLdCor.Theta();
+		PhLdCor = TVLdCor.Phi();
+		PPCor = TVPCor.Mag();
+		ThPCor = TVPCor.Theta();
+		PhPCor = TVPCor.Phi();
+		PPi1Cor = TVPi1Cor.Mag();
+		ThPi1Cor = TVPi1Cor.Theta();
+		PhPi1Cor = TVPi1Cor.Phi();
+		PPi2Cor = TVPi2Cor.Mag();
+		ThPi2Cor = TVPi2Cor.Theta();
+		PhPi2Cor = TVPi2Cor.Phi();
+		constsAfter = KFXi.GetKinematicConstraints();
+		constsIni = KFXi.GetInitialConstraints();
+		AssignXiParam("Xi0");
+		FillHistsXi("Xi0");
+	}
+	TString key;
+	vector<TString> mothers = {"Xi_","Xi0"};	
+	for(auto mother:mothers){
+		TCanvas* cKF0 = new TCanvas(mother +"cKF0",mother +"Chi2_Pull",1200,800);
+		cKF0->Divide(2,1);
+		cKF0->cd(1);
+		hMap[mother + "Chi2"]->Draw();
+		cKF0->cd(2);
+		hMap[mother + "Pval"]->Draw();
+		cKF0->SaveAs(figdir + cKF0->GetName() + ".pdf");
+		TCanvas* cKF1 = new TCanvas(mother +"cKF1",mother +"DaughterResidual",1200,800);
+		cKF1->Divide(3,3);
+		for(int i=0;i<9;++i){
+			cKF1->cd(i+1);
+			key = mother + Form("%s",Title[i].Data()) + "Cor";
+			auto h1 = hMap[key];
+			key = mother + Form("%s",Title[i].Data());
+			auto h2 = hMap[key];
+			double maxi;
+			if(h1->GetMaximum()>h2->GetMaximum()){
+				h1->Draw();
+				h2->Draw("same");
+			}
+			else{
+				h2->Draw();
+				h1->Draw("same");
+			}
+		}
+		cKF1->SaveAs(figdir + cKF1->GetName() + ".pdf");
+		TCanvas* cKF2 = new TCanvas(mother +"cKF2",mother +"MotherResidual",1200,800);
+		cKF2->Divide(3,2);
+		for(int i=0;i<6;++i){
+			cKF2->cd(i+1);
+			key = mother + Form("%s",Title[i+9].Data()) + "Cor";
+			auto h1 = hMap[key];
+			key = mother + Form("%s",Title[i+9].Data());
+			auto h2 = hMap[key];
+			if(h1->GetMaximum()>h2->GetMaximum()){
+				h1->Draw();
+				h2->Draw("same");
+			}
+			else{
+				h2->Draw();
+				h1->Draw("same");
+			}
+		}
+		cKF2->SaveAs(figdir + cKF2->GetName() + ".pdf");
+		TCanvas* cKF3 = new TCanvas(mother +"cKF3",mother +"InvMass",1200,800);
+		cKF3->Divide(2,1);
+		cKF3->cd(1);
+		hMap[mother + "InvMLdCor"]->Draw();
+		hMap[mother + "InvMLd"]->Draw("same");
+		cKF3->cd(2);
+		hMap[mother + "InvMXiCor"]->Draw();
+		hMap[mother + "InvMXi"]->Draw("same");
+		cKF3->SaveAs(figdir + cKF3->GetName() + ".pdf");
+		TCanvas* cKF4 = new TCanvas(mother +"cKF4",mother +"Pull",1200,800);
+		cKF4->Divide(3,3);
+		for(int i=0;i<9;++i){
+			cKF4->cd(i+1);
+			key = mother + "Pull_"+ Form("%s",Title[i].Data());
+			hMap[key]->Draw();
+		}	
+		cKF4->SaveAs(figdir + cKF4->GetName() + ".pdf");
+		TCanvas* cKF5 = new TCanvas(mother +"cKF5",mother +"Constraints",1200,800);
+		cKF5->Divide(4,2);
+		for(int i=0;i<8;++i){
+			cKF5->cd(i+1);
+			key = mother + "Consts_"+ Form("%s",Title[i].Data());
+			hMap[key]->Draw();
+			key = mother + "IniConsts_"+ Form("%s",Title[i].Data());
+			hMap[key]->Draw("same");
+		}	
+		cKF5->SaveAs(figdir + cKF5->GetName() + ".pdf");
+	}
+	{
+		cout<<"Summary"<<endl;
+		TCanvas* c_sum = new TCanvas("c_sum","Events_sum",1200,800);
+		TH1D* hSumPval = (TH1D*)hMap["Xi_Pval"]->Clone();
+		hSumPval->Add(hMap["Xi0Pval"]);
+		hSumPval->Draw("hist");
+		hSumPval->SetLineColor(kBlack);
+		double maxi_pval = hSumPval->GetMaximum();
+		hSumPval->GetYaxis()->SetLimits(0.1,1.2*maxi_pval);
+		TH1D* hXiPval = (TH1D*)hMap["Xi_Pval"]->Clone();
+		hXiPval->SetLineColor(kAzure);
+		hXiPval->Draw("same");
+		TH1D* hXi0Pval = (TH1D*)hMap["Xi0Pval"]->Clone();
+		hXi0Pval->SetLineColor(kRed);
+		hXi0Pval->Draw("same");
+		c_sum->SetLogy();
+		TLegend* legs = new TLegend(0.6,0.7,0.9,0.9);
+		legs->AddEntry(hSumPval,"All Events","l");
+		legs->AddEntry(hXiPval,"#Xi Events","l");
+		legs->AddEntry(hXi0Pval,"#Xi^{0} Events","l");
+		legs->SetBorderSize(0);
+		legs->SetFillStyle(0);
+		legs->Draw();
+		c_sum->SaveAs(figdir + c_sum->GetName() + ".pdf");
+		TCanvas* c_imxi = new TCanvas("c_imxi","XiIM",1200,800);
+		TH1D* hSumInvMXi = (TH1D*)hMap["Xi_InvMXi"]->Clone();
+		hSumInvMXi->Add(hMap["Xi0InvMXi"]);
+		hSumInvMXi->Draw("hist");
+		hSumInvMXi->SetLineColor(kBlack);
+		TH1D* hXiInvMXi = (TH1D*)hMap["Xi_InvMXi"]->Clone();
+		hXiInvMXi->SetLineColor(kAzure);
+		hXiInvMXi->Draw("same");
+		TH1D* hXi0InvMXi = (TH1D*)hMap["Xi0InvMXi"]->Clone();
+		hXi0InvMXi->SetLineColor(kRed);
+		hXi0InvMXi->Draw("same");
+		legs->Draw();
+		c_imxi->SaveAs(figdir + c_imxi->GetName() + ".pdf");
+		double p_cuts[1000];
+		double p_purities[1000];
+		double p_efficiencies[1000];
+		for(int ib=1;ib<= hSumPval->GetNbinsX();++ib){
+			double total = 0;
+			double nxi = hXiPval->GetEntries();
+			double cnt_xi=0,cnt_xi0=0;
+			double p_cut = ib*1./(hSumPval->GetNbinsX());
+			for(int i=ib;i <= hSumPval->GetNbinsX();++i){
+				total += hSumPval->GetBinContent(i);
+				cnt_xi += hXiPval->GetBinContent(i);
+			}
+			double purity = cnt_xi / total;
+			double efficiency = cnt_xi / nxi;
+			p_cuts[ib-1] = p_cut;
+			p_purities[ib-1] = purity;
+			p_efficiencies[ib-1] = efficiency;
+		}
+		double m_cuts[500];
+		double m_purities[1000];
+		double m_efficiencies[1000];
+		double dm = 0.00015;
+		for(int ib=1;ib<= (hSumInvMXi->GetNbinsX())/2;++ib){
+			double total = 0;
+			double nxi = hXiInvMXi->GetEntries();
+			double cnt_xi=0,cnt_xi0=0;
+			double bw = (ib+0.1) * 2 * dm;
+			for(int i = 1; i <= hSumInvMXi->GetNbinsX();++i){
+				if( abs(hXiInvMXi -> GetBinCenter(i)-mXi)< bw){
+					cnt_xi+= hXiInvMXi -> GetBinContent(i);
+					total += hSumInvMXi -> GetBinContent(i);
+				}
+			}
+			double purity = cnt_xi / total;
+			double efficiency = cnt_xi / nxi;
+			m_cuts[ib-1] = bw;
+			m_purities[ib-1] = purity;
+			m_efficiencies[ib-1] = efficiency;
+		}
+		TCanvas* c_pval = new TCanvas("c_pval","c_pval",1200,800);
+		TGraph* gPurityPval = new TGraph(hSumPval->GetNbinsX(),p_cuts,p_purities);
+		gPurityPval->SetLineWidth(4);
+		gPurityPval->SetLineColor(kRed);
+		gPurityPval->GetYaxis()->SetLimits(0,1);
+		gPurityPval->GetYaxis()->SetRangeUser(0,1);
+		gPurityPval->GetXaxis()->SetTitle("P-value cut");
+		gPurityPval->Draw("AL");	
+		TGraph* gEfficiencyPval = new TGraph(hSumPval->GetNbinsX(),p_cuts,p_efficiencies);
+		gEfficiencyPval->SetLineWidth(4);
+		gEfficiencyPval->SetLineColor(kAzure);
+		gEfficiencyPval->Draw("Lsame");	
+		TLegend* leg1 = new TLegend(0.6,0.6,0.9,0.8);
+		leg1->AddEntry(gPurityPval,"Purity","l");
+		leg1->AddEntry(gEfficiencyPval,"Efficiency","l");
+		leg1->SetBorderSize(0);
+		leg1->SetFillStyle(0);
+		leg1->Draw();
+		c_pval->SaveAs(figdir + c_pval->GetName() + ".pdf");
+		TCanvas* c_mass = new TCanvas("c_mass","c_mass",1200,800);
+		TGraph* gPurityMass = new TGraph(hSumInvMXi->GetNbinsX()/2,m_cuts,m_purities);
+		gPurityMass->GetYaxis()->SetLimits(0,1);
+		gPurityMass->GetYaxis()->SetRangeUser(0,1);
+		gPurityMass->SetLineWidth(4);
+		gPurityMass->SetLineColor(kRed);
+		gPurityMass->GetYaxis()->SetRange(0,1);
+		gPurityMass->GetXaxis()->SetTitle("Mass Window [GeV/c^{2}]");
+		gPurityMass->Draw("ALsame");	
+		TGraph* gEfficiencyMass = new TGraph(hSumInvMXi->GetNbinsX()/2,m_cuts,m_efficiencies);
+		gEfficiencyMass->SetLineWidth(4);
+		gEfficiencyMass->SetLineColor(kAzure);
+		gEfficiencyMass->Draw("Lsame");	
+		leg1->Draw();
+		c_mass->SaveAs(figdir + c_mass->GetName() + ".pdf");
+
+		TCanvas* c_eff_pur = new TCanvas("c_eff_pur","c_eff_pur",1200,800);
+		TGraph* gEffPurPval = new TGraph(hSumPval->GetNbinsX(),p_efficiencies,p_purities);
+		gEffPurPval->SetLineWidth(4);
+		gEffPurPval->SetLineColor(kAzure);
+		gEffPurPval->GetXaxis()->SetLimits(0,1);
+		gEffPurPval->GetXaxis()->SetRangeUser(0,1);
+		gEffPurPval->GetXaxis()->SetTitle("Efficiency");
+		gEffPurPval->GetYaxis()->SetLimits(0,1);
+		gEffPurPval->GetYaxis()->SetRangeUser(0,1);
+		gEffPurPval->GetYaxis()->SetTitle("Purity");
+		gEffPurPval->Draw("AL");
+		TGraph* gEffPurMass = new TGraph(hSumInvMXi->GetNbinsX()/2,m_efficiencies,m_purities);
+		gEffPurMass->SetLineWidth(4);
+		gEffPurMass->SetLineColor(kRed);
+		gEffPurMass->Draw("Lsame");
+		TLegend* leg2 = new TLegend(0.6,0.4,0.9,0.6);
+		leg2->AddEntry(gEffPurPval,"P-value cut","l");
+		leg2->AddEntry(gEffPurMass,"Mass cut","l");
+		leg2->SetBorderSize(0);
+		leg2->SetFillStyle(0);
+		leg2->Draw();
+		c_eff_pur->SaveAs(figdir + c_eff_pur->GetName() + ".pdf");
+		// Save the canvases
+	}
+}
+void TestXiFit()
+{
+	MakeHistXi();
+	EvVert.SetDecay(Vertex, 2, VertMass);
+	for (int i = 0; i < nev; ++i){
+		EvVert.Generate();
+		iev = i;
+		if (iev % 1000 == 0){
 			cout << Form("Event %d", iev) << endl;
 		}
 		auto Xi = *EvVert.GetDecay(0);
@@ -124,23 +587,23 @@ void TestCascadeFit()
 		double EPi1 = hypot(PPi1,mPi);
 		double EPi2 = hypot(PPi2,mPi); 
 //		cout<<Form("dE = %f",E_Xi-E_P-E_Pi1-E_Pi2)<<endl;
-		CascadeFitter KFCascade(PMeas, Pi1Meas, Pi2Meas);
-//		CascadeFitter KFCascade(P, Pi1, Pi2);
-		KFCascade.SetMaximumStep(5);
-		KFCascade.UpdateVariance(true);
-//		KFCascade.ScaleParameters(false);
+		CascadeFitter KFXi(PMeas, Pi1Meas, Pi2Meas);
+//		CascadeFstter KFXi(P, Pi1, Pi2);
+		KFXi.SetMaximumStep(5);
+		KFXi.UpdateVariance(true);
+//		KFXi.ScaleParameters(false);
 		double Variance[9] = {
 			rp * rp, ResThP * ResThP, ResPhP * ResPhP,
 			rpi1 * rpi1, ResTh * ResTh, ResPh * ResPh,
 			rpi2 * rpi2, ResThPi2 * ResThPi2, ResPhPi2 * ResPhPi2
 		};
-		KFCascade.SetInvMass(mL,mXi);
-		KFCascade.SetVariance(Variance);
-		Chi2 = KFCascade.DoKinematicFit();
-		double Pval = KFCascade.GetPValue();
-		auto Pull = KFCascade.GetPull();
+		KFXi.SetInvMass(mL,mXi);
+		KFXi.SetVariance(Variance);
+		Chi2 = KFXi.DoKinematicFit();
+		double Pval = KFXi.GetPValue();
+		auto Pull = KFXi.GetPull();
 		pulls = Pull;
-		auto LVCont = KFCascade.GetFittedLV();
+		auto LVCont = KFXi.GetFittedLV();
 		auto LVPCor = LVCont.at(0);
 		auto LVPi1Cor = LVCont.at(1);
 		auto LVPi2Cor = LVCont.at(2);
@@ -172,10 +635,15 @@ void TestCascadeFit()
 		PPi2Cor = TVPi2Cor.Mag();
 		ThPi2Cor = TVPi2Cor.Theta();
 		PhPi2Cor = TVPi2Cor.Phi();
-		constsAfter = KFCascade.GetKinematicConstraints();
-		constsIni = KFCascade.GetInitialConstraints();
+		constsAfter = KFXi.GetKinematicConstraints();
+		constsIni = KFXi.GetInitialConstraints();
 //		if(Pval<0.01)continue;
-		FillHistCascade();
+		FillHistXi();
+
+
+
+
+
 
 	}
 	TCanvas* cKF = new TCanvas("cKF","DaughterResidual",1200,800);
@@ -212,8 +680,7 @@ void TestCascadeFit()
 		cKF5->cd(i+1);
 		hConstIni[i]->Draw();
 		hConst[i]->Draw("same");
-	}	
-
+	}
 }
 void TestFourVectorFit()
 {	
@@ -226,9 +693,9 @@ void TestFourVectorFit()
 		hViolation[i]->SetLineColor(kRed);
 		hCorrection[i]->SetLineColor(kBlue);
 	}
+	EvVert.SetDecay(Vertex, 2, VertMass);
 	for (int i = 0; i < nev; ++i)
 	{
-		EvVert.SetDecay(Vertex, 2, VertMass);
 		EvVert.Generate();
 		iev = i;
 		if (iev % 1000 == 0)
