@@ -165,9 +165,6 @@
 		\end{table}
 	\end{block}
 \end{frame}
-\begin{frame}{The p-value}
-	content...
-\end{frame}
 \begin{frame}{Pull distribution}
 	\begin{block}{}
 		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, the pull is defined as:
@@ -185,7 +182,6 @@
 		 where $J_{m,m^0}$ is the Jacobian for $m$ and $m^0$. Detailed calculations are provided in the appendix. 
 	\end{block}
 \end{frame} 
-
 \section{Example: Mass-Constraint Fit}
 \begin{frame}{Example: $\Lambda\to p\pi$, Defining Variables and Constraints}
 	\begin{block}{}
@@ -254,21 +250,133 @@
 		Note that \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters.  
 	\end{block}
 \end{frame}
-\section{Example: $\Xi $ decay at J-PARC}
+\begin{frame}{Kinematics Restoration}
+	\tcl{8}{8}{
+		\begin{figure}
+			\begin{picture}(200,150)
+				\put(-10,0){\includegraphics[width=.95\textwidth]{Xi_cKF1}}
+				\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+			\end{picture}
+		\end{figure}
+	}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,0){\includegraphics[width=.95\textwidth]{Xi_cKF2}}
+			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+		\end{picture}
+	\end{figure}
+	}
+\end{frame}
+\begin{frame}{Pull Distribution}
+	\tcl{8}{8}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,0){\includegraphics[width=.95\textwidth]{Xi_cKF4}}
+			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+		\end{picture}
+	\end{figure}
+}{
+\begin{block}{}
+		\begin{align}
+		P(X) = \frac{X_{KF} - X_0}{\sqrt{V(X_{KF} - X_{0})}}
+	\end{align}
+	\begin{itemize}
+		\item Pull distribution shows the normalized amount of parameter adjustment.
+		\item In practice, resolution can be iteratively scaled by 1./ pull width
+	\end{itemize}
+\end{block}
+}
+\end{frame}
+\begin{frame}{$\Xi^*(1530)\to \Xi \pi^0$ and $\Xi^*(1530)\to \Xi^0 \pi^-$ Separation}
+	\begin{block}{}
+		\begin{figure}
+			\includegraphics[height = 40mm]{MissingXiStar}
+			\includegraphics[height = 40mm]{MissingXiStarXi0}
+		\end{figure}
+		\begin{itemize}
+			\item{Two decay channel of $\Xi^*$ share the same decay product.}
+			\item{Separation criteria should be defined to distinguish combinatorial backgrounds.}
+			\item{Kinematic Fit result can provide another selection criteria based on Kinematics.}
+		\end{itemize}
+	\end{block}
+\end{frame}
+\begin{frame}{Invariant Mass}
+	\begin{block}{}
+		\begin{figure}
+			\begin{picture}(400,200)
+				\put(20,0){
+					\includegraphics[width = .8\textwidth]{c_imxi}
+					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+				}
+			\end{picture}			
+		\end{figure}
+	\end{block}
+\end{frame}
+\begin{frame}{Mass Window Selection}
+	\begin{block}{}
+				\begin{figure}
+			\begin{picture}(400,200)
+				\put(20,0){
+					\includegraphics[width = .8\textwidth]{c_mass}
+					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+				}
+			\end{picture}			
+		\end{figure}		
+	\end{block}
+\end{frame}
+\begin{frame}{The P-value}
+	\begin{block}{}
+				\begin{figure}
+			\begin{picture}(400,200)
+				\put(20,0){
+					\includegraphics[width = .8\textwidth]{c_sum}
+					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+				}
+			\end{picture}			
+		\end{figure}
+		
+	\end{block}
+\end{frame}
+\begin{frame}{P-value Selection}
+	\begin{block}{}
+				\begin{figure}
+			\begin{picture}(400,200)
+				\put(20,0){
+					\includegraphics[width = .8\textwidth]{c_pval}
+					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+				}
+			\end{picture}			
+		\end{figure}
+		
+	\end{block}
+\end{frame}
+\begin{frame}{P-value vs Invariant Mass}
+	\begin{block}{}
+				\begin{figure}
+			\begin{picture}(400,200)
+				\put(20,0){
+					\includegraphics[width = .8\textwidth]{c_eff_pur}
+					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+				}
+			\end{picture}			
+		\end{figure}
+		
+	\end{block}	
+\end{frame}
+\section{Applications: $\Xi $ decay at J-PARC}
 \begin{frame}{$p(K^-,K^+)X$ at J-PARC E42}
 	\tcl{5}{10}{
-		\begin{block}{}
+	\begin{block}{}
 		\begin{figure}
-	\begin{picture}(100,200)
-		\put(20,0){\includegraphics[width = 3.3 cm]{K18}}
-	\end{picture}
-\end{figure}
-\end{block}
-	}
-	{
-			\begin{figure}
+			\begin{picture}(100,200)
+				\put(20,0){\includegraphics[width = 3.3 cm]{K18}}
+			\end{picture}
+		\end{figure}
+	\end{block}
+	}{
+	\begin{figure}
 		\begin{picture}(200,200)
-			\put(0,10){\includegraphics[width = .75\textwidth]{XiRestore}}
+			\put(0,0){\includegraphics[width = .85\textwidth]{ProtonMMCorr}}
 			\put(75,160){\large $\Xi^-$}	
 			\put(125,120){\large $\Xi^{*-}$}	
 			\put(60,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
@@ -297,6 +405,27 @@
 		\begin{figure}
 \end{figure}
 	}
+\end{frame}
+\begin{frame}{Gluckstern Formula}
+	\begin{block}{}
+		\tcl{7.5}{5}{
+		\begin{figure}
+			\includegraphics[width=\textwidth]{ParaLen}
+		\end{figure}
+		\scriptsize{Z. Drasal, W. Riegler, Nucl. Instrum. Methds. A, 910, 127-132 (2018)}
+	}{
+	\begin{align}
+		&\frac{\sigma_{P_T}}{P_T} \simeq \frac{P_{T}}{0.3L^2B}\sqrt{\frac{720}{N+4}}\sigma_T\\
+		&\frac{\sigma_{P_T,m.s}}{P_T} \simeq\frac{0.0136^1}{0,3\beta B L}\sqrt{\frac{d_{tot}}{X_0}}
+	\end{align}
+	{\scriptsize{Units in GeV/c}}
+	\begin{itemize}
+		\item Momentum resolution comprises geometrical term and scattering term
+		\item In practice, empirical rescaling factor should be multiplied
+	\end{itemize}
+	\scriptsize{$^1$G.R. Lynch and O.I Dahl, Nucl. Instrum. Methods B58, 6 (1991).}
+	}
+	\end{block}
 \end{frame}
 \begin{frame}{Covariance Matrix in Helix Track}
 	\begin{block}{}
@@ -348,15 +477,165 @@
 		\end{align*}
 	\end{block}
 \end{frame}
-\begin{frame}{Hello}
-	content...
+\begin{frame}{$\phi$ Restoration from Diagonal Component}
+\tcl{8}{8}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,0){\includegraphics[width=.95\textwidth]{Xi_cKF1}}
+			\put(30,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+		\end{picture}		
+	\end{figure}
+}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,0){\includegraphics[width=.95\textwidth]{KF_DaughterStatus}}
+			\put(30,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{E42 Geant4}}}
+		\end{picture}		
+	\end{figure}
+}
+\end{frame}
+\section{Applications to Position Correction}
+\begin{frame}{Momentum Bias from Position Shift}
+	\tcl{8}{8}{
+		\begin{figure}
+			\begin{picture}(200,150)
+				\put(-10,-30){\includegraphics[width=.95\textwidth]{hLambdaOpening_Mass_CutStandard}}
+				\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+			\end{picture}		
+		\end{figure}
+	}{
+			\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,-30){\includegraphics[width=.95\textwidth]{hXiOpening_Mass_CutStandard}}
+			\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+		\end{picture}		
+	\end{figure}
+	}
+\end{frame}
+\begin{frame}{Position Residual?}
+	\tcl{8}{8}
+{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,20){\includegraphics[width=.95\textwidth]{DistortionCartoon}}
+		\end{picture}		
+	\end{figure}
+}
+	{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,30){\includegraphics[width=.95\textwidth]{Before/c_pad_r}}
+			\put(30,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+		\end{picture}		
+	\end{figure}
+}
+\begin{block}{}
+	\begin{itemize}
+		\item Local, but simultaneous shift cannot be detected from position residual measurement.
+		\item External reference for track should be provided to estimate 'true' trajectory
+	\end{itemize}
+\end{block}
+\end{frame}
+\begin{frame}{Position Residual from KF Track}
+	\tcl{8}{8}
+{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,20){\includegraphics[width=.95\textwidth]{FitCartoon}}
+		\end{picture}		
+	\end{figure}
+}
+{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,30){\includegraphics[width=.95\textwidth]{Before/c_pad_KF_r}}
+			\put(30,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+		\end{picture}		
+	\end{figure}
+}
+\begin{block}{}
+	\begin{itemize}
+		\item From Kinematic fit, 'true' momentum, hence trajectory is estimated
+	\end{itemize}
+\end{block}
+\end{frame}
+\begin{frame}{$\Lambda$ After Position Correction}
+	\tcl{8}{8}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,-30){\includegraphics[width=.95\textwidth]{hLambdaOpening_Mass_CutStandard}}
+			\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+		\end{picture}		
+	\end{figure}
+}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,-30){\includegraphics[width=.95\textwidth]{hLambdaOpening_Mass_CutCor}}
+			\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+		\end{picture}		
+	\end{figure}
+}
+\end{frame}
+\begin{frame}{$\Xi$ After Position Correction}
+	\tcl{8}{8}{
+		\begin{figure}
+			\begin{picture}(200,150)
+				\put(-10,-30){\includegraphics[width=.95\textwidth]{hXiOpening_Mass_CutStandard}}
+				\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+			\end{picture}		
+		\end{figure}
+	}{
+		\begin{figure}
+			\begin{picture}(200,150)
+				\put(-10,-30){\includegraphics[width=.95\textwidth]{hXiOpening_Mass_CutCor}}
+				\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+			\end{picture}		
+		\end{figure}
+	}
 \end{frame}
 \section{Tricks}
-\begin{frame}{Off-diagonal Reduction}
-	content...
+\begin{frame}{Variance Normalization}
+	\begin{block}{}
+		\begin{align}
+			V =
+			 \begin{pmatrix}
+				10^{12}&0.9\\
+				0.9&10^{-12}
+			\end{pmatrix}\to V^{-1} = ?
+		\end{align}
+		While taking an inverse of the variance, matrix elements with different order may be added together, leading to possible numerical unstability. 
+		\begin{align}
+			\tilde V = S V S^T; S\equiv 
+				\frac{1}{\sqrt{V_{ij}}}\delta_{ij}\to \tilde V=\begin{pmatrix}
+					1 & Cov(01)/\sigma_{1}\sigma_{2}&\cdots \\
+					Cov(01)/\sigma_{1}\sigma_{2}& 1& \\
+					\cdots&&\cdots
+				\end{pmatrix}
+		\end{align}
+		We can take out scaling factors in S. Measurement vectors could share the same problem, so they should also be scaled. We rewrite equation \eqref{KFChi2}
+		\begin{align}
+			\chi^2 = dM^\dagger V^{-1} dM +\cdots= d\tilde M^\dagger \tilde V^{-1}d\tilde M+\cdots;\quad d \tilde M = S(M-M_0) 
+		\end{align}
+	\end{block}
 \end{frame}
-\begin{frame}{Parameter Normalization}
-	content...
+\begin{frame}{Off-diagonal Reduction}
+	\begin{block}{}
+		\begin{align}{}
+			V = \begin{pmatrix}
+					1&-1\\
+					-1&1
+			\end{pmatrix}\to V^{-1} = ?
+		\end{align}
+		Adding off-diagonal term could make matrix uninvertable.  Also we require $\chi^2 = dM V^{-1} dM >0$; $V^{-1}$ (hence V)should be \textit{Positive Definite}. 
+		Then, we can 'damp' the offdiagonal elements.
+		\begin{align}
+			while(IsPositiveDefinite(V))\\
+			V_{ij} \to V_{ij}  - \alpha (\delta_{ij}-1) V_{ij}
+		\end{align}
+		\begin{block}{Property of Positive Definite Matrix}
+			All Eigenvalues are Positive! TMatrixD well-supports eigenvalues, so we can just use it.
+		\end{block}
+	\end{block}
 \end{frame}
 \section{Calculations}
 \begin{frame}{Processing Iterative Steps.}
