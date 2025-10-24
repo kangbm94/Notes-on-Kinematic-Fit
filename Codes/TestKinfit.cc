@@ -24,16 +24,6 @@ double LdDecayMass[2] = {mP, mPi};
 double VertMassXi1530[2] = {mXi1530,mK};
 double Xi1530_to_XiPi0[2] = {mXi,mPi0};
 double Xi1530_to_Xi0Pi[2] = {mXi0,mPi};
-void TestKinfit()
-{
-	gStyle->SetOptTitle(0);
-	gStyle->SetOptStat(0);
-	SetStyle();
-//	MakeHists();
-	cout << "TestXi1530Fit()" << endl;
-	cout << "TestXiFit()" << endl;
-	cout << "TestFourVectorFit()" << endl;
-}
 void TestXi1530Fit(){
 	MakeHistXi();
 	MakeHistXi("Xi0");
@@ -46,8 +36,12 @@ void TestXi1530Fit(){
 		if (iev % 1000 == 0){
 			cout << Form("Event %d", iev) << endl;
 		}
-		auto Xi1530 = *EvVert.GetDecay(0);
 		auto KP = *EvVert.GetDecay(1);
+		while(KP.CosTheta()<0.97){
+			EvVert.Generate();
+			KP = *EvVert.GetDecay(1);
+		}
+		auto Xi1530 = *EvVert.GetDecay(0);
 		EvXi1530.SetDecay(Xi1530, 2, Xi1530_to_XiPi0);
 		EvXi1530.Generate();
 		auto Xi = *EvXi1530.GetDecay(0);
@@ -94,9 +88,9 @@ void TestXi1530Fit(){
 		TLorentzVector PMeas(TVPMeas, hypot(PPMeas, mP));
 		TLorentzVector Pi1Meas(TVPi1Meas, hypot(PPi1Meas, mPi));
 		TLorentzVector Pi2Meas(TVPi2Meas, hypot(PPi2Meas, mPi));
-		double rp = PPMeas * ResP;
-		double rpi1 = PPi1Meas * ResPi1;
-		double rpi2 = PPi2Meas * ResPi2;
+		double rp = PP * ResP;
+		double rpi1 = PPi1 * ResPi1;
+		double rpi2 = PPi2 * ResPi2;
 
 		auto LdMeas = PMeas + Pi1Meas;
 		InvMLd = LdMeas.Mag();
@@ -106,7 +100,7 @@ void TestXi1530Fit(){
 		PhLdMeas = TVLdMeas.Phi();
 		LdMeas = TLorentzVector(TVLdMeas,hypot(mL,TVLdMeas.Mag()));//Invariant Mass is fixed to physical value
 		auto XiMeas = LdMeas + Pi2Meas;
-		InvMXi = (LdMeas + Pi2).Mag();
+		InvMXi = XiMeas.Mag();
 		auto TVXiMeas = XiMeas.Vect();
 		PXiMeas = TVXiMeas.Mag();
 		ThXiMeas = TVXiMeas.Theta();
@@ -167,7 +161,7 @@ void TestXi1530Fit(){
 		EvXi1530.SetDecay(Xi1530, 2, Xi1530_to_Xi0Pi);
 		EvXi1530.Generate();
 		auto Xi0 = *EvXi1530.GetDecay(0);
-		Pi2 = *EvXi.GetDecay(1); // pi- from Xi1530 is misidentified as pi- from Xi-> L pi- decay.
+		Pi2 = *EvXi1530.GetDecay(1); // pi- from Xi1530 is misidentified as pi- from Xi-> L pi- decay.
 		EvXi.SetDecay(Xi0,2,Xi0DecayMass);
 		EvXi.Generate();
 		Ld = *EvXi.GetDecay(0);
@@ -208,9 +202,9 @@ void TestXi1530Fit(){
 		PMeas = TLorentzVector(TVPMeas, hypot(PPMeas, mP));
 		Pi1Meas = TLorentzVector(TVPi1Meas, hypot(PPi1Meas, mPi));
 		Pi2Meas = TLorentzVector(TVPi2Meas, hypot(PPi2Meas, mPi));
-		rp = PPMeas * ResP;
-		rpi1 = PPi1Meas * ResPi1;
-		rpi2 = PPi2Meas * ResPi2;
+		rp = PP * ResP;
+		rpi1 = PPi1 * ResPi1;
+		rpi2 = PPi2 * ResPi2;
 
 		LdMeas = PMeas + Pi1Meas;
 		InvMLd = LdMeas.Mag();
@@ -220,7 +214,7 @@ void TestXi1530Fit(){
 		PhLdMeas = TVLdMeas.Phi();
 		LdMeas = TLorentzVector(TVLdMeas,hypot(mL,TVLdMeas.Mag()));
 		XiMeas = LdMeas + Pi2Meas;
-		InvMXi = (XiMeas).Mag();
+		InvMXi = XiMeas.Mag();
 		TVXiMeas = XiMeas.Vect();
 		TVXi = Xi.Vect();
 		PXiMeas = TVXiMeas.Mag();
@@ -287,16 +281,27 @@ void TestXi1530Fit(){
 		cKF0->cd(1);
 		hMap[mother + "Chi2"]->Draw();
 		cKF0->cd(2);
-		hMap[mother + "Pval"]->Draw();
+//		hMap[mother + "Pval"]->Draw();
+//		hMap[mother + "Pval"]->GetYaxis()->SetRangeUser(0,1.2*hMap[mother + "Pval"]->GetMaximum());
+		auto hpval = (TH1D*)hMap[mother + "Pval"]->Clone();
+		hpval->Draw();
+		hpval->GetYaxis()->SetRangeUser(0,1.2*hMap[mother + "Pval"]->GetMaximum());
 		cKF0->SaveAs(figdir + cKF0->GetName() + ".pdf");
 		TCanvas* cKF1 = new TCanvas(mother +"cKF1",mother +"DaughterResidual",1200,800);
 		cKF1->Divide(3,3);
+		TLegend* leg_kf = new TLegend(0.6,0.7,0.9,0.9);
+		leg_kf->SetBorderSize(0);
+		leg_kf->SetFillStyle(0);
 		for(int i=0;i<9;++i){
 			cKF1->cd(i+1);
 			key = mother + Form("%s",Title[i].Data()) + "Cor";
 			auto h1 = hMap[key];
 			key = mother + Form("%s",Title[i].Data());
 			auto h2 = hMap[key];
+			if(i == 0){
+				leg_kf->AddEntry(h2,"Before KF","l");
+				leg_kf->AddEntry(h1,"After KF","l");
+			}
 			double maxi;
 			if(h1->GetMaximum()>h2->GetMaximum()){
 				h1->Draw();
@@ -307,6 +312,9 @@ void TestXi1530Fit(){
 				h1->Draw("same");
 			}
 		}
+		cKF1->cd(1);
+		leg_kf->Draw();
+		cout<<"DrawingLeg"<<endl;
 		cKF1->SaveAs(figdir + cKF1->GetName() + ".pdf");
 		TCanvas* cKF2 = new TCanvas(mother +"cKF2",mother +"MotherResidual",1200,800);
 		cKF2->Divide(3,2);
@@ -316,6 +324,7 @@ void TestXi1530Fit(){
 			auto h1 = hMap[key];
 			key = mother + Form("%s",Title[i+9].Data());
 			auto h2 = hMap[key];
+//			(i == 0) ? leg_kf->Draw() : void();
 			if(h1->GetMaximum()>h2->GetMaximum()){
 				h1->Draw();
 				h2->Draw("same");
@@ -325,6 +334,9 @@ void TestXi1530Fit(){
 				h1->Draw("same");
 			}
 		}
+		cKF2->cd(1);
+		leg_kf->Draw();
+		cout<<"DrawingLeg"<<endl;
 		cKF2->SaveAs(figdir + cKF2->GetName() + ".pdf");
 		TCanvas* cKF3 = new TCanvas(mother +"cKF3",mother +"InvMass",1200,800);
 		cKF3->Divide(2,1);
@@ -357,19 +369,32 @@ void TestXi1530Fit(){
 	{
 		cout<<"Summary"<<endl;
 		TCanvas* c_sum = new TCanvas("c_sum","Events_sum",1200,800);
+		c_sum->Divide(2,1);
+		c_sum->cd(1);
+		TH1D* hSumChi2 = (TH1D*)hMap["Xi_Chi2"]->Clone();
+		hSumChi2->Add(hMap["Xi0Chi2"]);
+		hSumChi2->Draw("hist");
+		hSumChi2->SetLineColor(kBlack);
+		TH1D* hXiChi2 = (TH1D*)hMap["Xi_Chi2"]->Clone();
+		hXiChi2->SetLineColor(kAzure);
+		hXiChi2->Draw("same");
+		TH1D* hXi0Chi2 = (TH1D*)hMap["Xi0Chi2"]->Clone();
+		hXi0Chi2->SetLineColor(kRed);
+		hXi0Chi2->Draw("same");
+		c_sum->cd(2);
+		gPad->SetLogy();
 		TH1D* hSumPval = (TH1D*)hMap["Xi_Pval"]->Clone();
 		hSumPval->Add(hMap["Xi0Pval"]);
 		hSumPval->Draw("hist");
 		hSumPval->SetLineColor(kBlack);
 		double maxi_pval = hSumPval->GetMaximum();
-		hSumPval->GetYaxis()->SetLimits(0.1,1.2*maxi_pval);
+		hSumPval->GetYaxis()->SetRangeUser(1,1.5*maxi_pval);
 		TH1D* hXiPval = (TH1D*)hMap["Xi_Pval"]->Clone();
 		hXiPval->SetLineColor(kAzure);
 		hXiPval->Draw("same");
 		TH1D* hXi0Pval = (TH1D*)hMap["Xi0Pval"]->Clone();
 		hXi0Pval->SetLineColor(kRed);
 		hXi0Pval->Draw("same");
-		c_sum->SetLogy();
 		TLegend* legs = new TLegend(0.6,0.7,0.9,0.9);
 		legs->AddEntry(hSumPval,"All Events","l");
 		legs->AddEntry(hXiPval,"#Xi Events","l");
@@ -941,4 +966,15 @@ void TestFourVectorFit()
 		hCorrection[i]->Draw("same");
 		hViolation[i]->Draw("same");
 	}
+}
+void TestKinfit()
+{
+	gStyle->SetOptTitle(0);
+	gStyle->SetOptStat(0);
+	SetStyle();
+//	MakeHists();
+	cout << "TestXi1530Fit()" << endl;
+	cout << "TestXiFit()" << endl;
+	cout << "TestFourVectorFit()" << endl;
+	TestXi1530Fit();
 }

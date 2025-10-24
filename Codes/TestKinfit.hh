@@ -6,15 +6,17 @@ double mP = 0.938;
 double mK = 0.493;
 double mPi = 0.139;
 double mPi0 = 0.135;
-double ResP = 0.15;
-double ResPi1 = 0.1;
-double ResPi2 = 0.1;
-double ResTh = 0.01; 
-double ResPh = 0.02; 
-double ResThPi2 = 0.01; 
+double ResP = 0.05;
+double ResPi1 = 0.05;
+double ResPi2 = 0.05;
+
+double ResThP = 0.005; 
+double ResTh = 0.005; 
+double ResThPi2 = 0.005; 
+
+double ResPhP = 0.01; 
+double ResPh = 0.02;
 double ResPhPi2 = 0.02; 
-double ResThP = 0.02; 
-double ResPhP = 0.02; 
 double ResThV = 0.05; 
 double ResPhV = 0.05; 
 
@@ -101,7 +103,13 @@ vector<double> constsAfter;
 vector<double> constsIni;
 map<TString,TH1D*> hMap;
 map<TString,double> parMap;
-double range[15] = {0.5,0.3,0.3,0.5,0.3,0.3,0.5,0.3,0.3,0.5,0.3,0.3,0.5,0.3,0.3};
+double range[15] = {
+	0.2,0.1,0.2,//p
+	0.1,0.1,0.2,//pi1
+	0.1,0.1,0.2,//pi2
+	0.5,0.1,0.2,//L
+	0.5,0.1,0.2//Xi
+						 };
 void SetStyle(){
   gStyle -> SetPalette(kRainBow);
   gStyle->SetOptTitle(0);
@@ -248,7 +256,7 @@ void AssignXiParam(TString mother = "Xi_"){
 	double parResi[15] ={
 	PP-PPMeas,ThP-ThPMeas,PhP-PhPMeas,
 	PPi1-PPi1Meas,ThPi1-ThPi1Meas,PhPi1-PhPi1Meas,
-	PPi2-PPi2Meas,ThPi2-ThPi1Meas,PhPi2-PhPi2Meas,
+	PPi2-PPi2Meas,ThPi2-ThPi2Meas,PhPi2-PhPi2Meas,
 	PLd-PLdMeas,ThLd-ThLdMeas,PhLd-PhLdMeas,
 	PXi-PXiMeas,ThXi-ThXiMeas,PhXi-PhXiMeas
 	};
