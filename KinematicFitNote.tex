@@ -158,18 +158,18 @@
 	\end{block}
 	\begin{block}{User Should Define...}
 		\begin{table}
-			\begin{tabular}{c|c|c|c}
-				$\mathbf{m}$&$\mathbf{u}$&$\mathbf{f}$&$\mathbf{V}$\\\hline
-				Measured Data&Unknown parameters&Constraints&Covariance Matrix
+			\begin{tabular}{c|c|c|c|c}
+				$\mathbf{m}$&$\mathbf{u}$&$\mathbf{f}$&$\mathbf{V}$&$\mathbf{F_m},\mathbf{F_u}$\\\hline
+				Measured Data&Unknown parameters&Constraints&Covariance Matrix&Derivatives
 			\end{tabular}
 		\end{table}
 	\end{block}
 \end{frame}
 \begin{frame}{Pull distribution}
 	\begin{block}{}
-		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, the pull is defined as:
+		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. However, we cannot evaluate the 'true' value of measurement, hence pull for the real data is not accessible. Instead, from the the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, we observe the pull(of the residual) as :
 		\begin{align}
-			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}
+			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}\label{Pull}
 		\end{align}
 		and
 		\begin{align}
@@ -637,32 +637,37 @@
 		\end{block}
 	\end{block}
 \end{frame}
-\section{Calculations}
-\begin{frame}{Processing Iterative Steps.}
+\section{Appendix}
+\begin{frame}{Iterative Minimization Steps.}
 	\begin{block}{}
-		We can express the following equations based on the ones provided above:
+		The coupled differential equations \eqref{GradM},\eqref{GradL} and \eqref{GradU} will be solved iteratively. For each $\nu$th step we would rewrite it as:
 		\begin{align}
 			&V^{-1}(\mathbf m^0)(\mathbf{m}^{\nu+1}-\mathbf{m}^0)+(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelM}\\
 			&(\mathbf{F}_u^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelU}\\
 			&\mathbf f^\nu + \mathbf F^\nu_m (\mathbf m^{\nu+1}-\mathbf m^\nu) + \mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu)=0\label{DelL}.
 		\end{align}
-		Equation \eqref{DelL} is not a direct consequence of Equation \eqref{GradU} but rather a \textit{linear approximation} to proceed with our iteration step. Expanding the $\nabla_\lambda$ term with a Taylor series leads to this equation. 
-		Note that, as our parameters $\mathbf m$ and $\mathbf u$ are updated during the step, our constraint matrix $\mathbf f$ should also be updated during the iteration. Here, $\lambda$ should be indexed as $\nu+1$ since it is a parameter to be guessed in the next step.
+		Equation \eqref{DelL} is not a direct consequence of Equation \eqref{GradU} but rather a \textit{linear approximation} to proceed with our iteration step.  
+		
+		Note that, as we are determining the parameters $\mathbf m, \mathbf u$ and $\mathbf \lambda$, they are indexed as $\nu+1$, while constraint terms(i.e. $\mathbf f,\mathbf F_\mu$ and $\mathbf F_\nu$) are calculated from current step, $\nu$. This fit is basically using Newton's method.
 	\end{block}
 \end{frame}
 
 \begin{frame}{Solving the Equation(1)}
 	\begin{block}{}
-		Multiplying \textbf V to Equation \eqref{DelM} leads to:		\vspace{-2 mm}
+		Multiplying \textbf V to Equation \eqref{DelM} leads to:	
 		\begin{align}
 			\mathbf{m}^{\nu+1}-\mathbf{m}^0=-V(\mathbf m^0)(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1}.\label{Mnu}
 		\end{align}
-		Substituting Equation \eqref{Mnu} into Equation \eqref{DelL}, we get:\vspace{-2 mm}
+		Substituting Equation \eqref{Mnu} into Equation \eqref{DelL}, 
 		\begin{align}
 			\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) &= - \mathbf f^\nu - \mathbf F^\nu_m (-V(\mathbf m^0)(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1} +\mathbf{m}^0-\mathbf{m}^\nu  )\nonumber\\
 			&=  S\lambda^{\nu+1}  - R\label{SLambda}
 		\end{align}
-		where$S\equiv \mathbf{F}_\mathbf{m}^\nu V(\mathbf m^0)(\mathbf{F}_\mathbf{m}^\dagger )^\nu$  and $R\equiv \mathbf f^\nu + \mathbf{F}_\mathbf{m}^\nu(\mathbf{m}^0-\mathbf{m}^\nu)$. Multiplying $(\mathbf{F}_u^\dagger)^\nu S^{-1}$ and substituting Equation \eqref{DelU}, we get:\vspace{-2 mm}
+		where we define the \textit{constraiint covariance} $S$ and \textit{residual} $R$ as:
+		\begin{align}
+		S\equiv \mathbf{F}_\mathbf{m}^\nu V(\mathbf m^0)(\mathbf{F}_\mathbf{m}^\dagger )^\nu;\quad R\equiv \mathbf f^\nu + \mathbf{F}_\mathbf{m}^\nu(\mathbf{m}^0-\mathbf{m}^\nu)
+		\end{align}
+		  Multiplying $(\mathbf{F}_u^\dagger)^\nu S^{-1}$ and substituting Equation \eqref{DelU}, into \eqref{SLambda}, we get:
 		\begin{align}
 			(\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) = \ctz{(\mathbf F_u^\dagger)^\nu\mathbf \lambda^{\nu+1}}-(\mathbf{F}_u^\dagger)^\nu S^{-1}R.
 		\end{align}
@@ -670,14 +675,14 @@
 \end{frame}
 \begin{frame}{Solving the Equation(2)}
 	\begin{block}{}
-		Then we naturally obtain:
+		Then we naturally obtain the expressions
 		\begin{align}
 			\mathbf{u}^{\nu+1}=\mathbf{u}^\nu - ((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}R\label{Unu}.
 		\end{align} 
-		and from Equation \eqref{SLambda}
+		and 
 		\begin{align}
-			\mathbf\lambda^{\nu+1} = S^{-1}(\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) + R)\label{Lnu}
-		\end{align}.
+			\mathbf\lambda^{\nu+1} = S^{-1}(\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) + R)\label{Lnu}.
+		\end{align}
 		For a summary, we have obtained all equations to proceed to the next step. All other matrices in the equation can be calculated from parameters of the current step, and $\chi^2$ can be evaluated from \eqref{KFChi2} .
 		\begin{align*}
 			\begin{cases}
@@ -688,37 +693,41 @@
 		\end{align*}
 	\end{block}
 \end{frame}
-\begin{frame}{Evolution of the Variance Matrix}
+\begin{frame}{Covariance Matrix Propagation}
 	\begin{block}{}
-		Take a look at Eq.\eqref{Mnu}. We see that $m^{\nu+1} $ is an addition(subtraction) of some parameters to the initially measured data. As we already know the error, i.e. Variance matrix, of initial data, we can estimate how error propagates through the fitting process. 
+		If we observe Eq.\eqref{Mnu}, we notice that $m^{\nu+1} $ is an addition(subtraction) of some parameters to the initial measurement. As we already know the error, i.e. Variance matrix, of initial data, and dealt with full statistical treatment, we can estimate how error propagates through the fitting process. 
 		\begin{align}
-			V(m) = J_{m,m^0}V(m^0)J_{m,m^0}^\dagger
+			V(m) = J_{m,m^0}V(m^0)J_{m,m^0}^\dagger\label{VarianceEvolve}
 		\end{align}
-		We need to calculate the Jacobian, 
+		To solve \eqref{VarianceEvolve} the Jacobian should be .
 		\begin{align}
-			J_{m,m^0(i,j)} = \pdf{m_i}{m^0_j}
+			J_{m,m^0(i,j)} = \pdf{m_i}{m^0_j}\label{Jacobian}
 		\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Evolution of the Variance Matrix.}
+\begin{frame}{Jacobian}
 	\begin{block}{}
 		To begin with, let us express Eq \eqref{Mnu} in terms of $m^0$. At the moment we will drop the superscript $\nu$. As $\vecb f(\vecb m,\vecb u)$is a constant on $m^0$, $\vecb F_\vecb m$ also will be a constant to $m^0$. Then we only need to consider the derivatives of $\lambda$. By substituting \eqref{Unu} ,
 		\begin{align}
 	\mathbf\lambda = S^{-1}(-\mathbf F_u(((\mathbf{F}_u^\dagger) S^{-1}\mathbf F_u)^{-1}(\mathbf{F}_u^\dagger) S^{-1}R) + R)
 		\end{align}
-		and we have
+		and the residual matrix is:
 		\begin{align}
 			R\equiv \mathbf f + \mathbf{F}_\mathbf{m}(\mathbf{m}^0-\mathbf{m})\to \pdf{R}{m^0}= \vecb F_m
 		\end{align} 
-		so that 
+		Now we obtain the derivative of $\lambda$ as:
 		\begin{align}
 			\pdf{\lambda}{m^0}= S^{-1}(-\mathbf F_u((\mathbf{F}_u^\dagger S^{-1}\mathbf F_u)^{-1}\mathbf{F}_u^\dagger S^{-1}\vecb F_m) + \vecb F_m).
 		\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Evolution of the Variance Matrix}
+\begin{frame}{Jacobian}
 	\begin{block}{}
-		Now define the symmetric matrices $G\equiv \vecb {F_m^\dagger} S^{-1}\vecb {F_m}$, $U\equiv (\mathbf{F}_u^\dagger S^{-1}\mathbf F_u)^{-1}$ and $H\equiv \mathbf{F}_m^\dagger S^{-1}\vecb {F_u}$. Then we have expressions for $\pdf{\lambda}{m^0}$ hence 
+		Now define the symmetric matrices
+		\begin{align}
+			G\equiv \vecb {F_m^\dagger} S^{-1}\vecb {F_m};\quad U\equiv (\mathbf{F}_u^\dagger S^{-1}\mathbf F_u)^{-1};\quad H\equiv \mathbf{F}_m^\dagger S^{-1}\vecb {F_u}
+		\end{align}
+		We have expressions for $\pdf{\lambda}{m^0}$. Equation \eqref{Jacobian} is determined as:
 		\begin{align}
 			J_{m,m^0}&=I - V(m^0)\vecb{F}_m^\dagger\pdf\lambda{m^0}=I - V\vecb{F}^\dagger_m(-S^{-1}\vecb F_u U^{-1}H^\dagger+S^{-1}\vecb F_m)\nonumber\\
 			&=I-V(G-HUH^\dagger)
@@ -727,19 +736,21 @@
 		\begin{align}
 			V(m) = J_{m,m^0} VJ_{m,m^0}^\dagger =V -2 VCV  +VCVCV.\label{Vm}
 		\end{align}
-		You might want to neglect higher order term, but please keep 2nd order term at the moment. Some materials like \cite{Prob} had an error in this part.
+		We would keep 2nd order term at the moment. Some materials like \cite{Prob} had an error in this part.
 	\end{block}
 \end{frame}
 
 \begin{frame}{Variance of the Unknowns}
 	\begin{block}{}
 		Just like how we derived  Eq.\eqref{Vm} we can estimate the variance matrix of the unknowns. 
-		\vspace{-3 mm}
 		\begin{align}
 			V_U = J_{u,m0} V J_{u,m0}^T
 		\end{align}
-		$J_{u,m0}$ can be obtained from Eq.\eqref{Unu}. Denoting\\ $((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}$ as $K$, 
-		\vspace{-3 mm}
+		$J_{u,m0}$ can be obtained from Eq.\eqref{Unu}. Defining 
+		\begin{align}
+			K\equiv ((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}
+		\end{align}
+		we write:
 		\begin{align}
 			J_{u^{\nu+1},m^0} = \pdf {u^{\nu+1}} {m^0} = \pdf{u^{\nu}}{m^0} - K\pdf R {m^0} \simeq -K \vecb F_m.
 		\end{align}
@@ -748,24 +759,7 @@
 \end{frame}
 \begin{frame}{Pull distribution}
 	\begin{block}{}
-		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. By defining the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, the pull is defined as:
-		\begin{align}
-			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}
-		\end{align}
-		and
-		\begin{align}
-			V(\epsilon) \equiv V(m)+ V(m^0) - 2 Cov(m,m^0).\label{Ve}
-		\end{align}
-		The variance of the fitted variables, $V(m)$, is evaluated as
-		\begin{align}
-			V(m) = J_{m,m^0}V(m^0) J^\dagger_{m,m^0} 
-		\end{align}
-		where $J_{m,m^0}$ is the Jacobian for $m$ and $m^0$. Detailed calculations are provided in the appendix. 
-	\end{block}
-\end{frame} 
-\begin{frame}{Pull distribution}
-	\begin{block}{}
-		The covariance can be estimated as:
+		The covariance in Equation \eqref{Ve} is estimated as:
 		\begin{align}
 			Cov(m,m^0) = J_{m,m^0}V(m) = V - VCV.
 		\end{align}
@@ -773,7 +767,7 @@
 		\begin{align}
 			V(\epsilon) = VCVCV.
 		\end{align}
-		Note that 2nd order term affects the variance.	
+		Note that 2nd order term affects the covariance matrix of the correction. 
 	\end{block}
 \end{frame}
 \begin{frame}{Applications}
