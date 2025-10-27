@@ -499,7 +499,7 @@
 	\end{figure}
 }
 \end{frame}
-\begin{frame}{Momentum Bias from Position Shift}
+\begin{frame}{Invariant Mass Bending from Momentum Bias}
 	\tcl{8}{8}{
 		\begin{figure}
 			\begin{picture}(200,150)
@@ -515,6 +515,14 @@
 		\end{picture}		
 	\end{figure}
 	}
+\end{frame}
+\begin{frame}{Off-center Pull Distribution}
+\begin{figure}
+	\begin{picture}(200,150)
+		\put(0,0){\includegraphics[width=.95\textwidth]{Xi_Pull_Before}}
+		\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+	\end{picture}		
+\end{figure}
 \end{frame}
 \begin{frame}{Position Residual?}
 	\tcl{8}{8}
@@ -597,6 +605,24 @@
 		\end{figure}
 	}
 \end{frame}
+\begin{frame}{Pull distribution}
+	\tcl{8}{8}{
+		\begin{figure}
+			\begin{picture}(200,150)
+				\put(0,0){\includegraphics[width=.95\textwidth]{Xi_Pull_Before}}
+				\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+			\end{picture}		
+		\end{figure}
+	}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(0,0){\includegraphics[width=.95\textwidth]{Xi_Pull_After}}
+			\put(30,50){\rotatebox{15}{\Huge\textcolor{tubsgray20}{Preliminary}}}
+		\end{picture}		
+	\end{figure}
+	}
+\end{frame}
+
 \section{Tricks}
 \begin{frame}{Variance Normalization}
 	\begin{block}{}
@@ -640,6 +666,17 @@
 			All Eigenvalues are Positive! TMatrixD well-supports eigenvalues, so we can just use it.
 		\end{block}
 	\end{block}
+\end{frame}
+\begin{frame}{Summary}
+	\Large
+	\begin{block}{}
+		\begin{itemize}
+			\item Measurement error can be reduced by correlating the measurements with physical constraints; This process is Kinematic Fit.
+			\item By observing statistical parameters, we can estimate many physical context other than error reduction.(i.e. Resolution/Bias estimation, S/N separation, etc...)
+			\item Proper understandings of covariance matrix is required for Kinematic Fit.
+		\end{itemize}
+	\end{block}
+	
 \end{frame}
 \section{Appendix}
 \begin{frame}{Minimization Steps.}
