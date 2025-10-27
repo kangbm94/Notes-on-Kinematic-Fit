@@ -242,12 +242,11 @@
 				-P_{\Xi,y}+P_{p,y}+P_{{\pi_\Lambda},y}+P_{{\pi_\Xi},y}\\
 				-P_{\Xi,z}+P_{p,z}+P_{{\pi_\Lambda},z}+P_{{\pi_\Xi},z}\\
 				-E_\Lambda +E_p+E_{\pi_\Lambda}\\
-				-E_\Lambda +E_p+E_{\pi_\Lambda}+E_{\pi_\Xi}
+				-E_\Xi +E_p+E_{\pi_\Lambda}+E_{\pi_\Xi}
 			\end{pmatrix}.
 		\end{align}
-		$\Lambda$ variables are not selected in $\mathbf u$ to avoid negative DoF.($N_{f} - N_{u} = 5 - 6 = -1$)
-			
-		Note that \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters.  
+			$\Lambda$ variables($\{P_\Lambda,\theta_\Lambda,\phi_\Lambda\}$) are not selected in $\mathbf u$ to reduce matrix dimension.
+			That is, \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters.  
 	\end{block}
 \end{frame}
 \begin{frame}{Kinematics Restoration}
@@ -282,6 +281,7 @@
 	\end{align}
 	\begin{itemize}
 		\item Pull distribution shows the normalized amount of parameter adjustment.
+		\item Gaussian distribution with $\sigma=1$  implies good understandings in covariance of the measurement.
 		\item In practice, resolution can be iteratively scaled by 1./ pull width
 	\end{itemize}
 \end{block}
@@ -796,7 +796,7 @@
 	\end{block}
 \end{frame}
 \fi
-\begin{frame}{KinFit package}
+\begin{frame}{KinFit Package}
 	\tcl{8}{8}{
 		\begin{figure}
 			\includegraphics[width=.9\textwidth]{KinFit}
