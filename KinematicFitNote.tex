@@ -363,6 +363,11 @@
 		
 	\end{block}	
 \end{frame}
+\begin{frame}{Example: MassVertex-Constraint Fit}
+	\begin{block}{}
+		To be Updated..
+	\end{block}
+\end{frame}
 \section{Applications: $\Xi $ decay at J-PARC}
 \begin{frame}{$p(K^-,K^+)X$ at J-PARC E42}
 	\tcl{5}{10}{
@@ -494,7 +499,6 @@
 	\end{figure}
 }
 \end{frame}
-\section{Applications to Position Correction}
 \begin{frame}{Momentum Bias from Position Shift}
 	\tcl{8}{8}{
 		\begin{figure}
@@ -792,11 +796,31 @@
 	\end{block}
 \end{frame}
 \fi
-
-\begin{frame}{Example: MassVertex-Constraint Fit}
-	\begin{block}{}
-To be Updated..
-	\end{block}
+\begin{frame}{KinFit package}
+	\tcl{8}{8}{
+		\begin{figure}
+			\includegraphics[width=.9\textwidth]{KinFit}
+		\end{figure}
+	}{
+		\large
+		\begin{align}
+			\chi^2 = \delta M^T V^{-1}\delta M + 2\lambda f(M,U)
+		\end{align}
+		\vspace{-5 mm}
+		\begin{block}{KinFIt provides...}
+			\begin{itemize}
+				\item Minimize $\chi^2$
+				\item Calculate pulls and p-values
+			\end{itemize}
+		\end{block}
+		\begin{block}{Users should...}
+			\begin{itemize}
+				\item Assign proper variables for M and U
+				\item Define physical constraints
+				\item Write the derivatives, $F_M$ and $F_U$ by hand
+			\end{itemize}
+		\end{block}
+	}
 \end{frame}
 %\begin{frame}[allowframebreaks]{References}
 \begin{frame}{References}
