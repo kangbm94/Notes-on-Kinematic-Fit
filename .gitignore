@@ -9,4 +9,5 @@
 *.gz
 *.toc
 *.xml
+*.swp
 .vscode/*
