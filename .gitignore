@@ -7,6 +7,7 @@
 *.out
 *.snm
 *.gz
+*.synctex(busy)
 *.toc
 *.xml
 *.swp
