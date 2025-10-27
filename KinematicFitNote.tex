@@ -642,27 +642,28 @@
 	\end{block}
 \end{frame}
 \section{Appendix}
-\begin{frame}{Iterative Minimization Steps.}
+\begin{frame}{Minimization Steps.}
+	\large
 	\begin{block}{}
-		The coupled differential equations \eqref{GradM},\eqref{GradL} and \eqref{GradU} will be solved iteratively. For each $\nu$th step we would rewrite it as:
+		The coupled differential equations \eqref{GradM},\eqref{GradL} and \eqref{GradU} will be solved iteratively. For each $\nu$th step,
 		\begin{align}
 			&V^{-1}(\mathbf m^0)(\mathbf{m}^{\nu+1}-\mathbf{m}^0)+(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelM}\\
-			&(\mathbf{F}_u^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelU}\\
-			&\mathbf f^\nu + \mathbf F^\nu_m (\mathbf m^{\nu+1}-\mathbf m^\nu) + \mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu)=0\label{DelL}.
+			&(\mathbf{F}_u^\dagger)^\nu\mathbf\lambda^{\nu+1}=0\label{DelL}\\
+			&\mathbf f^\nu + \mathbf F^\nu_m (\mathbf m^{\nu+1}-\mathbf m^\nu) + \mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu)=0\label{DelU}.
 		\end{align}
-		Equation \eqref{DelL} is not a direct consequence of Equation \eqref{GradU} but rather a \textit{linear approximation} to proceed with our iteration step.  
+		Equation \eqref{DelU} is not a direct consequence of Equation \eqref{GradU} but rather a \textit{linear approximation}.  
 		
 		Note that, as we are determining the parameters $\mathbf m, \mathbf u$ and $\mathbf \lambda$, they are indexed as $\nu+1$, while constraint terms(i.e. $\mathbf f,\mathbf F_\mu$ and $\mathbf F_\nu$) are calculated from current step, $\nu$. This fit is basically using Newton's method.
 	\end{block}
 \end{frame}
 
-\begin{frame}{Solving the Equation(1)}
+\begin{frame}{Coupled Equation Solving (1)}
 	\begin{block}{}
 		Multiplying \textbf V to Equation \eqref{DelM} leads to:	
 		\begin{align}
 			\mathbf{m}^{\nu+1}-\mathbf{m}^0=-V(\mathbf m^0)(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1}.\label{Mnu}
 		\end{align}
-		Substituting Equation \eqref{Mnu} into Equation \eqref{DelL}, 
+		Substituting Equation \eqref{Mnu} into Equation \eqref{DelU}, 
 		\begin{align}
 			\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) &= - \mathbf f^\nu - \mathbf F^\nu_m (-V(\mathbf m^0)(\mathbf{F}_m^\dagger)^\nu\mathbf\lambda^{\nu+1} +\mathbf{m}^0-\mathbf{m}^\nu  )\nonumber\\
 			&=  S\lambda^{\nu+1}  - R\label{SLambda}
@@ -671,19 +672,19 @@
 		\begin{align}
 		S\equiv \mathbf{F}_\mathbf{m}^\nu V(\mathbf m^0)(\mathbf{F}_\mathbf{m}^\dagger )^\nu;\quad R\equiv \mathbf f^\nu + \mathbf{F}_\mathbf{m}^\nu(\mathbf{m}^0-\mathbf{m}^\nu)
 		\end{align}
-		  Multiplying $(\mathbf{F}_u^\dagger)^\nu S^{-1}$ and substituting Equation \eqref{DelU}, into \eqref{SLambda}, we get:
+		  Multiplying $(\mathbf{F}_u^\dagger)^\nu S^{-1}$  into \eqref{SLambda}, we get:
 		\begin{align}
-			(\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) = \ctz{(\mathbf F_u^\dagger)^\nu\mathbf \lambda^{\nu+1}}-(\mathbf{F}_u^\dagger)^\nu S^{-1}R.
+			(\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) = \cancelto{0,\because \eqref{DelL}}{(\mathbf F_u^\dagger)^\nu\mathbf \lambda^{\nu+1}}-(\mathbf{F}_u^\dagger)^\nu S^{-1}R.
 		\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Solving the Equation(2)}
+\begin{frame}{Coupled Equation Solving (2)}
 	\begin{block}{}
-		Then we naturally obtain the expressions
+		Then we naturally derive the expressions
 		\begin{align}
 			\mathbf{u}^{\nu+1}=\mathbf{u}^\nu - ((\mathbf{F}_u^\dagger)^\nu S^{-1}\mathbf F^\nu_u)^{-1}(\mathbf{F}_u^\dagger)^\nu S^{-1}R\label{Unu}.
 		\end{align} 
-		and 
+		and from \eqref{SLambda},
 		\begin{align}
 			\mathbf\lambda^{\nu+1} = S^{-1}(\mathbf F^\nu_u(\mathbf u^{\nu+1}-\mathbf u^\nu) + R)\label{Lnu}.
 		\end{align}
@@ -699,11 +700,11 @@
 \end{frame}
 \begin{frame}{Covariance Matrix Propagation}
 	\begin{block}{}
-		If we observe Eq.\eqref{Mnu}, we notice that $m^{\nu+1} $ is an addition(subtraction) of some parameters to the initial measurement. As we already know the error, i.e. Variance matrix, of initial data, and dealt with full statistical treatment, we can estimate how error propagates through the fitting process. 
+		We estimate the covariance for the fitted variables, $m$,
 		\begin{align}
 			V(m) = J_{m,m^0}V(m^0)J_{m,m^0}^\dagger\label{VarianceEvolve}
 		\end{align}
-		To solve \eqref{VarianceEvolve} the Jacobian should be .
+		To solve \eqref{VarianceEvolve} the Jacobian should be determined.
 		\begin{align}
 			J_{m,m^0(i,j)} = \pdf{m_i}{m^0_j}\label{Jacobian}
 		\end{align}
@@ -774,28 +775,6 @@
 		Note that 2nd order term affects the covariance matrix of the correction. 
 	\end{block}
 \end{frame}
-\begin{frame}{Applications}
-
-\end{frame}
-
-\begin{frame}{Example: Chained Mass-Constraint Fit}
-	content...
-\end{frame}
-\begin{frame}{Mass-Constraint Kinematic Fit with HypTPC.}
-	\begin{block}{}
-		\begin{figure}
-			\includegraphics[width=0.9\textwidth]{Coords_K18_KF}
-		\end{figure}
-		For Kinematic FIt in HypTPC analysis, we want our coordinate system to be aligned with $\vec B$, so that our covariance matrix representation fits the representations in KF coordinate. We correlated $\phi$ angle with $p$ as an feature of helix fit, where $\phi$ is the angle lying on the circle of the helix. 
-	\end{block}
-\end{frame}
-\iffalse
-\begin{frame}{Estimating the Covariance in Helix Track}
-	\begin{block}{}
-		In many cases, we measure the momentum of reconstructed particles from their helical trajectories. The decay vertex is reconstructed from the intersection of two helix tracks, and the corresponding momentum direction is defined at the vertex of the helix. Since the transverse momentum is inversely proportional to the radius of the helical track, any deviation in momentum results in a corresponding deviation in the radius. As the radius increases or decreases, the tangent line at the intersection vertex rotates, leading to a strong correlation between the transverse momentum and the azimuth angle. Meanwhile, the zenith angle is defined from the pitch of the helix, which corresponds to the slope in arc-length vs $\Delta$ y of the spatial points used in helix fit.
-	\end{block}
-\end{frame}
-\fi
 \begin{frame}{KinFit Package}
 	\tcl{8}{8}{
 		\begin{figure}
