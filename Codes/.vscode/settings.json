@@ -17,6 +17,17 @@
         "version": "cpp",
         "chrono": "cpp",
         "functional": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "__split_buffer": "cpp",
+        "deque": "cpp",
+        "iomanip": "cpp",
+        "istream": "cpp",
+        "list": "cpp",
+        "locale": "cpp",
+        "print": "cpp",
+        "sstream": "cpp",
+        "stack": "cpp",
+        "string": "cpp",
+        "system_error": "cpp"
     }
 }

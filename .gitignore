@@ -4,6 +4,7 @@
 *.bcf
 *.blg
 *.log
+Codes/figs/*
 *.out
 *.snm
 *.gz

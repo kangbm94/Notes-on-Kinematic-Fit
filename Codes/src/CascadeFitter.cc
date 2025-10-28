@@ -343,7 +343,6 @@ void CascadeFitter::SampleStepPoint(int steps){
 	MassDiffsX.push_back(MassDiffX);
 }
 CascadeFitter::CascadeFitter(TLorentzVector P_,TLorentzVector Q_, TLorentzVector R_){
-	//Does Kinematic fitting for R -> P+Q decay.
 	P=P_;
 	Q=Q_;
 	R=R_;

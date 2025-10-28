@@ -386,7 +386,6 @@ void KinematicFitter::Finalize(){
 		initial_constraints.push_back(InitialF(i,0));
 	}
 	SampleStepPoint(best_step);
-	//Restore LVs from fitted parameters//	
 }
 
 
@@ -464,11 +463,4 @@ KinematicFitter::RotateVariance(TMatrixD J){
 	VMat = TransposeMatrix(J)*VMat*J;
 	Variancies.push_back(VMat);
 }
-
-
-
-
-
-
-
 #endif

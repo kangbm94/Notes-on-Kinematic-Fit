@@ -9,7 +9,6 @@
 using namespace std;
 class KinematicFitter{
 	protected:
-		// R -> P + Q;
 		int step = 0;
 		int step1st = 0;
 		int best_step = 0;
@@ -36,10 +35,10 @@ class KinematicFitter{
 		vector<TMatrixD> UHessians;//Maybe not used
 
 		vector<TMatrixD> FMats;
-		vector<TMatrixD> dFdMs;//\pdf{Constraint}{Measurement}
-		vector<TMatrixD> dFdUs;//\pdf{Constraint }{Unknown }
+		vector<TMatrixD> dFdMs;//partial derivatives of Constraint w.r.t Measurement
+		vector<TMatrixD> dFdUs;//partial derivatives of Constraint w.r.t Unknown
 		vector<TMatrixD> VarianciesU;
-		vector<vector<TMatrixD>> d2Fd2Us;//\pdf^2 Constraints / dU_idU_j. This is a 3D Tensor object that is contracted with the lambda vector, resulting in a Hesian matrix.
+		vector<vector<TMatrixD>> d2Fd2Us;//partial derivatives of Constraints / dU_idU_j. This is a 3D Tensor object that is contracted with the lambda vector, resulting in a Hesian matrix.
 		vector<TMatrixD> rMats;
 		vector<TMatrixD> sMats;
 		vector<double>	best_constraints;
@@ -55,7 +54,7 @@ class KinematicFitter{
 		TMatrixD GetVariance(int i){
 			return Variancies.at(i);
 		}
-		void AddOffdiagonals(TMatrixD Cov);//AddsCovaraince.
+		void AddOffdiagonals(TMatrixD Cov);//AddsCovaraince. 
 		void SetChi2DifCut(double cut){
 			Chi2_cut = cut; }
 		void SetMaximumStep(int max){
