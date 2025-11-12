@@ -31,7 +31,22 @@
 					\fill[BonoWhite] (-0.5 * \beamer@tubs@foot@barwidth,4pt)  rectangle (0.5 * \beamer@tubs@foot@barwidth,-4pt);
 					\shade[shading=rainbow,shading angle=270] 
 					(-0.5 * \beamer@tubs@foot@barwidth,4pt)  rectangle (-0.5 * \beamer@tubs@foot@barwidth+\beamer@tubs@foot@barwidth*\progress,-4pt);
-					\draw node  {\textcolor{black}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}};
+					\ifnum\numexpr 10*\insertframenumber\relax < \numexpr 5*\inserttotalframenumber\relax
+					\draw node  {
+						\textcolor{black}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}
+						};
+					
+					\else
+						\ifnum\numexpr 100*\insertframenumber\relax < \numexpr 75*\inserttotalframenumber\relax
+							\draw node  {
+								\textcolor{white}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}
+							};
+						\else
+							\draw node  {
+								\textcolor{PororiPink}{\textbf{Page \insertframenumber /  \inserttotalframenumber}}
+							};
+						\fi							
+					\fi
 				\end{tikzpicture}
 			\end{beamercolorbox}%
 
