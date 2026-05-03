@@ -474,7 +474,7 @@
 		\vspace{3 mm}
 		$\theta = \frac{\pi}{2}-\arctan(dz)$, we estimate the variance of $\theta$ based on the fitting error of dz. The error is estimated from the slope error of a linear fit: 
 		\begin{align*}
-			\sigma_{dz}^2 =\frac{\sum\delta_z^2/(n-2) }{\sum(x-\bar x)^2} \simeq \frac{n \sigma_z^2/(n-2)}{n L^2/12};\quad \sigma_\theta = \pdf{dz}{\theta}\sigma_{dz}=\frac{1}{1+dz^2}\sigma_{dz}.
+			\sigma_{dz}^2 =\frac{\sum\delta_z^2/(n-2) }{\sum(x-\bar x)^2} \simeq \frac{n \sigma_z^2/(n-2)}{n L^2/12};\quad \sigma_\theta = \pdf{dz}{\theta}\sigma_{dz}=\frac{-1}{1+dz^2}\sigma_{dz}.
 		\end{align*}
 		Note that, the momentum $p_z=p_T dz$ would also have some covariance with $\theta$,
 		\begin{align*}
