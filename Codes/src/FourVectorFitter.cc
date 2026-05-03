@@ -160,7 +160,7 @@ void FourVectorFitter::SetConstraints(){
 	double df3du2 = p_R*sin(th_R);
 	double df3du3 = 0;
 	double df3dm1 = cos(th_P);
-	double df3dm2 = -p_Q*sin(th_P);
+	double df3dm2 = -p_P*sin(th_P);
 	double df3dm3 = 0;
 	double df3dm4 = cos(th_Q);
 	double df3dm5 = -p_Q*sin(th_Q);
