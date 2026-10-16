@@ -45,7 +45,7 @@ class KinematicFitter{
 		vector<double>	initial_constraints;
 		bool UpdateVariancies = false;
 		bool ScaleParams = true;
-		double retard = 1.;
+		bool Initialized = false;
 
 	public:
 		KinematicFitter(){};
@@ -65,6 +65,9 @@ class KinematicFitter{
 		}
 		void ScaleParameters(bool status = true){
 			ScaleParams = status;
+		}
+		bool IsInitialized(){
+			return Initialized;
 		}
 		//Getters
 		double GetLambda(int ent = -1){
@@ -87,6 +90,36 @@ class KinematicFitter{
 		}
 		vector<double>GetUPull(){
 			return best_Upull;		
+		}
+		vector<TMatrixD> GetMeasurements(){
+			return Measurements;
+		}
+		TMatrixD GetInitialMeasurements(){
+			return Measurements.at(0);
+		}
+		TMatrixD GetBestMeasurements(){
+			return Measurements.at(best_step);
+		}
+		vector<TMatrixD> GetUnknowns(){
+			if(nUnkn == 0){
+				cout<<"KinematicFitter::GetUnknowns() : No unknowns are defined."<<endl;
+				return vector<TMatrixD>();
+			}
+			return Unknowns;
+		}
+		TMatrixD GetInitialUnknowns(){
+			if(nUnkn == 0){
+				cout<<"KinematicFitter::GetUnknowns() : No unknowns are defined."<<endl;
+				return TMatrixD();
+			}
+			return Unknowns.at(0);
+		}
+		TMatrixD GetBestUnknowns(){
+			if(nUnkn == 0){
+				cout<<"KinematicFitter::GetUnknowns() : No unknowns are defined."<<endl;
+				return TMatrixD();
+			}
+			return Unknowns.at(best_step);
 		}
 		TMatrixD GetUnmeasuredCovariance(){
 			auto UCov = VarianciesU.at(best_step);
@@ -119,6 +152,8 @@ class KinematicFitter{
 		void Finalize();	
 		TMatrixD TransposeMatrix(TMatrixD M);		
 		void ProcessStep();
+		void ProcessStepWUnkn();
+		void ProcessStepWOUnkn();
 		void RotateVariance(TMatrixD Jacobian);
 };
 #endif

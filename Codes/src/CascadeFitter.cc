@@ -4,8 +4,6 @@
 #ifndef CascadeFitter_cc
 #define CascadeFitter_cc
 #define DebugCKF 0
-#define LambdaFit 0
-#define InvMassFit 0
 // Author: Kang Byungmin, kangbmw2@naver.com
 // For the mathematics of the fitting, please refer to:
 // https://github.com/kangbm94/Notes-on-Kinematic-Fit
@@ -18,6 +16,7 @@ void CascadeFitter::UseVertex(bool status,TVector3 Vert1,TVector3 Vert2){
 	Initialize();
 }
 void CascadeFitter::Initialize(){
+	Initialized = 1;
 #if DebugCKF
 	cout<<"Initializing..."<<endl;
 #endif
@@ -285,6 +284,9 @@ void CascadeFitter::SetConstraints(){
 	dFdUs.push_back(dFdU);// same, but for unmeasured params.
 }
 void CascadeFitter::SampleStepPoint(int steps){
+#if DebugCKF
+	std::cout<<"CascadeFitter::SampleStepPoint() step = "<<steps<<std::endl;
+#endif
 	auto Meas = Measurements.at(steps); 
 	auto Unkn = Unknowns.at(steps); 
 	double p_R,th_R,ph_R,p_P,th_P,ph_P,p_Q,th_Q,ph_Q,p_X,th_X,ph_X;	
@@ -343,6 +345,7 @@ void CascadeFitter::SampleStepPoint(int steps){
 	MassDiffsX.push_back(MassDiffX);
 }
 CascadeFitter::CascadeFitter(TLorentzVector P_,TLorentzVector Q_, TLorentzVector R_){
+	//Does Kinematic fitting for R -> P+Q decay.
 	P=P_;
 	Q=Q_;
 	R=R_;
@@ -385,7 +388,8 @@ CascadeFitter::JacobianSphToCart(double p, double th, double ph){
 
 }
 void
-CascadeFitter::CalcVariance(int istep){//
+CascadeFitter::CalcVariance(int istep){//Legacy
+	return;
 	auto Meas = Measurements.at(istep); 
 	auto Unkn = Unknowns.at(istep);
 	double p_R,th_R,ph_R,p_P,th_P,ph_P,p_Q,th_Q,ph_Q,p_L,th_L,ph_L,p_X,th_X,ph_X;	

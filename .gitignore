@@ -12,4 +12,5 @@ Codes/figs/*
 *.toc
 *.xml
 *.swp
+*.pdf
 .vscode/*
