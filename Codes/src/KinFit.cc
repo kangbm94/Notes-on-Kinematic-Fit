@@ -85,12 +85,12 @@ KinematicFitter::AddOffdiagonals(TMatrixD Cov){
 		TMatrixDEigen VEig(Variancies.at(0));
 		TVectorD eigenvalue = VEig.GetEigenValuesRe();
 		for(int ie=0;ie<eigenvalue.GetNrows();++ie){
-			if(eigenvalue(ie)<0){
+			if(eigenvalue(ie)<=0){
 				PositiveDefinate = false;
 				break;
 			}
-			CheckPositiveDefinite = true;
 		}
+		CheckPositiveDefinite = PositiveDefinate;
 		if(!PositiveDefinate){
 			cout<<"KinematicFit:: Variance not positive-definite"<<endl;
 			cout<<"Reducing Offdiagonals..."<<endl;
@@ -425,6 +425,7 @@ void KinematicFitter::ProcessStepWOUnkn(){
 	//VInv_next.Invert();
 	
 	double Chi2 = (dMT* VInv*dM)(0,0) + 2 * (LambdaT * FMat )(0,0);
+	Chi2s.push_back(Chi2);
 #if Debug
 	TString StepIndi = Form("[Step::%d]",step);
 	cout<<StepIndi<<"##########Constraint Matrix##########"<<endl;
@@ -609,6 +610,7 @@ KinematicFitter::Clear(){
 	step = 0;
 	best_step = 0;
 	Best_Chi2 = 1e18;
+	ScalingMats.clear();
 	Variancies.clear();
 	VarianceInvs.clear();
 	Measurements.clear();
