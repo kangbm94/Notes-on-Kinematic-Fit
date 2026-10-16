@@ -231,8 +231,9 @@ public:
                 const TMatrixD& trueUnknown = TMatrixD(), double weight = 1.) {
     const TMatrixD initial = fitter.GetInitialMeasurements();
     const TMatrixD best = fitter.GetBestMeasurements();
-    const TMatrixD initialU = fitter.GetInitialUnknowns();
-    const TMatrixD bestU = fitter.GetBestUnknowns();
+    // A measured-only fit (e.g. BalanceFitter) must not query unknowns.
+    const TMatrixD initialU = unknown_.empty() ? TMatrixD() : fitter.GetInitialUnknowns();
+    const TMatrixD bestU = unknown_.empty() ? TMatrixD() : fitter.GetBestUnknowns();
     KFCheckColumn(trueMeasured, measured_.size(), "Measured truth");
     KFCheckColumn(initial, measured_.size(), "Initial measurements");
     KFCheckColumn(best, measured_.size(), "Best measurements");
@@ -508,5 +509,16 @@ private:
       canvas->SaveAs(directory + "/" + canvas->GetName() + ".pdf");
   }
 };
+
+// These runtime helpers contain functions and unique histogram owners; ROOT
+// I/O collection dictionaries are unnecessary and cannot copy these owners.
+#ifdef __ROOTCLING__
+#pragma link off class KFTestDiagnostics;
+#pragma link off class KFTestDiagnostics::VariableHistograms;
+#pragma link off class KFTestDiagnostics::HistogramPair;
+#pragma link off class std::vector<KFTestVariable>;
+#pragma link off class std::vector<KFTestDiagnostics::VariableHistograms>;
+#pragma link off class std::vector<KFTestDiagnostics::HistogramPair>;
+#endif
 
 #endif

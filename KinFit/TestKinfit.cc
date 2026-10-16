@@ -1,12 +1,14 @@
 #include "src/FourVectorFitter.cc"
 #include "src/MissingMassFitter.cc"
 #include "src/CascadeFitter.cc"
+#include "src/BalanceFitter.cc"
 #include "TestKinfit.hh"
 
 #include <TGenPhaseSpace.h>
 #include <TGraph.h>
 #include <TROOT.h>
 #include <TStyle.h>
+#include <utility>
 
 // Load with: .L TestKinfit.cc+
 // Existing fitter sources are used unchanged. Besides their existing API, they
@@ -22,6 +24,12 @@ double ResP = .05, ResPi1 = .05, ResPi2 = .05;
 double ResThP = .005, ResTh = .005, ResThPi2 = .005;
 double ResPhP = .01, ResPh = .02, ResPhPi2 = .02;
 double ScalePP = 1., ScalePPi1 = 1., ScalePPi2 = 1.;
+
+// Balance examples: a fixed proton target and a measured antiproton beam.
+double pPbar = 1.;
+double mPhi = 1.019461;
+double WidthPhi = .004249; // Full Breit-Wigner width in GeV (PDG: 4.249 MeV).
+double ResPbarBeam = .001, ResThPbarBeam = .001, ResPhPbarBeam = .005;
 
 // A particle helper is convenient for these examples. The generic tester also
 // accepts individual Cartesian components, energies, masses, etc.; no grouping
@@ -380,12 +388,238 @@ void TestMissingEtaFit(int nEvents = -1) {
   test.WriteHist("figs/MissingEtaFit/histograms.root");
 }
 
+// All balance-fit rows are measured: beam first, then each final particle,
+// with (p,theta,phi) for each. There are no unknowns or intermediate phi rows.
+std::vector<KFTestVariable> KFPbarBalanceMeasurements(bool phiPhi) {
+  auto variables = KFParticleVariables("beam", "#bar{p}_{beam}", .01,
+                                        ResPbarBeam, ResThPbarBeam, ResPhPbarBeam);
+  const auto finals = phiPhi
+      ? KFJoinVariables({
+          KFParticleVariables("km1", "K^{-}_{1}", .15, ResP, ResThP, ResPhP),
+          KFParticleVariables("kp1", "K^{+}_{1}", .15, ResP, ResThP, ResPhP),
+          KFParticleVariables("km2", "K^{-}_{2}", .15, ResP, ResThP, ResPhP),
+          KFParticleVariables("kp2", "K^{+}_{2}", .15, ResP, ResThP, ResPhP)})
+      : KFJoinVariables({
+          KFParticleVariables("pbar", "#bar{p}", .2, ResP, ResThP, ResPhP),
+          KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP)});
+  variables.insert(variables.end(), finals.begin(), finals.end());
+  return variables;
+}
+
+std::vector<KFTestVariable> KFPbarBalanceConstraints() {
+  return {
+    {"Px", "#Sigma p_{x,final} - p_{x,beam} [GeV/c]", {200, -.25, .25}},
+    {"Py", "#Sigma p_{y,final} - p_{y,beam} [GeV/c]", {200, -.25, .25}},
+    {"Pz", "#Sigma p_{z,final} - p_{z,beam} [GeV/c]", {200, -.25, .25}},
+    {"Energy", "#Sigma E_{final} - E_{beam} - m_{p} [GeV]", {200, -.25, .25}}
+  };
+}
+
+TLorentzVector KFPbarBeam(double momentum) {
+  if (!std::isfinite(momentum) || momentum <= 0.)
+    throw std::invalid_argument("Antiproton beam momentum must be finite and positive");
+  // Rotate the coordinate axes slightly to avoid the spherical beam-angle
+  // singularity at theta=0. The beam momentum magnitude remains unchanged.
+  TVector3 direction(.1, .05, 1.);
+  direction.SetMag(momentum);
+  return TLorentzVector(direction, std::hypot(momentum, mP));
+}
+
+struct KFPbarBalanceSummary {
+  unsigned long invalid = 0, nonconserving = 0;
+  double maxResidual = 0.;
+};
+
+struct KFPbarBalanceResult {
+  bool finite = false;
+  // Index 0 is the measured/fitted beam; indices 1...N are final particles.
+  std::vector<TLorentzVector> initial, fitted;
+};
+
+KFPbarBalanceResult KFFitPbarBalance(KFTestDiagnostics& test,
+                                     const TLorentzVector& beam,
+                                     const TLorentzVector& target,
+                                     const std::vector<TLorentzVector>& trueFinal,
+                                     KFPbarBalanceSummary& summary) {
+  std::vector<double> values = {beam.P(), beam.Theta(), beam.Phi()};
+  for (const auto& particle : trueFinal) {
+    values.push_back(particle.P());
+    values.push_back(particle.Theta());
+    values.push_back(particle.Phi());
+  }
+  const TMatrixD trueMeasured = KFColumn(values);
+  const KFTestSample sample = test.Smear(trueMeasured);
+  KFPbarBalanceResult result;
+  result.initial.push_back(KFFourVector(sample.measurements, 0, beam.M()));
+  std::vector<TLorentzVector> measuredFinal;
+  for (std::size_t i = 0; i < trueFinal.size(); ++i) {
+    const TLorentzVector measured = KFFourVector(sample.measurements, 3 * (i + 1), trueFinal[i].M());
+    measuredFinal.push_back(measured);
+    result.initial.push_back(measured);
+  }
+  BalanceFitter fitter(result.initial[0], target, measuredFinal);
+  if (fitter.GetNDF() != 4)
+    throw std::runtime_error("BalanceFitter must have four constraints and no unknowns");
+  fitter.SetChi2DifCut(1.e-10);
+  sample.SetVariance(fitter);
+  const double chi2 = fitter.DoKinematicFit();
+  // No trueUnknown argument, no unknown histograms, and no unknown getters.
+  if (!test.FillHist(fitter, chi2, trueMeasured)) {
+    ++summary.invalid;
+    return result;
+  }
+  result.fitted = fitter.GetFittedLV();
+  if (result.fitted.size() != result.initial.size())
+    throw std::runtime_error("BalanceFitter::GetFittedLV must return beam, then final particles");
+  TLorentzVector residual = -result.fitted[0] - target;
+  for (std::size_t i = 1; i < result.fitted.size(); ++i) residual += result.fitted[i];
+  const double components[4] = {residual.Px(), residual.Py(), residual.Pz(), residual.E()};
+  bool conserved = true;
+  for (double component : components) {
+    if (!std::isfinite(component) || std::abs(component) > 1.e-8) conserved = false;
+    if (std::isfinite(component))
+      summary.maxResidual = std::max(summary.maxResidual, std::abs(component));
+  }
+  if (!conserved) ++summary.nonconserving;
+  result.finite = true;
+  return result;
+}
+
+void KFFinishPbarBalance(KFTestDiagnostics& test, const TString& directory,
+                          const KFPbarBalanceSummary& summary) {
+  test.DrawHist(directory);
+  test.WriteHist(directory + "/histograms.root");
+  std::cout << "Balance check: mean chi2 = " << test.Chi2Histogram()->GetMean()
+            << " (expect about 4), mean p-value = " << test.PValueHistogram()->GetMean()
+            << " (expect about 0.5)\n"
+            << "  Invalid results: " << summary.invalid
+            << ", nonconserving finite results: " << summary.nonconserving
+            << ", max |F_i| = " << summary.maxResidual << " GeV" << std::endl;
+  // Finite and unconverged fits remain in the histograms. Invalid results and
+  // failed conservation are counted and reported without aborting the run.
+}
+
+std::pair<double, double> KFSamplePhiMasses(double sqrtS) {
+  const double minimum = 2. * mK;
+  if (!std::isfinite(sqrtS) || !std::isfinite(mK) || mK <= 0. ||
+      !std::isfinite(mPhi) || mPhi <= minimum ||
+      !std::isfinite(WidthPhi) || WidthPhi < 0. || sqrtS <= 2. * minimum)
+    throw std::invalid_argument("KFSamplePhiMasses: invalid masses/width or four-kaon production is forbidden");
+  if (WidthPhi == 0.) {
+    if (sqrtS <= 2. * mPhi)
+      throw std::invalid_argument("KFSamplePhiMasses: zero-width phi-phi production is forbidden");
+    return {mPhi, mPhi};
+  }
+  const double s = sqrtS * sqrtS;
+  const double maxMomentum = .5 * std::sqrt(s - 4. * minimum * minimum);
+  // Narrow-resonance mass model: two constant-width Breit-Wigner densities
+  // in M, restricted to M_i > 2mK and M1+M2 < sqrt(s), multiplied by the
+  // two-body production phase space p*(M1,M2). ROOT's width argument is FWHM.
+  // Decay angular distributions are isotropic; running widths are not modeled.
+  for (int attempt = 0; attempt < 1000000; ++attempt) {
+    const double first = gRandom->BreitWigner(mPhi, WidthPhi);
+    const double second = gRandom->BreitWigner(mPhi, WidthPhi);
+    if (!std::isfinite(first) || !std::isfinite(second) ||
+        first <= minimum || second <= minimum || first + second >= sqrtS)
+      continue;
+    const double sum = first + second, difference = first - second;
+    const double momentum = std::sqrt((s - sum * sum) * (s - difference * difference)) / (2. * sqrtS);
+    if (gRandom->Rndm() * maxMomentum < momentum) return {first, second};
+  }
+  throw std::runtime_error("KFSamplePhiMasses: unable to generate an allowed mass pair within the attempt limit");
+}
+
+void TestPbarElasticFit(int nEvents = -1, double beamMomentum = -1.) {
+  const int count = nEvents < 0 ? nev : nEvents;
+  if (count <= 0) throw std::invalid_argument("TestPbarElasticFit: event count must be positive");
+  const TLorentzVector beam = KFPbarBeam(beamMomentum < 0. ? pPbar : beamMomentum);
+  const TLorentzVector target(0., 0., 0., mP);
+  const auto variables = KFPbarBalanceMeasurements(false);
+  KFTestDiagnostics test("PbarElastic", variables, {}, KFPbarBalanceConstraints());
+  const double sqrtS = (beam + target).M();
+  test.AddObservable({"FinalMassResidual", "M(#bar{p}p)-M^{true}(#bar{p}p) [GeV/c^{2}]", {200, -.15, .15}});
+  test.AddObservable({"MissingMassResidual", "M(B+T-#bar{p})-m_{p} [GeV/c^{2}]", {200, -.15, .15}});
+  TGenPhaseSpace primary;
+  KFSetDecay(primary, beam + target, mP, mP);
+  KFPbarBalanceSummary summary;
+  // Isotropic two-body phase space is used as a kinematic performance test,
+  // not as a model of the elastic differential cross section.
+  for (int i = 0; i < count; ++i) {
+    primary.Generate();
+    const auto event = KFFitPbarBalance(test, beam, target,
+                                       {*primary.GetDecay(0), *primary.GetDecay(1)}, summary);
+    if (!event.finite) continue;
+    test.FillObservable("FinalMassResidual", (event.initial[1] + event.initial[2]).M() - sqrtS,
+                         (event.fitted[1] + event.fitted[2]).M() - sqrtS);
+    test.FillObservable("MissingMassResidual", (event.initial[0] + target - event.initial[1]).M() - mP,
+                         (event.fitted[0] + target - event.fitted[1]).M() - mP);
+  }
+  KFFinishPbarBalance(test, "figs/PbarElasticFit", summary);
+}
+
+void TestPbarPhiPhiFit(int nEvents = -1, double beamMomentum = -1.) {
+  const int count = nEvents < 0 ? nev : nEvents;
+  if (count <= 0) throw std::invalid_argument("TestPbarPhiPhiFit: event count must be positive");
+  const TLorentzVector beam = KFPbarBeam(beamMomentum < 0. ? pPbar : beamMomentum);
+  const TLorentzVector target(0., 0., 0., mP);
+  const double sqrtS = (beam + target).M();
+  if (!std::isfinite(mPhi) || !std::isfinite(mK) || mK <= 0. ||
+      !std::isfinite(WidthPhi) || WidthPhi < 0. || mPhi <= 2. * mK ||
+      sqrtS <= 4. * mK || (WidthPhi == 0. && sqrtS <= 2. * mPhi))
+    throw std::invalid_argument("TestPbarPhiPhiFit: invalid phi width/mass or production is forbidden");
+  std::cout << "pbar p -> phi phi: p_beam = " << beam.P()
+            << " GeV/c, sqrt(s) = " << sqrtS
+            << " GeV, excess above two pole masses = " << sqrtS - 2. * mPhi
+            << " GeV, phi width = " << WidthPhi << " GeV" << std::endl;
+  const auto variables = KFPbarBalanceMeasurements(true);
+  KFTestDiagnostics test("PbarPhiPhi", variables, {}, KFPbarBalanceConstraints());
+  test.AddObservable({"Phi1MassResidual", "M(K^{-}_{1}K^{+}_{1})-M^{true}_{#phi_{1}} [GeV/c^{2}]",
+                       {200, -.04, .04}});
+  test.AddObservable({"Phi2MassResidual", "M(K^{-}_{2}K^{+}_{2})-M^{true}_{#phi_{2}} [GeV/c^{2}]",
+                       {200, -.04, .04}});
+  test.AddObservable({"FourKaonMassResidual", "M(4K)-M^{true}(4K) [GeV/c^{2}]",
+                       {200, -.15, .15}});
+  TGenPhaseSpace primary, decay1, decay2;
+  KFPbarBalanceSummary summary;
+  // Draw two masses for each event, then generate the production and decays.
+  // No phi mass constraints are imposed in the balance fit: it is still 4C.
+  for (int i = 0; i < count; ++i) {
+    const auto masses = KFSamplePhiMasses(sqrtS);
+    KFSetDecay(primary, beam + target, masses.first, masses.second);
+    primary.Generate();
+    const TLorentzVector phi1 = *primary.GetDecay(0), phi2 = *primary.GetDecay(1);
+    KFSetDecay(decay1, phi1, mK, mK); decay1.Generate();
+    KFSetDecay(decay2, phi2, mK, mK); decay2.Generate();
+    const auto event = KFFitPbarBalance(test, beam, target,
+        {*decay1.GetDecay(0), *decay1.GetDecay(1), *decay2.GetDecay(0), *decay2.GetDecay(1)}, summary);
+    if (!event.finite) continue;
+    // Subtract each event's actual generated invariant mass, not the pole mass.
+    test.FillObservable("Phi1MassResidual", (event.initial[1] + event.initial[2]).M() - phi1.M(),
+                         (event.fitted[1] + event.fitted[2]).M() - phi1.M());
+    test.FillObservable("Phi2MassResidual", (event.initial[3] + event.initial[4]).M() - phi2.M(),
+                         (event.fitted[3] + event.fitted[4]).M() - phi2.M());
+    test.FillObservable("FourKaonMassResidual",
+        (event.initial[1] + event.initial[2] + event.initial[3] + event.initial[4]).M() - sqrtS,
+        (event.fitted[1] + event.fitted[2] + event.fitted[3] + event.fitted[4]).M() - sqrtS);
+  }
+  KFFinishPbarBalance(test, "figs/PbarPhiPhiFit", summary);
+}
+
+// Both tests default to the 1 GeV/c pbar beam configured by pPbar.
+void TestBalanceFit(int nEvents = -1, double beamMomentum = -1.) {
+  TestPbarElasticFit(nEvents, beamMomentum);
+  TestPbarPhiPhiFit(nEvents, beamMomentum);
+}
+
 void TestKinfit() {
   SetStyle();
   std::cout << "TestXiFit([nEvents])\n"
                "TestXi1530Fit([nEvents])\n"
                "TestFourVectorFit([nEvents])\n"
                "TestMissingEtaFit([nEvents]) after loading that fitter\n"
+               "TestPbarElasticFit([nEvents], [beamMomentum])\n"
+               "TestPbarPhiPhiFit([nEvents], [beamMomentum])\n"
+               "TestBalanceFit([nEvents], [beamMomentum]) runs both pbar tests (default 1 GeV/c)\n"
                "Variable setup: KFTestVariable(name, axisTitle, {bins,min,max}, sigma, period)\n"
                "Residual convention: initial/fitted minus truth; matrix row order must match.\n";
 }
