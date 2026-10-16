@@ -3,8 +3,9 @@
 *.nav
 *.bcf
 *.blg
+*.zip
 *.log
-Codes/figs/*
+*figs/*
 *.out
 *.snm
 *.gz
@@ -14,3 +15,4 @@ Codes/figs/*
 *.swp
 *.pdf
 .vscode/*
+*.vscode/*
