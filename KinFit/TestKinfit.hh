@@ -197,6 +197,11 @@ public:
   struct HistogramPair {
     std::unique_ptr<TH1D> initial, fitted;
   };
+  // Measured-variable indices in ROOT pad order (left to right, top to bottom).
+  struct CanvasPage {
+    int columns, rows;
+    std::vector<std::size_t> variables;
+  };
 
   KFTestDiagnostics(const TString& name,
                     std::vector<KFTestVariable> measured,
@@ -326,10 +331,16 @@ public:
     return unknownHist_.at(i);
   }
 
-  void DrawHist(const TString& directory = "") const {
+  // Optionally prepend derived-observable overlays to the first unknown
+  // residual canvas. Unknown parameter lists and pull canvases are unchanged.
+  // Explicit measured pages override the default nine-variable pagination.
+  void DrawHist(const TString& directory = "",
+                const std::vector<TString>& unknownResidualTopRow = {},
+                const std::vector<CanvasPage>& measuredPages = {}) const {
     if (!directory.IsNull()) gSystem->mkdir(directory, true);
-    DrawVariables(measuredHist_, "Measured", directory);
-    DrawVariables(unknownHist_, "Unknown", directory);
+    if (measuredPages.empty()) DrawVariables(measuredHist_, "Measured", directory);
+    else DrawMeasuredPages(measuredPages, directory);
+    DrawVariables(unknownHist_, "Unknown", directory, unknownResidualTopRow);
     DrawPairs(constraints_, "Constraints", directory);
     DrawPairs(observables_, "Observables", directory);
     auto* canvas = new TCanvas(prefix_ + "_Summary", prefix_ + " summary", 1200, 800);
@@ -470,8 +481,38 @@ private:
     legend->AddEntry(second, "Fitted", "l");
     legend->Draw();
   }
+  void DrawMeasuredPages(const std::vector<CanvasPage>& pages,
+                         const TString& directory) const {
+    // Validate all pages before allocating canvases.
+    for (const auto& page : pages) {
+      if (page.columns <= 0 || page.rows <= 0 || page.variables.empty() ||
+          page.variables.size() > static_cast<std::size_t>(page.columns) * page.rows)
+        throw std::invalid_argument("Invalid measured canvas layout");
+      for (auto index : page.variables)
+        if (index >= measuredHist_.size())
+          throw std::out_of_range("Measured canvas variable index");
+    }
+    for (std::size_t pageIndex = 0; pageIndex < pages.size(); ++pageIndex) {
+      const auto& page = pages[pageIndex];
+      const TString suffix = TString::Format("_%zu", pageIndex + 1);
+      auto* residual = new TCanvas(prefix_ + "_MeasuredResidual" + suffix,
+                                   "Measured residuals", 400 * page.columns, 300 * page.rows);
+      auto* pull = new TCanvas(prefix_ + "_MeasuredPull" + suffix,
+                               "Measured pulls", 400 * page.columns, 300 * page.rows);
+      residual->Divide(page.columns, page.rows);
+      pull->Divide(page.columns, page.rows);
+      for (std::size_t pad = 0; pad < page.variables.size(); ++pad) {
+        const auto& hist = measuredHist_[page.variables[pad]];
+        residual->cd(pad + 1);
+        DrawOverlay(hist.initialResidual.get(), hist.fittedResidual.get());
+        pull->cd(pad + 1); hist.pull->DrawCopy("hist");
+      }
+      SaveCanvas(residual, directory); SaveCanvas(pull, directory);
+    }
+  }
   void DrawVariables(const std::vector<VariableHistograms>& hist,
-                      const TString& label, const TString& directory) const {
+                      const TString& label, const TString& directory,
+                      const std::vector<TString>& topRow = {}) const {
     for (std::size_t begin = 0; begin < hist.size(); begin += 9) {
       const int count = std::min<std::size_t>(9, hist.size() - begin);
       const TString page = TString::Format("_%zu", begin / 9 + 1);
@@ -480,9 +521,19 @@ private:
       auto* pull = new TCanvas(prefix_ + "_" + label + "Pull" + page,
                                label + " pulls", 1200, 800);
       const int cols = std::min(3, count), rows = (count + cols - 1) / cols;
-      residual->Divide(cols, rows); pull->Divide(cols, rows);
-      for (int i = 0; i < count; ++i) {
+      const int extra = begin == 0 ? static_cast<int>(topRow.size()) : 0;
+      const int residualCols = extra ? 3 : cols;
+      const int extraRows = (extra + residualCols - 1) / residualCols;
+      const int offset = extraRows * residualCols;
+      residual->Divide(residualCols, extraRows + (count + residualCols - 1) / residualCols);
+      pull->Divide(cols, rows);
+      for (int i = 0; i < extra; ++i) {
         residual->cd(i + 1);
+        const auto& pair = observables_.at(ObservableIndex(topRow[i]));
+        DrawOverlay(pair.initial.get(), pair.fitted.get());
+      }
+      for (int i = 0; i < count; ++i) {
+        residual->cd(offset + i + 1);
         DrawOverlay(hist[begin + i].initialResidual.get(), hist[begin + i].fittedResidual.get());
         pull->cd(i + 1); hist[begin + i].pull->DrawCopy("hist");
       }

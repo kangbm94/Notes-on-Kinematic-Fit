@@ -8,13 +8,18 @@
 #include <TGraph.h>
 #include <TROOT.h>
 #include <TStyle.h>
+#include <TPad.h>
+#include <limits>
 #include <utility>
 
 // Load with: .L TestKinfit.cc+
 // Existing fitter sources are used unchanged. Besides their existing API, they
 // must provide GetBestMeasurements(), GetInitialMeasurements(), GetBestUnknowns()
 // and GetInitialUnknowns(), all returning physical, unscaled TMatrixD columns.
-// Edit the variable lists below, not MakeHist/Smear/FillHist/DrawHist.
+// Histogram configuration, smearing, filling and drawing are reusable helpers.
+// Every Test... function shows generation, fitter input, SetVariance(),
+// DoKinematicFit(), and fitted-parameter extraction directly in its event loop.
+// All generated decays are two-body, so their Generate() weights are constant.
 
 int nev = 100000;
 double mXi = 1.321, mXi0 = 1.315, mXi1530 = 1.535;
@@ -45,7 +50,7 @@ std::vector<KFTestVariable> KFParticleVariables(
        relativeMomentumSigma > 0. ? KFRelativeResolution(relativeMomentumSigma) : KFTestResolution()},
       {name + "_theta", "#theta_{" + title + "} [rad]", {100, -.1, .1},
        thetaSigma > 0. ? KFAbsoluteResolution(thetaSigma) : KFTestResolution()},
-      {name + "_phi", "#phi_{" + title + "} [rad]", {100, -.5, .5},
+      {name + "_phi", "#phi_{" + title + "} [rad]", {100, -.3, .3},
        phiSigma > 0. ? KFAbsoluteResolution(phiSigma) : KFTestResolution(), 2. * pi}};
   vars[0].meanScale = momentumScale;
   return vars;
@@ -67,11 +72,9 @@ std::vector<KFTestVariable> KFCascadeMeasurements() {
 }
 
 std::vector<KFTestVariable> KFCascadeUnknowns() {
-  // Assumed CascadeFitter unknown row order: Lambda first, Xi second.
-  // If your implementation orders them differently, change this list AND the
-  // trueUnknown column in KFFitCascade together. Dimension mismatches throw.
-  return KFJoinVariables({KFParticleVariables("lambda", "#Lambda", .5),
-                           KFParticleVariables("xi", "#Xi", .5)});
+  // CascadeFitter has only the Xi (p, theta, phi) as unknowns.
+  // Lambda is reconstructed from the proton and pi1 measurements.
+  return KFParticleVariables("xi", "#Xi", .5);
 }
 
 void SetStyle() {
@@ -81,273 +84,516 @@ void SetStyle() {
   gROOT->ForceStyle();
 }
 
-// Every decay used below is two-body, so its Generate() weight is constant.
-void KFSetDecay(TGenPhaseSpace& generator, const TLorentzVector& parent,
-                 double firstMass, double secondMass) {
-  double masses[2] = {firstMass, secondMass};
-  TLorentzVector copy = parent;
-  if (!generator.SetDecay(copy, 2, masses))
-    throw std::runtime_error("Kinematically forbidden test decay");
-}
-
-struct KFCascadeEvent {
-  TLorentzVector proton, pi1, pi2;
-};
-
-KFCascadeEvent KFGenerateCascade(const TLorentzVector& xi, double pionMass = -1.) {
-  TGenPhaseSpace evXi, evLambda;
-  KFSetDecay(evXi, xi, mL, pionMass < 0. ? mPi : pionMass);
-  evXi.Generate();
-  const TLorentzVector lambda = *evXi.GetDecay(0);
-  KFSetDecay(evLambda, lambda, mP, mPi);
-  evLambda.Generate();
-  return {*evLambda.GetDecay(0), *evLambda.GetDecay(1), *evXi.GetDecay(1)};
+// Lambda is derived from measured daughters, never added to the unknowns.
+std::vector<KFTestVariable> KFCascadeLambdaResiduals() {
+  auto variables = KFParticleVariables("lambda", "#Lambda", .5);
+  for (auto& variable : variables) {
+    variable.name += "Residual";
+    variable.axisTitle = "#Delta " + variable.axisTitle;
+  }
+  return variables;
 }
 
 void KFAddCascadeObservables(KFTestDiagnostics& test) {
   test.AddObservable({"LambdaMass", "M(p#pi_{1}) [GeV/c^{2}]", {500, 1.04, 1.2}});
   test.AddObservable({"XiMass", "M(p#pi_{1}#pi_{2}) [GeV/c^{2}]", {500, mXi - .075, mXi + .075}});
+  for (const auto& variable : KFCascadeLambdaResiduals()) test.AddObservable(variable);
 }
 
-void KFFitCascade(KFTestDiagnostics& test, const KFCascadeEvent& event,
-                   bool updateVariance = false) {
-  const auto& p = event.proton;
-  const auto& pi1 = event.pi1;
-  const auto& pi2 = event.pi2;
-  const TMatrixD trueMeasured = KFSphericalParameters({p, pi1, pi2});
-  const TMatrixD trueUnknown = KFSphericalParameters({p + pi1, p + pi1 + pi2});
-  const KFTestSample sample = test.Smear(trueMeasured);
-  const TLorentzVector measuredP = KFFourVector(sample.measurements, 0, mP);
-  const TLorentzVector measuredPi1 = KFFourVector(sample.measurements, 3, mPi);
-  const TLorentzVector measuredPi2 = KFFourVector(sample.measurements, 6, mPi);
+void KFDrawCascadeHist(KFTestDiagnostics& test, const TString& directory) {
+  test.DrawHist(directory, {"lambda_pResidual", "lambda_thetaResidual", "lambda_phiResidual"});
+}
 
-  CascadeFitter fitter(measuredP, measuredPi1, measuredPi2);
-  fitter.SetInvMass(mL, mXi);
-  fitter.SetMaximumStep(5); // Same test setting as the original macro.
-  fitter.UpdateVariance(updateVariance);
-  sample.SetVariance(fitter);
-  const double chi2 = fitter.DoKinematicFit();
-  if (!test.FillHist(fitter, chi2, trueMeasured, trueUnknown)) return;
+struct KFCascadeFitResult {
+  double initialMass = std::numeric_limits<double>::quiet_NaN();
+  double chi2 = std::numeric_limits<double>::quiet_NaN();
+  double pvalue = std::numeric_limits<double>::quiet_NaN();
+  double piXiPullScore = std::numeric_limits<double>::quiet_NaN();
+  bool valid = false;
+};
 
-  const TMatrixD fitted = fitter.GetBestMeasurements();
-  const TLorentzVector fittedP = KFFourVector(fitted, 0, mP);
-  const TLorentzVector fittedPi1 = KFFourVector(fitted, 3, mPi);
-  const TLorentzVector fittedPi2 = KFFourVector(fitted, 6, mPi);
-  test.FillObservable("LambdaMass", (measuredP + measuredPi1).M(), (fittedP + fittedPi1).M());
-  test.FillObservable("XiMass", (measuredP + measuredPi1 + measuredPi2).M(),
-                       (fittedP + fittedPi1 + fittedPi2).M());
+// pi2 is the charged pion assigned to Xi -> Lambda pi (pi_Xi).
+// Measured rows are proton[0..2], pi1[3..5], pi2[6..8].
+double KFPiXiPullScore(const std::vector<double>& pulls) {
+  if (pulls.size() != 9)
+    throw std::invalid_argument("Cascade pull score requires nine measured pulls");
+  double score = 0.;
+  for (std::size_t i = 6; i < 9; ++i) {
+    if (!std::isfinite(pulls[i])) return std::numeric_limits<double>::quiet_NaN();
+    score += pulls[i] * pulls[i];
+  }
+  return std::isfinite(score) ? score : std::numeric_limits<double>::quiet_NaN();
+}
+
+// Histogram-only helper: generation, fitter setup and parameter extraction
+// remain visible in the examples below. No fitter API is called here.
+void KFFillCascadeObservables(KFTestDiagnostics& test,
+                              const TLorentzVector& trueLambda,
+                              const TLorentzVector& initialLambda,
+                              const TLorentzVector& fittedLambda,
+                              const TLorentzVector& initialXi,
+                              const TLorentzVector& fittedXi) {
+  const TMatrixD truth = KFSphericalParameters({trueLambda});
+  const TMatrixD initial = KFSphericalParameters({initialLambda});
+  const TMatrixD fitted = KFSphericalParameters({fittedLambda});
+  const auto variables = KFCascadeLambdaResiduals();
+  for (std::size_t i = 0; i < variables.size(); ++i) {
+    const auto& variable = variables[i];
+    test.FillObservable(variable.name, variable.Difference(initial(i, 0), truth(i, 0)),
+                        variable.Difference(fitted(i, 0), truth(i, 0)));
+  }
+  test.FillObservable("LambdaMass", initialLambda.M(), fittedLambda.M());
+  test.FillObservable("XiMass", initialXi.M(), fittedXi.M());
 }
 
 
-// Generic signal/background comparison, retaining the original cut studies.
-// Tail integrals include overflow, and empty selections do not divide by zero.
-void KFCompareSamples(const KFTestDiagnostics& signal, const KFTestDiagnostics& background,
-                       const TString& directory) {
+// Exact event-level cut scans. Efficiencies include all generated events after
+// the K+ acceptance selection; invalid KF results fail KF-based selections.
+struct KFSeparationScan {
+  std::vector<double> cuts, efficiency, purity;
+};
+
+KFSeparationScan KFScanSeparation(std::vector<double> signal,
+                                  std::vector<double> background,
+                                  std::size_t generatedSignal,
+                                  std::size_t generatedBackground,
+                                  double signalFraction, bool keepAbove,
+                                  double maximumCut, int steps = 1000,
+                                  bool logarithmicCuts = false) {
+  if (!generatedSignal || !generatedBackground ||
+      !std::isfinite(signalFraction) || signalFraction <= 0. || signalFraction >= 1. ||
+      !std::isfinite(maximumCut) || maximumCut <= 0. || steps <= 0)
+    throw std::invalid_argument("Invalid separation scan configuration");
+  std::sort(signal.begin(), signal.end());
+  std::sort(background.begin(), background.end());
+  auto count = [keepAbove](const std::vector<double>& values, double cut) {
+    return keepAbove ? values.end() - std::lower_bound(values.begin(), values.end(), cut)
+                     : std::upper_bound(values.begin(), values.end(), cut) - values.begin();
+  };
+  KFSeparationScan scan;
+  for (int i = 0; i <= steps; ++i) {
+    // A score can have a long tail: log1p spacing resolves small cuts while
+    // retaining the largest event. Force the last cut to include the endpoint.
+    const double cut = i == steps ? maximumCut :
+        (logarithmicCuts ? std::expm1(std::log1p(maximumCut) * i / steps)
+                         : maximumCut * i / steps);
+    const double es = static_cast<double>(count(signal, cut)) / generatedSignal;
+    const double eb = static_cast<double>(count(background, cut)) / generatedBackground;
+    const double selected = signalFraction * es + (1. - signalFraction) * eb;
+    if (selected <= 0.) continue; // Purity is undefined for an empty selection.
+    scan.cuts.push_back(cut);
+    scan.efficiency.push_back(es);
+    scan.purity.push_back(signalFraction * es / selected);
+  }
+  return scan;
+}
+
+// Xi1530- -> Xi- pi0 is signal; Xi1530- -> Xi0 pi- is the competing channel.
+// Both end in p pi- pi- pi0 and are reconstructed as Xi- -> Lambda pi-.
+void KFCompareSamples(const std::vector<KFCascadeFitResult>& signal,
+                       const std::vector<KFCascadeFitResult>& background,
+                       const TString& directory, double signalFraction = 1. / 3.) {
+  if (signal.empty() || background.empty() || !std::isfinite(signalFraction) ||
+      signalFraction <= 0. || signalFraction >= 1.)
+    throw std::invalid_argument("Separation requires both channels and 0 < signalFraction < 1");
   gSystem->mkdir(directory, true);
-  auto* summary = new TCanvas("Xi1530Comparison", "Xi1530 comparison", 1200, 800);
-  summary->Divide(3, 1);
-  const TH1D* sig[] = {signal.Chi2Histogram(), signal.PValueHistogram(),
-                       signal.ObservableHistogram("XiMass")};
-  const TH1D* bkg[] = {background.Chi2Histogram(), background.PValueHistogram(),
-                       background.ObservableHistogram("XiMass")};
-  for (int i = 0; i < 3; ++i) {
-    summary->cd(i + 1);
-    std::unique_ptr<TH1D> total(static_cast<TH1D*>(sig[i]->Clone("total")));
-    total->SetDirectory(nullptr); total->Add(bkg[i]); total->SetLineColor(kBlack);
-    total->SetMaximum(1.2 * std::max(1., total->GetMaximum()));
-    TH1* all = total->DrawCopy("hist");
-    TH1* s = sig[i]->DrawCopy("hist same"); s->SetLineColor(kBlue);
-    TH1* b = bkg[i]->DrawCopy("hist same"); b->SetLineColor(kRed);
-    auto* legend = new TLegend(.55, .68, .90, .90);
-    legend->SetBorderSize(0); legend->SetFillStyle(0);
-    legend->AddEntry(all, "All events", "l"); legend->AddEntry(s, "Signal", "l");
-    legend->AddEntry(b, "Combinatorial background", "l"); legend->Draw();
+  TH1D sChi2("Xi1530SignalChi2", ";#chi^{2};Events", 500, 0., 50.);
+  TH1D bChi2("Xi1530BackgroundChi2", ";#chi^{2};Events", 500, 0., 50.);
+  TH1D sPval("Xi1530SignalPValue", ";P-value;Events", 1000, 0., 1.);
+  TH1D bPval("Xi1530BackgroundPValue", ";P-value;Events", 1000, 0., 1.);
+  TH1D sMass("Xi1530SignalMass", ";M(p#pi^{-}#pi^{-}) [GeV/c^{2}];Events", 600, mXi - .15, mXi + .15);
+  TH1D bMass("Xi1530BackgroundMass", ";M(p#pi^{-}#pi^{-}) [GeV/c^{2}];Events", 600, mXi - .15, mXi + .15);
+  const char* scoreAxis = ";S = u_{p,#pi_{#Xi}}^{2} + u_{#theta,#pi_{#Xi}}^{2} + u_{#phi,#pi_{#Xi}}^{2};Events";
+  TH1D sScore("Xi1530SignalPiXiPullScore", scoreAxis, 600, 0., 30.);
+  TH1D bScore("Xi1530BackgroundPiXiPullScore", scoreAxis, 600, 0., 30.);
+  for (auto* h : {&sChi2, &bChi2, &sPval, &bPval, &sMass, &bMass, &sScore, &bScore}) {
+    h->SetDirectory(nullptr); h->Sumw2();
   }
-  summary->SaveAs(directory + "/comparison.pdf");
-
-  std::vector<double> pcuts, peff, ppurity, mcuts, meff, mpurity;
-  const int np = sig[1]->GetNbinsX();
-  const double ns = sig[1]->Integral(0, np + 1);
-  for (int bin = 1; bin <= np; ++bin) {
-    const double s = sig[1]->Integral(bin, np + 1);
-    const double b = bkg[1]->Integral(bin, np + 1);
-    if (ns <= 0. || s + b <= 0.) continue;
-    pcuts.push_back(sig[1]->GetXaxis()->GetBinLowEdge(bin));
-    peff.push_back(s / ns); ppurity.push_back(s / (s + b));
-  }
-  const int nm = sig[2]->GetNbinsX();
-  const double nsm = sig[2]->Integral(0, nm + 1);
-  const double maxWindow = std::min(mXi - sig[2]->GetXaxis()->GetXmin(),
-                                     sig[2]->GetXaxis()->GetXmax() - mXi);
-  for (int k = 1; k <= nm / 2; ++k) {
-    const double window = maxWindow * k / (nm / 2);
-    double s = 0., b = 0.;
-    for (int bin = 1; bin <= nm; ++bin)
-      if (std::abs(sig[2]->GetBinCenter(bin) - mXi) <= window) {
-        s += sig[2]->GetBinContent(bin); b += bkg[2]->GetBinContent(bin);
+  std::vector<double> sp, bp, sm, bm, ss, bs;
+  auto fill = [&](const std::vector<KFCascadeFitResult>& events,
+                  TH1D& chi2, TH1D& pval, TH1D& mass, TH1D& score,
+                  std::vector<double>& probabilities, std::vector<double>& errors,
+                  std::vector<double>& scores) {
+    for (const auto& event : events) {
+      if (std::isfinite(event.initialMass)) {
+        mass.Fill(event.initialMass);
+        errors.push_back(std::abs(event.initialMass - mXi));
       }
-    if (nsm <= 0. || s + b <= 0.) continue;
-    mcuts.push_back(window); meff.push_back(s / nsm); mpurity.push_back(s / (s + b));
-  }
-  auto* cuts = new TCanvas("Xi1530Cuts", "Selection studies", 1200, 800);
-  cuts->Divide(3, 1);
-  auto drawPair = [&](int pad, const std::vector<double>& x,
-                       const std::vector<double>& first, const std::vector<double>& second,
-                       const char* title) {
-    if (x.empty()) return;
-    cuts->cd(pad);
-    auto* g1 = new TGraph(static_cast<int>(x.size()), x.data(), first.data());
-    auto* g2 = new TGraph(static_cast<int>(x.size()), x.data(), second.data());
-    g1->SetTitle(title); g1->SetLineColor(kBlue); g2->SetLineColor(kRed);
-    g1->SetMinimum(0.); g1->SetMaximum(1.05); g1->Draw("AL"); g2->Draw("L same");
-    auto* legend = new TLegend(.58, .72, .90, .90);
+      if (!event.valid) continue;
+      if (std::isfinite(event.piXiPullScore) && event.piXiPullScore >= 0.) {
+        score.Fill(event.piXiPullScore);
+        scores.push_back(event.piXiPullScore);
+      }
+      if (std::isfinite(event.chi2) && event.chi2 >= 0.) chi2.Fill(event.chi2);
+      if (std::isfinite(event.pvalue) && event.pvalue >= 0. && event.pvalue <= 1.) {
+        pval.Fill(event.pvalue == 1. ? std::nextafter(1., 0.) : event.pvalue);
+        probabilities.push_back(event.pvalue);
+      }
+    }
+  };
+  fill(signal, sChi2, sPval, sMass, sScore, sp, sm, ss);
+  fill(background, bChi2, bPval, bMass, bScore, bp, bm, bs);
+  const auto pscan = KFScanSeparation(sp, bp, signal.size(), background.size(), signalFraction, true, 1.);
+  const auto mscan = KFScanSeparation(sm, bm, signal.size(), background.size(), signalFraction, false, .15);
+  double maximumScoreCut = 30.;
+  for (const auto* scores : {&ss, &bs})
+    for (double score : *scores) maximumScoreCut = std::max(maximumScoreCut, score);
+  const auto sscan = KFScanSeparation(ss, bs, signal.size(), background.size(),
+                                     signalFraction, false, maximumScoreCut, 2000, true);
+
+  // Scale channel overlays to the same assumed mixture used for purity.
+  const double total = signal.size() + background.size();
+  for (auto* h : {&sChi2, &sPval, &sMass, &sScore}) h->Scale(total * signalFraction / signal.size());
+  for (auto* h : {&bChi2, &bPval, &bMass, &bScore}) h->Scale(total * (1. - signalFraction) / background.size());
+  auto overlay = [&](const TH1D& s, const TH1D& b, bool logY = false, bool zoomChi2 = false) {
+    TH1D sum(s); sum.SetDirectory(nullptr); sum.Add(&b); sum.SetLineColor(kBlack);
+    sum.SetMaximum((logY ? 2. : 1.2) * std::max(1., sum.GetMaximum()));
+    sum.SetMinimum(logY ? .5 : 0.);
+    if (zoomChi2) sum.GetXaxis()->SetRangeUser(0., 10.);
+    if (logY) gPad->SetLogy();
+    auto* all = sum.DrawCopy("hist");
+    auto* sh = s.DrawCopy("hist same"); sh->SetLineColor(kBlue);
+    auto* bh = b.DrawCopy("hist same"); bh->SetLineColor(kRed);
+    auto* legend = new TLegend(.47, .69, .91, .91);
     legend->SetBorderSize(0); legend->SetFillStyle(0);
-    legend->AddEntry(g1, "Efficiency", "l");
-    legend->AddEntry(g2, "Purity", "l");
+    legend->AddEntry(all, "All events", "l");
+    legend->AddEntry(sh, "#Xi^{*-} #rightarrow #Xi^{-}#pi^{0}", "l");
+    legend->AddEntry(bh, "#Xi^{*-} #rightarrow #Xi^{0}#pi^{-}", "l");
     legend->Draw();
   };
-  drawPair(1, pcuts, peff, ppurity, ";P-value cut;Efficiency / purity");
-  drawPair(2, mcuts, meff, mpurity, ";Mass half-window [GeV/c^{2}];Efficiency / purity");
-  // The efficiency coordinates of the two selections differ; draw separately.
-  cuts->cd(3);
-  TGraph* pcurve = nullptr;
-  if (!peff.empty()) {
-    pcurve = new TGraph(static_cast<int>(peff.size()), peff.data(), ppurity.data());
-    pcurve->SetTitle(";Efficiency;Purity"); pcurve->SetLineColor(kBlue);
-    pcurve->SetMinimum(0.); pcurve->SetMaximum(1.05); pcurve->Draw("AL");
-    pcurve->GetXaxis()->SetLimits(0., 1.);
-  }
-  if (!meff.empty()) {
-    auto* mcurve = new TGraph(static_cast<int>(meff.size()), meff.data(), mpurity.data());
-    mcurve->SetTitle(";Efficiency;Purity"); mcurve->SetLineColor(kRed);
-    mcurve->SetMinimum(0.); mcurve->SetMaximum(1.05); mcurve->Draw(pcurve ? "L same" : "AL");
-    auto* legend = new TLegend(.56, .28, .90, .46);
+  auto* sum = new TCanvas("c_sum", "Xi1530 channel separation", 1200, 600);
+  sum->Divide(2, 1);
+  sum->cd(1); overlay(sChi2, bChi2, false, true);
+  sum->cd(2); overlay(sPval, bPval, true);
+  sum->SaveAs(directory + "/c_sum.pdf");
+  auto* mass = new TCanvas("c_imxi", "Unfit Xi candidate mass", 800, 600);
+  mass->cd(); overlay(sMass, bMass);
+  mass->SaveAs(directory + "/c_imxi.pdf");
+  auto* scoreDistribution = new TCanvas("c_pullscore", "Xi-pion squared-pull score", 800, 600);
+  scoreDistribution->cd(); overlay(sScore, bScore, true);
+  scoreDistribution->SaveAs(directory + "/c_pullscore.pdf");
+
+  auto graph = [](const std::vector<double>& x, const std::vector<double>& y,
+                  const TString& name, int color, bool positiveX = false) {
+    auto* g = new TGraph();
+    for (std::size_t i = 0; i < x.size(); ++i) {
+      // Zero efficiency has no position on a logarithmic axis.
+      if (positiveX && x[i] <= 0.) continue;
+      g->SetPoint(g->GetN(), x[i], y[i]);
+    }
+    g->SetName(name); g->SetLineColor(color); g->SetLineWidth(2);
+    return g;
+  };
+  auto* pEfficiency = graph(pscan.cuts, pscan.efficiency, "PValueEfficiency", kBlue);
+  auto* pPurity = graph(pscan.cuts, pscan.purity, "PValuePurity", kRed);
+  auto* mEfficiency = graph(mscan.cuts, mscan.efficiency, "MassEfficiency", kBlue);
+  auto* mPurity = graph(mscan.cuts, mscan.purity, "MassPurity", kRed);
+  auto* sEfficiency = graph(sscan.cuts, sscan.efficiency, "PiXiPullScoreEfficiency", kBlue);
+  auto* sPurity = graph(sscan.cuts, sscan.purity, "PiXiPullScorePurity", kRed);
+  auto drawCuts = [&](TGraph* efficiency, TGraph* purity, const char* xTitle, double xmax) {
+    // DrawFrame also handles a scan with no selected events.
+    auto* frame = gPad->DrawFrame(0., 0., xmax, 1.05);
+    frame->SetTitle(TString(";") + xTitle + ";Efficiency / purity");
+    efficiency->Draw("L same"); purity->Draw("L same");
+    auto* legend = new TLegend(.52, .68, .90, .90);
     legend->SetBorderSize(0); legend->SetFillStyle(0);
-    if (pcurve) legend->AddEntry(pcurve, "P-value cut", "l");
-    legend->AddEntry(mcurve, "Mass-window cut", "l"); legend->Draw();
-  }
-  cuts->SaveAs(directory + "/selection.pdf");
+    legend->AddEntry(efficiency, "Signal efficiency", "l");
+    legend->AddEntry(purity, TString::Format("Purity (f_{S}=%.3g)", signalFraction), "l");
+    legend->Draw();
+  };
+  auto* pval = new TCanvas("c_pval", "P-value selection", 800, 600);
+  pval->cd(); drawCuts(pEfficiency, pPurity, "P-value cut", 1.);
+  pval->SaveAs(directory + "/c_pval.pdf");
+  auto* mcut = new TCanvas("c_mass", "Mass-window selection", 800, 600);
+  mcut->cd(); drawCuts(mEfficiency, mPurity, "Mass half-window [GeV/c^{2}]", .15);
+  mcut->SaveAs(directory + "/c_mass.pdf");
+  auto* scut = new TCanvas("c_score", "Xi-pion squared-pull selection", 800, 600);
+  scut->cd(); drawCuts(sEfficiency, sPurity, "Squared-pull score upper cut", 30.);
+  scut->SaveAs(directory + "/c_score.pdf");
+  auto* pTradeoff = graph(pscan.efficiency, pscan.purity, "PValueEfficiencyPurity", kBlue, true);
+  auto* mTradeoff = graph(mscan.efficiency, mscan.purity, "MassEfficiencyPurity", kRed, true);
+  auto* sTradeoff = graph(sscan.efficiency, sscan.purity, "PiXiPullScoreEfficiencyPurity", kGreen + 2, true);
+  double minimumEfficiency = 0.9; // Retain the supplied high-efficiency zoom.
+  #if 0
+  for (const auto* scan : {&pscan, &mscan})
+    for (double efficiency : scan->efficiency)
+      if (efficiency > 0.) minimumEfficiency = std::min(minimumEfficiency, .5 * efficiency);
+  #endif
+  auto drawTradeoff = [&]() {
+    gPad->SetLogx();
+    auto* frame = gPad->DrawFrame(minimumEfficiency, 0., 1., 1.05);
+    frame->SetTitle(";Signal efficiency;Purity");
+    pTradeoff->Draw("L same"); mTradeoff->Draw("L same"); sTradeoff->Draw("L same");
+    auto* legend = new TLegend(.20, .20, .70, .45);
+    legend->SetBorderSize(0); legend->SetFillStyle(0);
+    legend->AddEntry(pTradeoff, "P-value cut", "l");
+    legend->AddEntry(mTradeoff, "Mass-window cut", "l");
+    legend->AddEntry(sTradeoff, "#pi_{#Xi} squared-pull score cut", "l"); legend->Draw();
+  };
+  auto* tradeoff = new TCanvas("c_eff_pur", "Selection comparison", 800, 600);
+  tradeoff->cd(); drawTradeoff();
+  tradeoff->SaveAs(directory + "/c_eff_pur.pdf");
+
+  // Retain the existing views and add the score selection to the comparison.
+  auto* comparison = new TCanvas("Xi1530Comparison", "Xi1530 comparison", 1500, 600);
+  comparison->Divide(3, 1);
+  comparison->cd(1); overlay(sScore, bScore, true);
+  comparison->cd(2); overlay(sPval, bPval, true);
+  comparison->cd(3); overlay(sMass, bMass);
+  comparison->SaveAs(directory + "/comparison.pdf");
+  auto* selection = new TCanvas("Xi1530Cuts", "Selection studies", 1400, 1000);
+  selection->Divide(2, 2);
+  selection->cd(1); drawCuts(pEfficiency, pPurity, "P-value cut", 1.);
+  selection->cd(2); drawCuts(mEfficiency, mPurity, "Mass half-window [GeV/c^{2}]", .15);
+  selection->cd(3); drawCuts(sEfficiency, sPurity, "Squared-pull score upper cut", 30.);
+  selection->cd(4); drawTradeoff();
+  selection->SaveAs(directory + "/selection.pdf");
+  TFile output(directory + "/separation.root", "RECREATE");
+  if (output.IsZombie()) throw std::runtime_error("Cannot create Xi1530 separation ROOT file");
+  for (auto* h : {&sChi2, &bChi2, &sPval, &bPval, &sMass, &bMass, &sScore, &bScore}) h->Write();
+  for (auto* g : {pEfficiency, pPurity, mEfficiency, mPurity, sEfficiency, sPurity,
+                  pTradeoff, mTradeoff, sTradeoff}) g->Write();
+  for (auto* c : {sum, mass, scoreDistribution, pval, mcut, scut, tradeoff, comparison, selection}) c->Write();
+  std::cout << "Xi1530 separation: signal = Xi- pi0, competing channel = Xi0 pi-\n"
+            << "  Assumed signal fraction before selection: " << signalFraction
+            << "; efficiency denominator: all generated events after K+ acceptance.\n"
+            << "  P-value rule: P >= cut; mass rule: |M_initial - mXi| <= half-window.\n"
+            << "  Score rule: sum of pi_Xi (p,theta,phi) squared correction pulls <= cut.\n"
+            << "  Invalid fits/pulls fail the score selection; all events remain in efficiency denominators.\n"
+            << "  Score display: 0..30; tradeoff scan includes the full score range.\n"
+            << "  Invalid KF results fail the P-value selection; mass selection is independent of KF."
+            << std::endl;
 }
 
+// K- p -> K+ Xi-, Xi- -> Lambda pi2, Lambda -> p pi1.
 void TestXiFit(int nEvents = -1) {
   KFTestDiagnostics test("XiCascade", KFCascadeMeasurements(), KFCascadeUnknowns());
   KFAddCascadeObservables(test);
   const TLorentzVector beam(0., 0., pK18, std::hypot(mK, pK18));
   const TLorentzVector target(0., 0., 0., mP);
-  TGenPhaseSpace evVert;
-  KFSetDecay(evVert, beam + target, mXi, mK);
+  TLorentzVector primary = beam + target;
+  double primaryMasses[2] = {mXi, mK};
+  double xiMasses[2] = {mL, mPi};
+  double lambdaMasses[2] = {mP, mPi};
+  TGenPhaseSpace evVert, evXi, evLambda;
+  if (!evVert.SetDecay(primary, 2, primaryMasses))
+    throw std::runtime_error("Kinematically forbidden Xi production");
   for (int i = 0; i < (nEvents < 0 ? nev : nEvents); ++i) {
+    // 1. Generate the entire decay chain explicitly.
     evVert.Generate();
-    KFFitCascade(test, KFGenerateCascade(*evVert.GetDecay(0)), true);
+    TLorentzVector xi = *evVert.GetDecay(0);
+    if (!evXi.SetDecay(xi, 2, xiMasses))
+      throw std::runtime_error("Kinematically forbidden Xi decay");
+    evXi.Generate();
+    TLorentzVector lambda = *evXi.GetDecay(0);
+    const TLorentzVector truePi2 = *evXi.GetDecay(1);
+    if (!evLambda.SetDecay(lambda, 2, lambdaMasses))
+      throw std::runtime_error("Kinematically forbidden Lambda decay");
+    evLambda.Generate();
+    const TLorentzVector trueP = *evLambda.GetDecay(0);
+    const TLorentzVector truePi1 = *evLambda.GetDecay(1);
+
+    // 2. Smear the measured rows: p[0..2], pi1[3..5], pi2[6..8].
+    const TMatrixD truth = KFSphericalParameters({trueP, truePi1, truePi2});
+    const TMatrixD trueUnknown = KFSphericalParameters({trueP + truePi1 + truePi2});
+    const KFTestSample sample = test.Smear(truth);
+    const TLorentzVector p = KFFourVector(sample.measurements, 0, mP);
+    const TLorentzVector pi1 = KFFourVector(sample.measurements, 3, mPi);
+    const TLorentzVector pi2 = KFFourVector(sample.measurements, 6, mPi);
+
+    // 3. Declare the fitter, set constraints and covariance, then fit.
+    CascadeFitter fitter(p, pi1, pi2);
+    fitter.SetInvMass(mL, mXi);
+    fitter.SetMaximumStep(5);
+    fitter.UpdateVariance(true);
+    std::vector<double> variance = sample.variances; // sigma^2 in measured-row order
+    fitter.SetVariance(variance.data());
+    // For correlated measurements, also call fitter.AddOffdiagonals(covariance).
+    const double chi2 = fitter.DoKinematicFit();
+    if (!test.FillHist(fitter, chi2, truth, trueUnknown)) continue;
+
+    // 4. Extract physical fitted parameters and reconstruct the daughters.
+    const TMatrixD best = fitter.GetBestMeasurements();
+    const TMatrixD bestXi = fitter.GetBestUnknowns(); // Xi (p,theta,phi) only
+    KFCheckColumn(bestXi, 3, "Fitted Xi unknowns");
+    const TLorentzVector fittedP = KFFourVector(best, 0, mP);
+    const TLorentzVector fittedPi1 = KFFourVector(best, 3, mPi);
+    const TLorentzVector fittedPi2 = KFFourVector(best, 6, mPi);
+    const TLorentzVector fittedLambda = fittedP + fittedPi1;
+    const TLorentzVector fittedXi = fittedLambda + fittedPi2;
+    KFFillCascadeObservables(test, trueP + truePi1, p + pi1, fittedLambda,
+                            p + pi1 + pi2, fittedXi);
   }
-  test.DrawHist("figs/XiFit");
+  KFDrawCascadeHist(test, "figs/XiFit");
   test.WriteHist("figs/XiFit/histograms.root");
 }
-void TestXi1530Fit(int nEvents = -1) {
+
+// Isospin limit: Xi1530- -> Xi0 pi- : Xi- pi0 = 2:1, so signalFraction = 1/3.
+// signalFraction is the assumed Xi- pi0 fraction AFTER K+ acceptance, before cuts.
+void TestXi1530Fit(int nEvents = -1, double signalFraction = 1. / 3.,
+                   bool updateVariance = false) {
+  const int count = nEvents < 0 ? nev : nEvents;
+  if (count <= 0 || !std::isfinite(signalFraction) || signalFraction <= 0. || signalFraction >= 1.)
+    throw std::invalid_argument("TestXi1530Fit needs positive events and 0 < signalFraction < 1");
+  std::vector<KFCascadeFitResult> signalResults, backgroundResults;
+  signalResults.reserve(count); backgroundResults.reserve(count);
   KFTestDiagnostics signal("Xi1530Signal", KFCascadeMeasurements(), KFCascadeUnknowns());
   KFTestDiagnostics background("Xi1530Background", KFCascadeMeasurements(), KFCascadeUnknowns());
   KFAddCascadeObservables(signal); KFAddCascadeObservables(background);
   const TLorentzVector beam(0., 0., pK18, std::hypot(mK, pK18));
   const TLorentzVector target(0., 0., 0., mP);
-  TGenPhaseSpace evVert, evXi1530;
-  KFSetDecay(evVert, beam + target, mXi1530, mK);
-  for (int i = 0; i < (nEvents < 0 ? nev : nEvents); ++i) {
+  TLorentzVector primary = beam + target;
+  double primaryMasses[2] = {mXi1530, mK};
+  double lambdaMasses[2] = {mP, mPi};
+  TGenPhaseSpace evVert, evXi1530, evXi, evLambda;
+  if (!evVert.SetDecay(primary, 2, primaryMasses))
+    throw std::runtime_error("Kinematically forbidden Xi1530 production");
+  for (int i = 0; i < count; ++i) {
     int attempts = 0;
     do {
       evVert.Generate();
       if (++attempts > 1000000) throw std::runtime_error("K+ selection has no generated acceptance");
     } while (evVert.GetDecay(1)->CosTheta() < .97);
-    const TLorentzVector xi1530 = *evVert.GetDecay(0);
-    KFSetDecay(evXi1530, xi1530, mXi, mPi0); evXi1530.Generate();
-    KFFitCascade(signal, KFGenerateCascade(*evXi1530.GetDecay(0)), false);
+    TLorentzVector xi1530 = *evVert.GetDecay(0);
 
-    // Wrong hypothesis: Xi1530 -> Xi0 pi-, Xi0 -> Lambda pi0. The charged pion
-    // from Xi1530 is paired with Lambda; no generated Xi- is present here.
-    KFSetDecay(evXi1530, xi1530, mXi0, mPi); evXi1530.Generate();
-    KFCascadeEvent wrong = KFGenerateCascade(*evXi1530.GetDecay(0), mPi0);
-    wrong.pi2 = *evXi1530.GetDecay(1);
-    KFFitCascade(background, wrong, true);
+    // Generate and fit one event per channel using the same Xi- hypothesis.
+    for (int channel = 0; channel < 2; ++channel) {
+      const bool isSignal = channel == 0;
+      KFTestDiagnostics& test = isSignal ? signal : background;
+      auto& results = isSignal ? signalResults : backgroundResults;
+      TLorentzVector lambda, truePi2;
+      if (isSignal) {
+        // Signal: Xi1530- -> Xi- pi0, Xi- -> Lambda pi-.
+        double resonanceMasses[2] = {mXi, mPi0};
+        if (!evXi1530.SetDecay(xi1530, 2, resonanceMasses))
+          throw std::runtime_error("Kinematically forbidden Xi- pi0 decay");
+        evXi1530.Generate();
+        TLorentzVector xi = *evXi1530.GetDecay(0);
+        double xiMasses[2] = {mL, mPi};
+        if (!evXi.SetDecay(xi, 2, xiMasses))
+          throw std::runtime_error("Kinematically forbidden Xi- decay");
+        evXi.Generate();
+        lambda = *evXi.GetDecay(0);
+        truePi2 = *evXi.GetDecay(1);
+      } else {
+        // Background: Xi1530- -> Xi0 pi-, Xi0 -> Lambda pi0.
+        // Assign the charged pion from Xi1530 to the Xi- decay hypothesis.
+        double resonanceMasses[2] = {mXi0, mPi};
+        if (!evXi1530.SetDecay(xi1530, 2, resonanceMasses))
+          throw std::runtime_error("Kinematically forbidden Xi0 pi- decay");
+        evXi1530.Generate();
+        TLorentzVector xi0 = *evXi1530.GetDecay(0);
+        truePi2 = *evXi1530.GetDecay(1);
+        double xi0Masses[2] = {mL, mPi0};
+        if (!evXi.SetDecay(xi0, 2, xi0Masses))
+          throw std::runtime_error("Kinematically forbidden Xi0 decay");
+        evXi.Generate();
+        lambda = *evXi.GetDecay(0);
+      }
+      if (!evLambda.SetDecay(lambda, 2, lambdaMasses))
+        throw std::runtime_error("Kinematically forbidden Lambda decay");
+      evLambda.Generate();
+      const TLorentzVector trueP = *evLambda.GetDecay(0);
+      const TLorentzVector truePi1 = *evLambda.GetDecay(1);
+      const TMatrixD truth = KFSphericalParameters({trueP, truePi1, truePi2});
+      // For background this is the wrongly assigned Lambda+pi- system.
+      const TMatrixD trueUnknown = KFSphericalParameters({trueP + truePi1 + truePi2});
+      const KFTestSample sample = test.Smear(truth);
+      const TLorentzVector p = KFFourVector(sample.measurements, 0, mP);
+      const TLorentzVector pi1 = KFFourVector(sample.measurements, 3, mPi);
+      const TLorentzVector pi2 = KFFourVector(sample.measurements, 6, mPi);
+      KFCascadeFitResult result;
+      result.initialMass = (p + pi1 + pi2).M(); // Preserve even if the fit fails.
+
+      // Fitter input and settings are identical for both generated channels.
+      CascadeFitter fitter(p, pi1, pi2);
+      fitter.SetInvMass(mL, mXi);
+      fitter.SetMaximumStep(5);
+      fitter.UpdateVariance(updateVariance);
+      std::vector<double> variance = sample.variances;
+      fitter.SetVariance(variance.data());
+      const double chi2 = fitter.DoKinematicFit();
+      result.chi2 = chi2;
+      result.pvalue = fitter.GetPValue();
+      result.valid = test.FillHist(fitter, chi2, truth, trueUnknown);
+      if (result.valid) {
+        const TMatrixD best = fitter.GetBestMeasurements();
+        const TMatrixD bestXi = fitter.GetBestUnknowns();
+        KFCheckColumn(bestXi, 3, "Fitted Xi unknowns");
+        const auto pulls = fitter.GetPull(); // Same measured-row order as truth.
+        result.piXiPullScore = KFPiXiPullScore(pulls); // rows 6,7,8: pi_Xi
+        const TLorentzVector fittedP = KFFourVector(best, 0, mP);
+        const TLorentzVector fittedPi1 = KFFourVector(best, 3, mPi);
+        const TLorentzVector fittedPi2 = KFFourVector(best, 6, mPi);
+        const TLorentzVector fittedLambda = fittedP + fittedPi1;
+        const TLorentzVector fittedXi = fittedLambda + fittedPi2;
+        KFFillCascadeObservables(test, trueP + truePi1, p + pi1, fittedLambda,
+                                p + pi1 + pi2, fittedXi);
+      }
+      results.push_back(result); // Failed fits remain in efficiency denominators.
+    }
   }
-  signal.DrawHist("figs/Xi1530Fit"); background.DrawHist("figs/Xi1530Fit");
+  KFDrawCascadeHist(signal, "figs/Xi1530Fit");
+  KFDrawCascadeHist(background, "figs/Xi1530Fit");
   signal.WriteHist("figs/Xi1530Fit/signal.root");
   background.WriteHist("figs/Xi1530Fit/background.root");
-  KFCompareSamples(signal, background, "figs/Xi1530Fit");
+  KFCompareSamples(signalResults, backgroundResults, "figs/Xi1530Fit", signalFraction);
 }
 
+// Fit Lambda -> p pi1 only; the generated Xi decay supplies Lambda kinematics.
 void TestFourVectorFit(int nEvents = -1) {
-  const auto allVariables = KFCascadeMeasurements();
-  const std::vector<KFTestVariable> lambdaMeasured(allVariables.begin(), allVariables.begin() + 6);
-  KFTestDiagnostics lambdaTest("LambdaSequential", lambdaMeasured,
+  const auto lambdaMeasured = KFJoinVariables({
+      KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP),
+      KFParticleVariables("pi1", "#pi_{1}", .1, ResPi1, ResTh, ResPh, ScalePPi1)});
+  KFTestDiagnostics lambdaTest("LambdaFourVector", lambdaMeasured,
                                  KFParticleVariables("lambda", "#Lambda", .5));
-  const std::vector<KFTestVariable> pion2Variables(allVariables.begin() + 6, allVariables.end());
-  auto xiMeasured = KFJoinVariables({KFParticleVariables("lambda", "#Lambda", .5),
-                                      pion2Variables});
-  KFTestDiagnostics xiTest("XiSequential", xiMeasured, KFParticleVariables("xi", "#Xi", .5));
   lambdaTest.AddObservable({"Mass", "M(p#pi_{1}) [GeV/c^{2}]", {500, 1.04, 1.2}});
-  xiTest.AddObservable({"Mass", "M(#Lambda#pi_{2}) [GeV/c^{2}]", {500, mXi - .075, mXi + .075}});
   const TLorentzVector beam(0., 0., pK18, std::hypot(mK, pK18));
   const TLorentzVector target(0., 0., 0., mP);
-  TGenPhaseSpace evVert;
-  KFSetDecay(evVert, beam + target, mXi, mK);
-  unsigned long skippedSecondFits = 0;
+  TLorentzVector primary = beam + target;
+  double primaryMasses[2] = {mXi, mK};
+  double xiMasses[2] = {mL, mPi};
+  double lambdaMasses[2] = {mP, mPi};
+  TGenPhaseSpace evVert, evXi, evLambda;
+  if (!evVert.SetDecay(primary, 2, primaryMasses))
+    throw std::runtime_error("Kinematically forbidden Xi production");
   for (int i = 0; i < (nEvents < 0 ? nev : nEvents); ++i) {
     evVert.Generate();
-    const auto event = KFGenerateCascade(*evVert.GetDecay(0));
-    const TLorentzVector trueLambda = event.proton + event.pi1;
-    const TLorentzVector trueXi = trueLambda + event.pi2;
-    const KFTestSample sample = KFSmear(KFSphericalParameters({event.proton, event.pi1, event.pi2}),
-                                        allVariables, *gRandom);
+    TLorentzVector xi = *evVert.GetDecay(0);
+    if (!evXi.SetDecay(xi, 2, xiMasses))
+      throw std::runtime_error("Kinematically forbidden Xi decay");
+    evXi.Generate();
+    TLorentzVector lambda = *evXi.GetDecay(0);
+    if (!evLambda.SetDecay(lambda, 2, lambdaMasses))
+      throw std::runtime_error("Kinematically forbidden Lambda decay");
+    evLambda.Generate();
+    const TLorentzVector trueP = *evLambda.GetDecay(0);
+    const TLorentzVector truePi1 = *evLambda.GetDecay(1);
+    const TLorentzVector trueLambda = trueP + truePi1;
+    const TMatrixD truth = KFSphericalParameters({trueP, truePi1});
+    const KFTestSample sample = lambdaTest.Smear(truth);
     const TLorentzVector p = KFFourVector(sample.measurements, 0, mP);
     const TLorentzVector pi1 = KFFourVector(sample.measurements, 3, mPi);
-    const TLorentzVector pi2 = KFFourVector(sample.measurements, 6, mPi);
-    FourVectorFitter lambdaFit(p, pi1, p + pi1);
-    lambdaFit.SetInvMass(mL);
-    KFTestSample lambdaSample;
-    lambdaSample.variances.assign(sample.variances.begin(), sample.variances.begin() + 6);
-    lambdaSample.SetVariance(lambdaFit);
-    const double lambdaChi2 = lambdaFit.DoKinematicFit();
-    if (!lambdaTest.FillHist(lambdaFit, lambdaChi2,
-                             KFSphericalParameters({event.proton, event.pi1}),
-                             KFSphericalParameters({trueLambda}))) {
-      ++skippedSecondFits; continue;
-    }
-    const TMatrixD lambdaBest = lambdaFit.GetBestMeasurements();
-    const TLorentzVector pFit = KFFourVector(lambdaBest, 0, mP);
-    const TLorentzVector pi1Fit = KFFourVector(lambdaBest, 3, mPi);
-    const TLorentzVector lambda = KFFourVector(lambdaFit.GetBestUnknowns(), 0, mL);
-    lambdaTest.FillObservable("Mass", (p + pi1).M(), (pFit + pi1Fit).M());
-    const TMatrixD lambdaCovariance = lambdaFit.GetUnmeasuredCovariance();
-    TMatrixD xiCovariance(6, 6);
-    xiCovariance.Zero();
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 3; ++k) xiCovariance(j, k) = lambdaCovariance(j, k);
-      xiCovariance(j + 3, j + 3) = sample.variances[j + 6];
-    }
-    FourVectorFitter xiFit(lambda, pi2, lambda + pi2);
-    xiFit.SetInvMass(mXi);
-    try {
-      KFSetCovariance(xiFit, xiCovariance);
-    } catch (const std::invalid_argument&) {
-      ++skippedSecondFits; continue;
-    }
-    const double xiChi2 = xiFit.DoKinematicFit();
-    if (xiTest.FillHist(xiFit, xiChi2, KFSphericalParameters({trueLambda, event.pi2}),
-                        KFSphericalParameters({trueXi}))) {
-      const TMatrixD xiBest = xiFit.GetBestMeasurements();
-      xiTest.FillObservable("Mass", (lambda + pi2).M(),
-                             (KFFourVector(xiBest, 0, mL) + KFFourVector(xiBest, 3, mPi)).M());
-    }
+
+    FourVectorFitter fitter(p, pi1, p + pi1); // Last argument: initial Lambda guess.
+    fitter.SetInvMass(mL);
+    std::vector<double> variance = sample.variances; // p then pi1; p,theta,phi each
+    fitter.SetVariance(variance.data());
+    const double chi2 = fitter.DoKinematicFit();
+    if (!lambdaTest.FillHist(fitter, chi2, truth, KFSphericalParameters({trueLambda}))) continue;
+    const TMatrixD best = fitter.GetBestMeasurements();
+    const TMatrixD bestLambda = fitter.GetBestUnknowns();
+    KFCheckColumn(bestLambda, 3, "Fitted Lambda unknowns");
+    const TLorentzVector fittedP = KFFourVector(best, 0, mP);
+    const TLorentzVector fittedPi1 = KFFourVector(best, 3, mPi);
+    lambdaTest.FillObservable("Mass", (p + pi1).M(), (fittedP + fittedPi1).M());
   }
-  lambdaTest.DrawHist("figs/FourVectorFit"); xiTest.DrawHist("figs/FourVectorFit");
+  lambdaTest.DrawHist("figs/FourVectorFit");
   lambdaTest.WriteHist("figs/FourVectorFit/lambda.root");
-  xiTest.WriteHist("figs/FourVectorFit/xi.root");
-  std::cout << "Second-stage fits skipped after invalid Lambda result/covariance: "
-            << skippedSecondFits << std::endl;
 }
 
-// Example for the current MissingMassFitter interface, without introducing a
-// mandatory dependency on its source. Load your corrected implementation first,
-// then call TestMissingEtaFit<MissingMassFitter>(10000).
+// K- p -> Lambda eta, Lambda -> p pi-; eta is not measured.
+// Measured rows: p, pion, beam; unknown rows: Lambda (p,theta,phi).
 double pE72 = 0.78;
 void TestMissingEtaFit(int nEvents = -1) {
   auto variables = KFJoinVariables({
@@ -362,27 +608,39 @@ void TestMissingEtaFit(int nEvents = -1) {
   beamE72.SetMag(pE72);
   const TLorentzVector beam(beamE72, std::hypot(mK, pE72));
   const TLorentzVector target(0., 0., 0., mP);
+  TLorentzVector primary = beam + target;
+  double primaryMasses[2] = {mL, mEta};
+  double lambdaMasses[2] = {mP, mPi};
   TGenPhaseSpace evVert, evLambda;
-  KFSetDecay(evVert, beam + target, mL, mEta);
+  if (!evVert.SetDecay(primary, 2, primaryMasses))
+    throw std::runtime_error("Kinematically forbidden Lambda eta production");
   for (int i = 0; i < (nEvents < 0 ? nev : nEvents); ++i) {
     evVert.Generate();
-    const TLorentzVector lambda = *evVert.GetDecay(0);
-    KFSetDecay(evLambda, lambda, mP, mPi); evLambda.Generate();
+    TLorentzVector lambda = *evVert.GetDecay(0);
+    if (!evLambda.SetDecay(lambda, 2, lambdaMasses))
+      throw std::runtime_error("Kinematically forbidden Lambda decay");
+    evLambda.Generate();
     const TMatrixD truth = KFSphericalParameters({*evLambda.GetDecay(0), *evLambda.GetDecay(1), beam});
     const KFTestSample sample = test.Smear(truth);
     const TLorentzVector p = KFFourVector(sample.measurements, 0, mP);
     const TLorentzVector pion = KFFourVector(sample.measurements, 3, mPi);
     const TLorentzVector measuredBeam = KFFourVector(sample.measurements, 6, mK);
     MissingMassFitter fitter(measuredBeam, target, mEta, p, pion, p + pion);
-    fitter.SetInvMass(mL); sample.SetVariance(fitter);
+    fitter.SetInvMass(mL);
+    std::vector<double> variance = sample.variances; // p, pion, beam; p,theta,phi each
+    fitter.SetVariance(variance.data());
     const double chi2 = fitter.DoKinematicFit();
     if (!test.FillHist(fitter, chi2, truth, KFSphericalParameters({lambda}))) continue;
     const TMatrixD best = fitter.GetBestMeasurements();
-    const TLorentzVector fittedLambda = KFFourVector(fitter.GetBestUnknowns(), 0, mL);
+    const TMatrixD bestUnknown = fitter.GetBestUnknowns();
+    const TLorentzVector fittedP = KFFourVector(best, 0, mP);
+    const TLorentzVector fittedPion = KFFourVector(best, 3, mPi);
+    const TLorentzVector fittedBeam = KFFourVector(best, 6, mK);
+    const TLorentzVector fittedLambda = KFFourVector(bestUnknown, 0, mL);
     test.FillObservable("LambdaMass", (p + pion).M(),
-                         (KFFourVector(best, 0, mP) + KFFourVector(best, 3, mPi)).M());
+                         (fittedP + fittedPion).M());
     test.FillObservable("MissingMass", (measuredBeam + target - (p + pion)).M(),
-                         (KFFourVector(best, 6, mK) + target - fittedLambda).M());
+                         (fittedBeam + target - fittedLambda).M());
   }
   test.DrawHist("figs/MissingEtaFit");
   test.WriteHist("figs/MissingEtaFit/histograms.root");
@@ -415,64 +673,18 @@ std::vector<KFTestVariable> KFPbarBalanceConstraints() {
   };
 }
 
-TLorentzVector KFPbarBeam(double momentum) {
-  if (!std::isfinite(momentum) || momentum <= 0.)
-    throw std::invalid_argument("Antiproton beam momentum must be finite and positive");
-  // Rotate the coordinate axes slightly to avoid the spherical beam-angle
-  // singularity at theta=0. The beam momentum magnitude remains unchanged.
-  TVector3 direction(.1, .05, 1.);
-  direction.SetMag(momentum);
-  return TLorentzVector(direction, std::hypot(momentum, mP));
-}
-
 struct KFPbarBalanceSummary {
   unsigned long invalid = 0, nonconserving = 0;
   double maxResidual = 0.;
 };
 
-struct KFPbarBalanceResult {
-  bool finite = false;
-  // Index 0 is the measured/fitted beam; indices 1...N are final particles.
-  std::vector<TLorentzVector> initial, fitted;
-};
-
-KFPbarBalanceResult KFFitPbarBalance(KFTestDiagnostics& test,
-                                     const TLorentzVector& beam,
-                                     const TLorentzVector& target,
-                                     const std::vector<TLorentzVector>& trueFinal,
-                                     KFPbarBalanceSummary& summary) {
-  std::vector<double> values = {beam.P(), beam.Theta(), beam.Phi()};
-  for (const auto& particle : trueFinal) {
-    values.push_back(particle.P());
-    values.push_back(particle.Theta());
-    values.push_back(particle.Phi());
-  }
-  const TMatrixD trueMeasured = KFColumn(values);
-  const KFTestSample sample = test.Smear(trueMeasured);
-  KFPbarBalanceResult result;
-  result.initial.push_back(KFFourVector(sample.measurements, 0, beam.M()));
-  std::vector<TLorentzVector> measuredFinal;
-  for (std::size_t i = 0; i < trueFinal.size(); ++i) {
-    const TLorentzVector measured = KFFourVector(sample.measurements, 3 * (i + 1), trueFinal[i].M());
-    measuredFinal.push_back(measured);
-    result.initial.push_back(measured);
-  }
-  BalanceFitter fitter(result.initial[0], target, measuredFinal);
-  if (fitter.GetNDF() != 4)
-    throw std::runtime_error("BalanceFitter must have four constraints and no unknowns");
-  fitter.SetChi2DifCut(1.e-10);
-  sample.SetVariance(fitter);
-  const double chi2 = fitter.DoKinematicFit();
-  // No trueUnknown argument, no unknown histograms, and no unknown getters.
-  if (!test.FillHist(fitter, chi2, trueMeasured)) {
-    ++summary.invalid;
-    return result;
-  }
-  result.fitted = fitter.GetFittedLV();
-  if (result.fitted.size() != result.initial.size())
-    throw std::runtime_error("BalanceFitter::GetFittedLV must return beam, then final particles");
-  TLorentzVector residual = -result.fitted[0] - target;
-  for (std::size_t i = 1; i < result.fitted.size(); ++i) residual += result.fitted[i];
+// Diagnostic only: inputs are already extracted fitted four-vectors.
+void KFCheckBalanceConservation(const TLorentzVector& fittedBeam,
+                                const TLorentzVector& target,
+                                const std::vector<TLorentzVector>& fittedFinal,
+                                KFPbarBalanceSummary& summary) {
+  TLorentzVector residual = -fittedBeam - target;
+  for (const auto& particle : fittedFinal) residual += particle;
   const double components[4] = {residual.Px(), residual.Py(), residual.Pz(), residual.E()};
   bool conserved = true;
   for (double component : components) {
@@ -481,13 +693,12 @@ KFPbarBalanceResult KFFitPbarBalance(KFTestDiagnostics& test,
       summary.maxResidual = std::max(summary.maxResidual, std::abs(component));
   }
   if (!conserved) ++summary.nonconserving;
-  result.finite = true;
-  return result;
 }
 
 void KFFinishPbarBalance(KFTestDiagnostics& test, const TString& directory,
-                          const KFPbarBalanceSummary& summary) {
-  test.DrawHist(directory);
+                          const KFPbarBalanceSummary& summary,
+                          const std::vector<KFTestDiagnostics::CanvasPage>& measuredPages = {}) {
+  test.DrawHist(directory, {}, measuredPages);
   test.WriteHist(directory + "/histograms.root");
   std::cout << "Balance check: mean chi2 = " << test.Chi2Histogram()->GetMean()
             << " (expect about 4), mean p-value = " << test.PValueHistogram()->GetMean()
@@ -499,60 +710,65 @@ void KFFinishPbarBalance(KFTestDiagnostics& test, const TString& directory,
   // failed conservation are counted and reported without aborting the run.
 }
 
-std::pair<double, double> KFSamplePhiMasses(double sqrtS) {
-  const double minimum = 2. * mK;
-  if (!std::isfinite(sqrtS) || !std::isfinite(mK) || mK <= 0. ||
-      !std::isfinite(mPhi) || mPhi <= minimum ||
-      !std::isfinite(WidthPhi) || WidthPhi < 0. || sqrtS <= 2. * minimum)
-    throw std::invalid_argument("KFSamplePhiMasses: invalid masses/width or four-kaon production is forbidden");
-  if (WidthPhi == 0.) {
-    if (sqrtS <= 2. * mPhi)
-      throw std::invalid_argument("KFSamplePhiMasses: zero-width phi-phi production is forbidden");
-    return {mPhi, mPhi};
-  }
-  const double s = sqrtS * sqrtS;
-  const double maxMomentum = .5 * std::sqrt(s - 4. * minimum * minimum);
-  // Narrow-resonance mass model: two constant-width Breit-Wigner densities
-  // in M, restricted to M_i > 2mK and M1+M2 < sqrt(s), multiplied by the
-  // two-body production phase space p*(M1,M2). ROOT's width argument is FWHM.
-  // Decay angular distributions are isotropic; running widths are not modeled.
-  for (int attempt = 0; attempt < 1000000; ++attempt) {
-    const double first = gRandom->BreitWigner(mPhi, WidthPhi);
-    const double second = gRandom->BreitWigner(mPhi, WidthPhi);
-    if (!std::isfinite(first) || !std::isfinite(second) ||
-        first <= minimum || second <= minimum || first + second >= sqrtS)
-      continue;
-    const double sum = first + second, difference = first - second;
-    const double momentum = std::sqrt((s - sum * sum) * (s - difference * difference)) / (2. * sqrtS);
-    if (gRandom->Rndm() * maxMomentum < momentum) return {first, second};
-  }
-  throw std::runtime_error("KFSamplePhiMasses: unable to generate an allowed mass pair within the attempt limit");
-}
-
 void TestPbarElasticFit(int nEvents = -1, double beamMomentum = -1.) {
   const int count = nEvents < 0 ? nev : nEvents;
   if (count <= 0) throw std::invalid_argument("TestPbarElasticFit: event count must be positive");
-  const TLorentzVector beam = KFPbarBeam(beamMomentum < 0. ? pPbar : beamMomentum);
+  const double momentum = beamMomentum < 0. ? pPbar : beamMomentum;
+  if (!std::isfinite(momentum) || momentum <= 0.)
+    throw std::invalid_argument("Antiproton beam momentum must be finite and positive");
+  // Slightly tilt the coordinate axes to avoid the spherical-angle pole.
+  TVector3 beamDirection(.1, .05, 1.);
+  beamDirection.SetMag(momentum);
+  const TLorentzVector beam(beamDirection, std::hypot(momentum, mP));
   const TLorentzVector target(0., 0., 0., mP);
   const auto variables = KFPbarBalanceMeasurements(false);
   KFTestDiagnostics test("PbarElastic", variables, {}, KFPbarBalanceConstraints());
   const double sqrtS = (beam + target).M();
   test.AddObservable({"FinalMassResidual", "M(#bar{p}p)-M^{true}(#bar{p}p) [GeV/c^{2}]", {200, -.15, .15}});
   test.AddObservable({"MissingMassResidual", "M(B+T-#bar{p})-m_{p} [GeV/c^{2}]", {200, -.15, .15}});
+  TLorentzVector initialSystem = beam + target;
+  double finalMasses[2] = {mP, mP};
   TGenPhaseSpace primary;
-  KFSetDecay(primary, beam + target, mP, mP);
+  if (!primary.SetDecay(initialSystem, 2, finalMasses))
+    throw std::runtime_error("Kinematically forbidden elastic production");
   KFPbarBalanceSummary summary;
   // Isotropic two-body phase space is used as a kinematic performance test,
   // not as a model of the elastic differential cross section.
   for (int i = 0; i < count; ++i) {
     primary.Generate();
-    const auto event = KFFitPbarBalance(test, beam, target,
-                                       {*primary.GetDecay(0), *primary.GetDecay(1)}, summary);
-    if (!event.finite) continue;
-    test.FillObservable("FinalMassResidual", (event.initial[1] + event.initial[2]).M() - sqrtS,
-                         (event.fitted[1] + event.fitted[2]).M() - sqrtS);
-    test.FillObservable("MissingMassResidual", (event.initial[0] + target - event.initial[1]).M() - mP,
-                         (event.fitted[0] + target - event.fitted[1]).M() - mP);
+    const TLorentzVector truePbar = *primary.GetDecay(0);
+    const TLorentzVector trueProton = *primary.GetDecay(1);
+    const TMatrixD truth = KFSphericalParameters({beam, truePbar, trueProton});
+    const KFTestSample sample = test.Smear(truth);
+    // BalanceFitter row order: beam first, then the two final particles.
+    const TLorentzVector measuredBeam = KFFourVector(sample.measurements, 0, mP);
+    const TLorentzVector pbar = KFFourVector(sample.measurements, 3, mP);
+    const TLorentzVector proton = KFFourVector(sample.measurements, 6, mP);
+    const std::vector<TLorentzVector> measuredFinal = {pbar, proton};
+
+    BalanceFitter fitter(measuredBeam, target, measuredFinal);
+    if (fitter.GetNDF() != 4)
+      throw std::runtime_error("BalanceFitter must have four constraints and no unknowns");
+    fitter.SetChi2DifCut(1.e-10);
+    std::vector<double> variance = sample.variances;
+    fitter.SetVariance(variance.data());
+    const double chi2 = fitter.DoKinematicFit();
+    // Measured-only fit: no unknown getters or unknown truth column.
+    if (!test.FillHist(fitter, chi2, truth)) { ++summary.invalid; continue; }
+
+    const TMatrixD best = fitter.GetBestMeasurements(); // (p,theta,phi) per particle
+    const auto fittedLV = fitter.GetFittedLV(); // beam, pbar, proton
+    if (fittedLV.size() != 3)
+      throw std::runtime_error("Unexpected BalanceFitter four-vector count");
+    KFCheckColumn(best, 9, "Fitted balance measurements");
+    const TLorentzVector fittedBeam = fittedLV[0];
+    const TLorentzVector fittedPbar = fittedLV[1];
+    const TLorentzVector fittedProton = fittedLV[2];
+    KFCheckBalanceConservation(fittedBeam, target, {fittedPbar, fittedProton}, summary);
+    test.FillObservable("FinalMassResidual", (pbar + proton).M() - sqrtS,
+                         (fittedPbar + fittedProton).M() - sqrtS);
+    test.FillObservable("MissingMassResidual", (measuredBeam + target - pbar).M() - mP,
+                         (fittedBeam + target - fittedPbar).M() - mP);
   }
   KFFinishPbarBalance(test, "figs/PbarElasticFit", summary);
 }
@@ -560,7 +776,13 @@ void TestPbarElasticFit(int nEvents = -1, double beamMomentum = -1.) {
 void TestPbarPhiPhiFit(int nEvents = -1, double beamMomentum = -1.) {
   const int count = nEvents < 0 ? nev : nEvents;
   if (count <= 0) throw std::invalid_argument("TestPbarPhiPhiFit: event count must be positive");
-  const TLorentzVector beam = KFPbarBeam(beamMomentum < 0. ? pPbar : beamMomentum);
+  const double momentum = beamMomentum < 0. ? pPbar : beamMomentum;
+  if (!std::isfinite(momentum) || momentum <= 0.)
+    throw std::invalid_argument("Antiproton beam momentum must be finite and positive");
+  // Slightly tilt the coordinate axes to avoid the spherical-angle pole.
+  TVector3 beamDirection(.1, .05, 1.);
+  beamDirection.SetMag(momentum);
+  const TLorentzVector beam(beamDirection, std::hypot(momentum, mP));
   const TLorentzVector target(0., 0., 0., mP);
   const double sqrtS = (beam + target).M();
   if (!std::isfinite(mPhi) || !std::isfinite(mK) || mK <= 0. ||
@@ -584,25 +806,91 @@ void TestPbarPhiPhiFit(int nEvents = -1, double beamMomentum = -1.) {
   // Draw two masses for each event, then generate the production and decays.
   // No phi mass constraints are imposed in the balance fit: it is still 4C.
   for (int i = 0; i < count; ++i) {
-    const auto masses = KFSamplePhiMasses(sqrtS);
-    KFSetDecay(primary, beam + target, masses.first, masses.second);
+    // 1. Generate two Breit-Wigner masses with allowed production phase space.
+    // ROOT's width is FWHM. Angular distributions remain isotropic.
+    double phiMass1 = mPhi, phiMass2 = mPhi;
+    if (WidthPhi > 0.) {
+      const double minimum = 2. * mK;
+      const double s = sqrtS * sqrtS;
+      const double maxMomentum = .5 * std::sqrt(s - 4. * minimum * minimum);
+      bool accepted = false;
+      for (int attempt = 0; attempt < 1000000; ++attempt) {
+        phiMass1 = gRandom->BreitWigner(mPhi, WidthPhi);
+        phiMass2 = gRandom->BreitWigner(mPhi, WidthPhi);
+        if (!std::isfinite(phiMass1) || !std::isfinite(phiMass2) ||
+            phiMass1 <= minimum || phiMass2 <= minimum || phiMass1 + phiMass2 >= sqrtS)
+          continue;
+        const double sum = phiMass1 + phiMass2, difference = phiMass1 - phiMass2;
+        const double pStar = std::sqrt((s - sum * sum) * (s - difference * difference)) / (2. * sqrtS);
+        if (gRandom->Rndm() * maxMomentum < pStar) { accepted = true; break; }
+      }
+      if (!accepted) throw std::runtime_error("Unable to generate an allowed phi mass pair");
+    }
+    TLorentzVector initialSystem = beam + target;
+    double phiMasses[2] = {phiMass1, phiMass2};
+    double kaonMasses[2] = {mK, mK};
+    if (!primary.SetDecay(initialSystem, 2, phiMasses))
+      throw std::runtime_error("Kinematically forbidden phi phi production");
     primary.Generate();
-    const TLorentzVector phi1 = *primary.GetDecay(0), phi2 = *primary.GetDecay(1);
-    KFSetDecay(decay1, phi1, mK, mK); decay1.Generate();
-    KFSetDecay(decay2, phi2, mK, mK); decay2.Generate();
-    const auto event = KFFitPbarBalance(test, beam, target,
-        {*decay1.GetDecay(0), *decay1.GetDecay(1), *decay2.GetDecay(0), *decay2.GetDecay(1)}, summary);
-    if (!event.finite) continue;
-    // Subtract each event's actual generated invariant mass, not the pole mass.
-    test.FillObservable("Phi1MassResidual", (event.initial[1] + event.initial[2]).M() - phi1.M(),
-                         (event.fitted[1] + event.fitted[2]).M() - phi1.M());
-    test.FillObservable("Phi2MassResidual", (event.initial[3] + event.initial[4]).M() - phi2.M(),
-                         (event.fitted[3] + event.fitted[4]).M() - phi2.M());
-    test.FillObservable("FourKaonMassResidual",
-        (event.initial[1] + event.initial[2] + event.initial[3] + event.initial[4]).M() - sqrtS,
-        (event.fitted[1] + event.fitted[2] + event.fitted[3] + event.fitted[4]).M() - sqrtS);
+    TLorentzVector phi1 = *primary.GetDecay(0), phi2 = *primary.GetDecay(1);
+    if (!decay1.SetDecay(phi1, 2, kaonMasses) || !decay2.SetDecay(phi2, 2, kaonMasses))
+      throw std::runtime_error("Kinematically forbidden phi decay");
+    decay1.Generate();
+    decay2.Generate();
+    const TLorentzVector trueKm1 = *decay1.GetDecay(0);
+    const TLorentzVector trueKp1 = *decay1.GetDecay(1);
+    const TLorentzVector trueKm2 = *decay2.GetDecay(0);
+    const TLorentzVector trueKp2 = *decay2.GetDecay(1);
+
+    // 2. Smear beam + four kaons, in exactly the fitter's measured-row order.
+    const TMatrixD truth = KFSphericalParameters({beam, trueKm1, trueKp1, trueKm2, trueKp2});
+    const KFTestSample sample = test.Smear(truth);
+    const TLorentzVector measuredBeam = KFFourVector(sample.measurements, 0, mP);
+    const TLorentzVector km1 = KFFourVector(sample.measurements, 3, mK);
+    const TLorentzVector kp1 = KFFourVector(sample.measurements, 6, mK);
+    const TLorentzVector km2 = KFFourVector(sample.measurements, 9, mK);
+    const TLorentzVector kp2 = KFFourVector(sample.measurements, 12, mK);
+    const std::vector<TLorentzVector> measuredFinal = {km1, kp1, km2, kp2};
+
+    // 3. Fit total four-momentum conservation, with no phi mass constraints.
+    BalanceFitter fitter(measuredBeam, target, measuredFinal);
+    if (fitter.GetNDF() != 4)
+      throw std::runtime_error("BalanceFitter must have four constraints and no unknowns");
+    fitter.SetChi2DifCut(1.e-10);
+    std::vector<double> variance = sample.variances; // 15 diagonal variances
+    fitter.SetVariance(variance.data());
+    // fitter.AddOffdiagonals(covariance); // Optional for correlated inputs.
+    const double chi2 = fitter.DoKinematicFit();
+    if (!test.FillHist(fitter, chi2, truth)) { ++summary.invalid; continue; }
+
+    // 4. Extract fitted measurements and four-vectors explicitly.
+    const TMatrixD best = fitter.GetBestMeasurements();
+    const auto fittedLV = fitter.GetFittedLV(); // beam, Km1, Kp1, Km2, Kp2
+    if (fittedLV.size() != 5)
+      throw std::runtime_error("Unexpected BalanceFitter four-vector count");
+    KFCheckColumn(best, 15, "Fitted balance measurements");
+    const TLorentzVector fittedBeam = fittedLV[0];
+    const TLorentzVector fittedKm1 = fittedLV[1];
+    const TLorentzVector fittedKp1 = fittedLV[2];
+    const TLorentzVector fittedKm2 = fittedLV[3];
+    const TLorentzVector fittedKp2 = fittedLV[4];
+    KFCheckBalanceConservation(fittedBeam, target,
+                               {fittedKm1, fittedKp1, fittedKm2, fittedKp2}, summary);
+    // Subtract each event's actual generated mass, not the phi pole mass.
+    test.FillObservable("Phi1MassResidual", (km1 + kp1).M() - phi1.M(),
+                         (fittedKm1 + fittedKp1).M() - phi1.M());
+    test.FillObservable("Phi2MassResidual", (km2 + kp2).M() - phi2.M(),
+                         (fittedKm2 + fittedKp2).M() - phi2.M());
+    test.FillObservable("FourKaonMassResidual", (km1 + kp1 + km2 + kp2).M() - sqrtS,
+                         (fittedKm1 + fittedKp1 + fittedKm2 + fittedKp2).M() - sqrtS);
   }
-  KFFinishPbarBalance(test, "figs/PbarPhiPhiFit", summary);
+  // Beam on its own page; four kaons in columns, with p/theta/phi in rows.
+  const std::vector<KFTestDiagnostics::CanvasPage> measuredPages = {
+      {3, 1, {0, 1, 2}},
+      {4, 3, {3, 6, 9, 12,
+              4, 7, 10, 13,
+              5, 8, 11, 14}}};
+  KFFinishPbarBalance(test, "figs/PbarPhiPhiFit", summary, measuredPages);
 }
 
 // Both tests default to the 1 GeV/c pbar beam configured by pPbar.
@@ -614,9 +902,9 @@ void TestBalanceFit(int nEvents = -1, double beamMomentum = -1.) {
 void TestKinfit() {
   SetStyle();
   std::cout << "TestXiFit([nEvents])\n"
-               "TestXi1530Fit([nEvents])\n"
+               "TestXi1530Fit([nEvents], [signalFraction=1./3.], [updateVariance=false])\n"
                "TestFourVectorFit([nEvents])\n"
-               "TestMissingEtaFit([nEvents]) after loading that fitter\n"
+               "TestMissingEtaFit([nEvents])\n"
                "TestPbarElasticFit([nEvents], [beamMomentum])\n"
                "TestPbarPhiPhiFit([nEvents], [beamMomentum])\n"
                "TestBalanceFit([nEvents], [beamMomentum]) runs both pbar tests (default 1 GeV/c)\n"
