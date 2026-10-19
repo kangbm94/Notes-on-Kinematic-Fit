@@ -59,8 +59,7 @@
 		\end{figure}
 	}{
 	\begin{block}{}
-		\large
-		Assume a beam with momentum $\vec P^-$ decays into $\vec P_1$ and $\vec P_2$. Measured momentum are smeared due to detector resolution, leading to unbalance in the momentum conservation.
+		Consider a particle with known momentum $\vec P_0$ decaying into two particles with momenta $\vec P_1$ and $\vec P_2$. Detector resolution causes measured momenta to deviate from their true values, breaking the momentum conservation for the the measured momentum sum.
 		\begin{align}
 			\vec P_{0}=\vec P_{1}+\vec P_{2};\quad \vec P_{1,meas} + \vec P_{2,meas}\neq \vec P_{0} 
 		\end{align}
@@ -68,75 +67,78 @@
 	\end{block}
 	}
 	\begin{block}{}
-		\large
-	We can define the $\chi^2$ to quantitatively represent our measurement error. However, we can't derive meaningful expressions from this $\chi^2$. 
+	For simplicity, consider one Cartesian momentum component, and assume independent measurement errors.
 	\begin{align}
-		\chi^2= \frac{(P_{1}-P_{1,meas})^2}{\sigma_1^2}+\frac{(P_{2}-P_{2,meas})^2}{\sigma_2^2}\label{chi2}
+		\chi^2 = \frac{(P_{1}-P_{1,meas})^2}{\sigma_1^2}+\frac{(P_{2}-P_{2,meas})^2}{\sigma_2^2}\label{chi2}
 	\end{align}
+	 However, this expression is not that meaningful in practice: minimizing this expression simply returns the measured values. 
 	\end{block}
 \end{frame}
 \begin{frame}{Constrained Optimization with The Lagrange Multiplier}
 	\begin{block}{}
-		By incorporating the \textit{Kinematic Constraints}, specifically \textit{momentum conservation}, we involve additional knowledge to \eqref{chi2}. This is known as the \textit{Lagrange Multiplier}
+		By incorporating the \textit{Constraints}, specifically \textit{momentum conservation}, we involve additional knowledge to \eqref{chi2}. This is known as the \textit{Lagrange Multiplier} method. Define the \textit{Lagrangian} $\lag$ as:.
 		\begin{align}
-			\chi^2= \frac{(P_{1,KF}-P_{1,meas})^2}{\sigma_1^2}+\frac{(P_{2,KF}-P_{2,meas})^2}{\sigma_2^2} + 2\mathbf{\lambda(P_{1,KF}+P_{2,KF}-P_0)}\label{LagMulti}
+			\lag= \frac{(P_{1,KF}-P_{1,meas})^2}{\sigma_1^2}+\frac{(P_{2,KF}-P_{2,meas})^2}{\sigma_2^2} + 2\mathbf{\lambda(P_{1,KF}+P_{2,KF}-P_0)}\label{LagMulti}
 		\end{align} 
 		Now we have meaningful expressions to minimize $\chi^2$, hence get better estimations for the measurement.
 		\begin{align}
-			\frac{1}{2}\pdf{\chi2}{P_{1,KF}}&=\frac{(P_{1,KF}-P_{1,meas})}{\sigma_1^2}+\lambda=0\label{dxd1}\\
-			\frac{1}{2}\pdf{\chi2}{P_{2,KF}}&=\frac{(P_{2,KF}-P_{2,meas})}{\sigma_2^2}+\lambda=0\label{dxd2}
+			\frac{1}{2}\pdf{\lag}{P_{1,KF}}&=\frac{(P_{1,KF}-P_{1,meas})}{\sigma_1^2}+\lambda=0\label{dxd1}\\
+			\frac{1}{2}\pdf{\lag}{P_{2,KF}}&=\frac{(P_{2,KF}-P_{2,meas})}{\sigma_2^2}+\lambda=0\label{dxd2}
 			\\
-			\frac{1}{2}\pdf{\chi2}{\lambda}&=(P_{1,KF}+P_{2,KF}-P_0)=0\label{dxdl}
+			\frac{1}{2}\pdf{\lag}{\lambda}&=(P_{1,KF}+P_{2,KF}-P_0)=0\label{dxdl}
 		\end{align}
 	\end{block}
 \end{frame}
-\begin{frame}{Why Better Resolution?}
+\begin{frame}{Why Does the Resolution Improve?}
 	\begin{block}{}
 		By solving the equations \ref{dxd1},\ref{dxd2},\ref{dxdl} and defining $\delta_i = P_{i,meas} - P_i$, we obtain the following expressions:
 		\begin{align}
-			\lambda&=\frac{P_{1,meas}+P_{2,meas}-P_0}{\sigma_1^2+\sigma_2^2} = \frac{\delta_1 + \delta_2}{\sigma_1^2+\sigma_2^2}\\
-			P_{1,KF}&=P_{1,meas}-\sigma_1^2\lambda\\
-			P_{2,KF}&=P_{2,meas}-\sigma_2^2\lambda
+			&\lambda=\frac{P_{1,meas}+P_{2,meas}-P_0}{\sigma_1^2+\sigma_2^2} = \frac{\delta_1 + \delta_2}{\sigma_1^2+\sigma_2^2}\\
+			&P_{1,KF}=P_{1,meas}-\sigma_1^2\lambda\\
+			&P_{2,KF}=P_{2,meas}-\sigma_2^2\lambda\\
+			&<\delta_1> = <\delta_2>= 0;\quad <\delta_1\delta_2> = 0
 		\end{align}
 		\begin{align}
-		<P_{1,KF}-P_{1}>& =<P_{1,KF}-P_{1,meas}+\delta_{1}>  = <-\sigma_1^2\lambda+\delta_1>\nonumber\\
-		&=<\frac{-\sigma_1^2}{\sigma_1^2+\sigma_2^2}(\delta_{1}+\delta_{2})+\delta_1>=<\frac{\sigma_2^2\delta_1 -\sigma_1^2\delta_2}{\sigma_1^2+\sigma_2^2}> \\
-		\sigma_{1,KF}^2 &= <(P_{1,KF}- P_1)^2> =\frac{\sigma_2^4\cancelto{\sigma_1^2}{<\delta_1^2>}+\sigma_1^4\cancelto{\sigma_2^2}{<\delta_2^2>}}{(\sigma_1^2+\sigma_2^2)^2} = \frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}<\sigma_1^2
+		\delta_{1,KF} &= P_{1,KF}-P_{1}=\frac{\sigma_2^2\delta_1 -\sigma_1^2\delta_2}{\sigma_1^2+\sigma_2^2};\quad <\delta_{1,KF}> = 0 \\
+		\sigma_{1,KF}^2 &= <(P_{1,KF}- P_1)^2> = \frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}<\sigma_1^2
 	\end{align}
 	\end{block}
 \end{frame}
 \begin{frame}{The Covariance After Kinematic Fit}
 	\begin{block}{}
+		The constraint improves the individual momentum resolutions and introduces a correlation between the fitted momenta.
 		\begin{align}
-			cov(P_{1},P_{2})_{KF}& = <\delta_{1,KF}\delta_{2,KF}> = <(\delta_1 -\sigma_1^2\lambda)(\delta_2-\sigma_2^2\lambda)> \nonumber\\
-			&= \sigma_1^2\sigma_2^2\cancelto{\frac{1}{\sigma_1^2+\sigma_2^2}}{<\lambda^2>}\quad -\quad \frac{\sigma_1^2<\delta_2^2>+\sigma_2^2<\delta_1^2>}{\sigma_1^2+\sigma_2^2} =-\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}
+			cov(P_{1},P_{2})_{KF}& =-\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}
 		\end{align}
 		\begin{align}
 			V=\begin{pmatrix}
 				\sigma_1^2&0\\
 				0&\sigma_2^2
 			\end{pmatrix}\to V_{KF} =
+			\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}
 			\begin{pmatrix}
-\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}&-\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}\\
--\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}&\frac{\sigma_1^2\sigma_2^2}{\sigma_1^2+\sigma_2^2}
+						1&-1\\
+						-1&1
 			\end{pmatrix}
 		\end{align}
 		\begin{itemize}
 			\item Improved momentum resolution
 			\item Negative correlation between $P_1$ and $P_2$
 		\end{itemize}
+		The negative correlation is obvious: We constrained $P_0 = P_{1,KF}+P_{2,KF}$.
 	\end{block}
 \end{frame}
 \begin{frame}{Generalization to Multi-Variables}
 	\begin{block}{}
-		Assume that we have a set of measured data $\mathbf{m^0}$, unknown parameters $\mathbf {u^0}$ and constraints $\mathbf f^0$.
+		Let $\mathbf{m^0}$ denote the measured quantities, and $\mathbf {u^0}$ the initial estimates of any unknown parameters. The fit determines $\mathbf m$ and $\mathbf u$ subject to the constraints $\mathbf f(\mathbf{m,u})=0$. Unknown parameters are optional.
 		\begin{align}
 			\mathbf {m^0} =\{m_1^0,m_2^0\ldots m_N^0\};\quad \mathbf {u^0} =\{u_1^0,u_2^0\ldots u_J^0\}\nonumber\\
-			\mathbf f =\{f_1(m_1^0,m_2^0,\ldots m_N^0,u_1^0,u_2^0,\ldots u_N^0),f_2^0,\ldots f_K^0\}
+			\mathbf f^0 =\{f^0_1(m_1^0,m_2^0,\ldots m_N^0,u_1^0,u_2^0,\ldots u_J^0),f_2^0,\ldots f_K^0\}
 		\end{align}
-		 Let $\mathbf m^0$ denote our initial measured data, and $\mathbf m$ represent the 'guess' of the data in each iterative step, just alike $P_{KF}$s in the previous example. Equation \eqref{LagMulti} is generalized to:
+		 Let $\mathbf m^0$ denote our initial measured data, and $\mathbf m$ represent the current estimates of the measurementsin each iterative step, just like $P_{KF}$s in the previous example.
+		 The Lagrange equation \eqref{LagMulti} is generalized to:
 		\begin{align}
-			\chi^2(\mathbf{m}) = (\mathbf{m}^0-\mathbf{m})^\dagger V^{-1}(\mathbf{m}^0-\mathbf{m})+2\mathbf\lambda^\dagger \mathbf {f}(\mathbf{m,u}).\label{KFChi2}
+			\lag(\mathbf{m}) = (\mathbf{m}^0-\mathbf{m})^\dagger V^{-1}(\mathbf{m}^0-\mathbf{m})+2\mathbf\lambda^\dagger \mathbf {f}(\mathbf{m,u}).\label{KFChi2}
 		\end{align}
 		Here, the Lagrange multiplier $\mathbf \lambda =\{\lambda_1,\lambda_2,\ldots\lambda_K\}$ is not just a number but a column vector with k elements, corresponding to each kinematic constraint in $\mathbf f$. 
 	\end{block}
@@ -146,17 +148,18 @@
 	\begin{block}{}
 		We want to solve the equation
 		\begin{align}
-			\vec \nabla \chi^2 =0
+			\vec \nabla \lag =0
 		\end{align}
 		to obtain the minimized state. The differential term are listed within three groups.
 		\begin{align}
-			\nabla_{\mathbf m} &= -2 V^{-1}(\mathbf m^0)(\mathbf m^0-\mathbf m) + 2 \mathbf F_\mathbf m^\dagger(\mathbf{m,u})\mathbf\lambda=0\label{GradM}\\
-			\nabla_{\mathbf u} &= 2\mathbf F_\mathbf u^\dagger(\mathbf{m,u})\mathbf \lambda =0\label{GradU}\\
-			\nabla_{\mathbf \lambda}& = \mathbf f(\mathbf{m,u})\label{GradL}.
+			\nabla_{\mathbf m}\lag &= -2 V^{-1}(\mathbf m^0)(\mathbf m^0-\mathbf m) + 2 \mathbf F_\mathbf m^\dagger(\mathbf{m,u})\mathbf\lambda=0\label{GradM}\\
+			\nabla_{\mathbf u}\lag &= 2\mathbf F_\mathbf u^\dagger(\mathbf{m,u})\mathbf \lambda =0\label{GradU}\\
+			\nabla_{\mathbf \lambda}\lag &= 2\mathbf f(\mathbf{m,u})\label{GradL}.
 		\end{align}
 		Here, the subscripts denote partial derivatives. i.e. ($(\mathbf {F}_m)_{ki}\equiv\pdf {f_k}{m_i}$).
 	\end{block}
-	\begin{block}{User Should Define...}
+	\begin{block}{We Should Define...}
+		\vspace{-5 mm}
 		\begin{table}
 			\begin{tabular}{c|c|c|c|c}
 				$\mathbf{m}$&$\mathbf{u}$&$\mathbf{f}$&$\mathbf{V}$&$\mathbf{F_m},\mathbf{F_u}$\\\hline
@@ -165,13 +168,13 @@
 		\end{table}
 	\end{block}
 \end{frame}
-\begin{frame}{Pull distribution}
+\begin{frame}{Correction Pulls}
 	\begin{block}{}
-		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. However, we cannot evaluate the 'true' value of measurement, hence pull for the real data is not accessible. Instead, from the the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, we observe the pull(of the residual) as :
+		A bias or resolution miss-estimation is revealed by observing the \textit{Pull distribution} of each measurements. However, we cannot evaluate the 'true' value of measurement, hence pull for the real data is not accessible. Instead, from the the residual $\epsilon = m-m^0$ and its variance $V(\epsilon)$, we observe the \textit{Correction Pulls} as :
 		\begin{align}
 			P(\epsilon) = \epsilon/\sqrt{V(\epsilon)}\label{Pull}
 		\end{align}
-		and
+		where
 		\begin{align}
 			V(\epsilon) \equiv V(m)+ V(m^0) - 2 Cov(m,m^0).\label{Ve}
 		\end{align}
@@ -182,14 +185,63 @@
 		 where $J_{m,m^0}$ is the Jacobian for $m$ and $m^0$. Detailed calculations are provided in the appendix. 
 	\end{block}
 \end{frame} 
-\section{Example: Mass-Constraint Fit}
+\section{Examples}
+\begin{frame}{Example: Energy-Momentum Balance}
+	\begin{block}{}
+		We extend the on-dimensional example in the introduction to the general energy-moentum conservation in $B+T\to \sum_n P_i$, where $B$,$T$ and $P_i$ are the Lorentz vector of the beam, stationary target, and the recorded particles.
+		We define:
+		\begin{align}
+			\mathbf{m} = \{P_{beam},\theta_{beam},\phi_{beam},P_{1},\theta_{1},\phi_{1}\cdots,P_{n},\theta_{n},\phi_{n}\}
+		\end{align}
+		and the constraints are:
+				\begin{align}
+			\begin{pmatrix}
+				f_1\\f_2\\f_3\\f_4
+			\end{pmatrix}=
+			\begin{pmatrix}
+				-P_{beam,x}+\sum_n {P_{i,x}}\\
+				-P_{beam,y}+\sum_n {P_{i,y}}\\
+				-P_{beam,z}+\sum_n {P_{i,z}}\\
+				-\sqrt{P_{beam}^2+m_{beam}^2}+m_{target}+\sum_n \sqrt{P_i^2+m_i^2}
+			\end{pmatrix}.\label{FMat}
+		\end{align}
+		Notably, the mass constraint is naturally implemented in the energy term.
+		Wrong PID assignment can be revealed by observing the p-value of the kinematic fit, or the pull distribution of the scattered particles.	
+	\end{block}
+\end{frame}
+\begin{frame}{Example: $\bar p p\to \phi\phi\to 4K$ Kinematic Balance}
+	\begin{block}{}
+	\tcl{7}{7}{
+	\begin{figure}
+		\begin{picture}(200,100)
+			\includegraphics[width=\linewidth]{PbarPhiPhiKaons}
+			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+		\end{picture}
+		\caption{Momentum and angular residuals of the four kaons, (red) before and (blue) after the balance fit.}
+	\end{figure}
+}{
+	\begin{figure}
+		\begin{picture}(200,100)
+			\includegraphics[width=.9\linewidth]{PbarPhiPhiKinematics}		
+			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+		\end{picture}
+		\caption{Invariant mass residuals of the two Kaon pairs, and 4K system.}
+	\end{figure}
+}
+Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can impose an energy-momentum balane constraint to the beam momentum and four Kaon tracks. We couduct a 4-C fit to improve the momentum and angular resolution of the Kaons, and the invariant mass resolution of the $\phi$ mesons.
+\end{block}
+
+\end{frame}
+
 \begin{frame}{Example: $\Lambda\to p\pi$, Defining Variables and Constraints}
 	\begin{block}{}
-		Assume a decay of $\Lambda\to p\pi^-$. We define the measurements and unknowns as:
+		Assume a decay of $\Lambda\to p\pi^-$. 
+		We introduce an unknowon parameter for this example.
+		The measurements and unknowns are defined as:
 		\begin{align}
 			\mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\};\quad\mathbf{u} = \{P_\Lambda,\theta_\Lambda,\phi_\Lambda\}
 		\end{align}
-		Then we define the energy-momentum constraint equation as:
+		and express the energy-momentum constraint equation as:
 		\begin{align}
 			\begin{pmatrix}
 				f_1\\f_2\\f_3\\f_4
@@ -203,7 +255,7 @@
 		\end{align}
 		where the mass constraint is naturally implemented in energy term.
 		
-		Since we have 3 unmeasured variable with 4 kinematical constraints, this is a 4-3 = 1-Constrained fit.
+		Since we have 3 unknowns with 4 kinematic constraints, this is a 4-3 = 1-Constrained fit.
 	\end{block}
 \end{frame}
 \begin{frame}{Example: $\Lambda\to p\pi$, The Derivatives}
@@ -223,12 +275,13 @@
 				\pdf{f_4}{P_p} &\cdots&\pdf{f_4}{\phi_\pi}
 			\end{pmatrix}
 		\end{align}
-		We have all the matrices to calculate in each step. By applying an appropriate variance matrix and employing $\chi^2$ selection criteria, we can do kinematic fit for the particles.
+		Together with the constraint equations, the fitter should evaluate these derivatives in each iteration step, and evaluate $\lag$ using the measurement covariance matrix.
+		The fit performance relies on the accuracy of the covariance matrix, and the $\chi^2$ probability of the resulting $\lag$.
 	\end{block}
 \end{frame}
 \begin{frame}{Example: $\Xi\to \Lambda\pi$, $\Lambda\to p\pi$}
 	\begin{block}{}
-		We require two mass constraints for $\Xi\to \Lambda\pi;\quad \Lambda\to p\pi$. In this case, careful considerations on the selection of variables. We will select
+		We require two mass constraints for $\Xi\to \Lambda\pi;\quad \Lambda\to p\pi$. There are some other options to define the measurements, unknowns and constraints. We choose
 		\begin{align}
 			\mathbf{u} = \{P_\Xi,\theta_\Xi,\phi_\Xi\};\quad \mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\}
 		\end{align}
@@ -243,24 +296,24 @@
 				-P_{\Xi,z}+P_{p,z}+P_{{\pi_\Lambda},z}+P_{{\pi_\Xi},z}\\
 				-E_\Lambda +E_p+E_{\pi_\Lambda}\\
 				-E_\Xi +E_p+E_{\pi_\Lambda}+E_{\pi_\Xi}
-			\end{pmatrix}.
+			\end{pmatrix}.\label{XiKFConstraint}
 		\end{align}
 			$\Lambda$ variables($\{P_\Lambda,\theta_\Lambda,\phi_\Lambda\}$) are not selected in $\mathbf u$ to reduce matrix dimension.
-			That is, \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters.  
+			That is, \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters. $E_\Lambda$ in Eq. \eqref{XiKFConstraint} is simply an abbreviation for $\sqrt{|\vec P_p+\vec P_\pi|^2+m_\Lambda^2}$. i.e. $\partial_{P_p}E_\Lambda!= 0$.
 	\end{block}
 \end{frame}
 \begin{frame}{Kinematics Restoration}
 	\tcl{8}{8}{
 		\begin{figure}
 			\begin{picture}(200,150)
-				\put(-10,0){\includegraphics[width=.95\textwidth]{Xi_cKF1}}
+				\put(-10,0){\includegraphics[width=.95\textwidth]{XiDaugherFit}}
 				\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
 			\end{picture}
 		\end{figure}
 	}{
 	\begin{figure}
 		\begin{picture}(200,150)
-			\put(-10,0){\includegraphics[width=.95\textwidth]{Xi_cKF2}}
+			\put(-10,0){\includegraphics[width=.95\textwidth]{XiFit}}
 			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
 		\end{picture}
 	\end{figure}
@@ -270,7 +323,7 @@
 	\tcl{8}{8}{
 	\begin{figure}
 		\begin{picture}(200,150)
-			\put(-10,0){\includegraphics[width=.95\textwidth]{Xi_cKF4}}
+			\put(-10,0){\includegraphics[width=.95\textwidth]{XiPull}}
 			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
 		\end{picture}
 	\end{figure}
@@ -282,11 +335,12 @@
 	\begin{itemize}
 		\item Pull distribution shows the normalized amount of parameter adjustment.
 		\item Gaussian distribution with $\sigma=1$  implies good understandings in covariance of the measurement.
-		\item In practice, resolution can be iteratively scaled by 1./ pull width
+		\item In practice, resolution can be \textbf{iteratively scaled by the pull width}.  
 	\end{itemize}
 \end{block}
 }
 \end{frame}
+\iffalse
 \begin{frame}{$\Xi^*(1530)\to \Xi \pi^0$ and $\Xi^*(1530)\to \Xi^0 \pi^-$ Separation}
 	\begin{block}{}
 		\begin{figure}
@@ -324,38 +378,50 @@
 		\end{figure}		
 	\end{block}
 \end{frame}
-\begin{frame}{The P-value}
+\begin{frame}{Pull Distributions}
 	\begin{block}{}
 				\begin{figure}
-			\begin{picture}(400,200)
-				\put(20,0){
-					\includegraphics[width = .8\textwidth]{c_sum}
-					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+			\begin{picture}(400,120)
+				\put(-10,0){
+					\includegraphics[width = .5\textwidth]{Xi1530SignalPull}
+					\put(-150,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
 				}
-			\end{picture}			
+				\put(190,0){
+				\includegraphics[width = .5\textwidth]{Xi1530BackgroundPull}
+				\put(-150,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+				}
+			\end{picture}
+			\caption{Pull distribution of the $\Xi$ kinematic fit for (left)$\Xi^*\to\Xi \pi^0$ signal, and (right)$\Xi^*\to\Xi^0 \pi^-$ background.}
 		\end{figure}
+		\vspace{-5 mm}
+		Since both decays share the same $\Lambda\to p\pi$ decay, pull distribution of the proton or $\pi_\Lambda$ is not significant.
+		However, for the $\pi_\Xi$, the comprise completely different kinematics. As a result, the pull distribution is totally different.
 		
 	\end{block}
 \end{frame}
-\begin{frame}{P-value Selection}
+\fi
+\iffalse
+\begin{frame}{Pull-score}
 	\begin{block}{}
 				\begin{figure}
-			\begin{picture}(400,200)
+			\begin{picture}(400,130)
 				\put(20,0){
-					\includegraphics[width = .8\textwidth]{c_pval}
-					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+					\includegraphics[width = .8\textwidth]{Xi1530Comparison}
+					\put(-200,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
 				}
 			\end{picture}			
 		\end{figure}
-		
+		There are no standard way to define the score, other than P-value(or $\chi^2$) of the Kinematic fit.
+		However, we can define another criteria for $\Xi$ and $\Xi^0$ separation: the squared sum of the $\pi_\Xi$ pulls.
+		Since $\Lambda\to p\pi$ fit is not included, we have a better separation.				
 	\end{block}
 \end{frame}
-\begin{frame}{P-value vs Invariant Mass}
+\begin{frame}{Signal-Purity Trade-off}
 	\begin{block}{}
 				\begin{figure}
-			\begin{picture}(400,200)
+			\begin{picture}(400,130)
 				\put(20,0){
-					\includegraphics[width = .8\textwidth]{c_eff_pur}
+					\includegraphics[width = .4\textwidth]{c_eff_pur}
 					\put(-200,80){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
 				}
 			\end{picture}			
@@ -368,6 +434,7 @@
 		To be Updated..
 	\end{block}
 \end{frame}
+\fi
 \section{Applications: $\Xi $ decay at J-PARC}
 \begin{frame}{$p(K^-,K^+)X$ at J-PARC E42}
 	\tcl{5}{10}{

@@ -19,7 +19,8 @@
 // Histogram configuration, smearing, filling and drawing are reusable helpers.
 // Every Test... function shows generation, fitter input, SetVariance(),
 // DoKinematicFit(), and fitted-parameter extraction directly in its event loop.
-// All generated decays are two-body, so their Generate() weights are constant.
+// Two-body angular weights are constant. The sequential four-pion BG example
+// samples intermediate masses with the appropriate four-body phase-space weight.
 
 int nev = 100000;
 double mXi = 1.321, mXi0 = 1.315, mXi1530 = 1.535;
@@ -893,6 +894,747 @@ void TestPbarPhiPhiFit(int nEvents = -1, double beamMomentum = -1.) {
   KFFinishPbarBalance(test, "figs/PbarPhiPhiFit", summary, measuredPages);
 }
 
+// One event record for the no-PID separation plots. Invalid/unconverged fits
+// remain in the efficiency denominator, but fail every KF selection.
+struct KFPbarBGResult {
+  double chi2 = std::numeric_limits<double>::quiet_NaN();
+  double pvalue = std::numeric_limits<double>::quiet_NaN();
+  double energyResidual = std::numeric_limits<double>::quiet_NaN();
+  double pairMass1 = std::numeric_limits<double>::quiet_NaN();
+  double pairMass2 = std::numeric_limits<double>::quiet_NaN();
+  bool valid = false;
+};
+
+struct KFPbarBGScan {
+  std::vector<double> cuts, signalEfficiency, backgroundEfficiency, purity;
+};
+
+// Plot/counting helper only; event generation and fitter usage are below.
+KFPbarBGScan KFScanPbarBG(const std::vector<KFPbarBGResult>& signal,
+                         const std::vector<KFPbarBGResult>& background,
+                         double signalFraction) {
+  if (signal.empty() || background.empty() || !std::isfinite(signalFraction) ||
+      signalFraction <= 0. || signalFraction >= 1.)
+    throw std::invalid_argument("Invalid pbar background separation samples/mixture");
+  std::vector<double> sp, bp;
+  auto collect = [](const std::vector<KFPbarBGResult>& events, std::vector<double>& probabilities) {
+    for (const auto& event : events)
+      if (event.valid && std::isfinite(event.pvalue) && event.pvalue >= 0. && event.pvalue <= 1.)
+        probabilities.push_back(event.pvalue);
+    std::sort(probabilities.begin(), probabilities.end());
+  };
+  collect(signal, sp); collect(background, bp);
+  // Include P=0 and P=1, ordinary cuts, and tiny probabilities from the wrong
+  // mass hypothesis. Counts use event values, never histogram bin integrals.
+  std::vector<double> cuts = {0.};
+  for (int i = 1; i <= 1000; ++i) cuts.push_back(i / 1000.);
+  for (int i = 0; i <= 1280; ++i) cuts.push_back(std::pow(10., -320. + .25 * i));
+  std::sort(cuts.begin(), cuts.end());
+  cuts.erase(std::unique(cuts.begin(), cuts.end()), cuts.end());
+  KFPbarBGScan scan;
+  for (double cut : cuts) {
+    const double es = double(sp.end() - std::lower_bound(sp.begin(), sp.end(), cut)) / signal.size();
+    const double eb = double(bp.end() - std::lower_bound(bp.begin(), bp.end(), cut)) / background.size();
+    const double selected = signalFraction * es + (1. - signalFraction) * eb;
+    scan.cuts.push_back(cut);
+    scan.signalEfficiency.push_back(es);
+    scan.backgroundEfficiency.push_back(eb);
+    scan.purity.push_back(selected > 0. ? signalFraction * es / selected
+                                       : std::numeric_limits<double>::quiet_NaN());
+  }
+  return scan;
+}
+
+void KFDrawPbarBGSeparation(const std::vector<KFPbarBGResult>& signal,
+                            const std::vector<KFPbarBGResult>& background,
+                            const TString& directory, double signalFraction) {
+  const auto scan = KFScanPbarBG(signal, background, signalFraction);
+  gSystem->mkdir(directory, true);
+  TH1D sChi2("PbarBGSignalChi2", ";#chi^{2} (4K hypothesis);Events", 1000, 0., 2000.);
+  TH1D bChi2("PbarBGBackgroundChi2", ";#chi^{2} (4K hypothesis);Events", 1000, 0., 2000.);
+  TH1D sPval("PbarBGSignalPValue", ";P-value (4K hypothesis);Events", 200, 0., 1.);
+  TH1D bPval("PbarBGBackgroundPValue", ";P-value (4K hypothesis);Events", 200, 0., 1.);
+  TH1D sEnergy("PbarBGSignalEnergy", ";#Sigma E_{K} - E_{beam} - m_{p} [GeV];Events", 500, -.5, 2.5);
+  TH1D bEnergy("PbarBGBackgroundEnergy", ";#Sigma E_{K} - E_{beam} - m_{p} [GeV];Events", 500, -.5, 2.5);
+  TH1D sMass1("PbarBGSignalPair1", ";M_{1} (K mass assignment) [GeV/c^{2}];Events", 500, .7, 2.2);
+  TH1D bMass1("PbarBGBackgroundPair1", ";M_{1} (K mass assignment) [GeV/c^{2}];Events", 500, .7, 2.2);
+  TH1D sMass2("PbarBGSignalPair2", ";M_{2} (K mass assignment) [GeV/c^{2}];Events", 500, .7, 2.2);
+  TH1D bMass2("PbarBGBackgroundPair2", ";M_{2} (K mass assignment) [GeV/c^{2}];Events", 500, .7, 2.2);
+  for (auto* h : {&sChi2, &bChi2, &sPval, &bPval, &sEnergy, &bEnergy, &sMass1, &bMass1, &sMass2, &bMass2}) {
+    h->SetDirectory(nullptr); h->Sumw2();
+  }
+  auto fill = [](const std::vector<KFPbarBGResult>& events, TH1D& chi2, TH1D& pval,
+                 TH1D& energy, TH1D& mass1, TH1D& mass2) {
+    for (const auto& event : events) {
+      if (std::isfinite(event.energyResidual)) energy.Fill(event.energyResidual);
+      if (std::isfinite(event.pairMass1)) mass1.Fill(event.pairMass1);
+      if (std::isfinite(event.pairMass2)) mass2.Fill(event.pairMass2);
+      if (!event.valid) continue;
+      if (std::isfinite(event.chi2) && event.chi2 >= 0.) chi2.Fill(event.chi2);
+      if (std::isfinite(event.pvalue) && event.pvalue >= 0. && event.pvalue <= 1.)
+        pval.Fill(event.pvalue == 1. ? std::nextafter(1., 0.) : event.pvalue);
+    }
+  };
+  fill(signal, sChi2, sPval, sEnergy, sMass1, sMass2);
+  fill(background, bChi2, bPval, bEnergy, bMass1, bMass2);
+  const double total = signal.size() + background.size();
+  for (auto* h : {&sChi2, &sPval, &sEnergy, &sMass1, &sMass2}) h->Scale(total * signalFraction / signal.size());
+  for (auto* h : {&bChi2, &bPval, &bEnergy, &bMass1, &bMass2}) h->Scale(total * (1. - signalFraction) / background.size());
+  auto overlay = [](const TH1D& signalHist, const TH1D& backgroundHist) {
+    gPad->SetLogy();
+    TH1D sum(signalHist); sum.SetDirectory(nullptr); sum.Add(&backgroundHist);
+    sum.SetLineColor(kBlack); sum.SetMinimum(.1);
+    sum.SetMaximum(2. * std::max(1., sum.GetMaximum()));
+    auto* all = sum.DrawCopy("hist");
+    auto* sh = signalHist.DrawCopy("hist same"); sh->SetLineColor(kBlue);
+    auto* bh = backgroundHist.DrawCopy("hist same"); bh->SetLineColor(kRed);
+    auto* legend = new TLegend(.48, .70, .91, .91);
+    legend->SetBorderSize(0); legend->SetFillStyle(0);
+    legend->AddEntry(all, "Assumed mixture", "l");
+    legend->AddEntry(sh, "#phi#phi #rightarrow 4K", "l");
+    legend->AddEntry(bh, "Selected 4#pi #rightarrow 4K hypothesis", "l"); legend->Draw();
+  };
+  auto* comparison = new TCanvas("PbarBGComparison", "No-PID separation", 1500, 600);
+  comparison->Divide(3, 1);
+  comparison->cd(1); overlay(sChi2, bChi2);
+  comparison->cd(2); overlay(sPval, bPval);
+  comparison->cd(3); overlay(sEnergy, bEnergy);
+  comparison->SaveAs(directory + "/comparison.pdf");
+  auto* masses = new TCanvas("PbarBGPairMasses", "Pair masses before fitting", 1200, 600);
+  masses->Divide(2, 1);
+  masses->cd(1); overlay(sMass1, bMass1);
+  masses->cd(2); overlay(sMass2, bMass2);
+  masses->SaveAs(directory + "/pair_masses.pdf");
+  auto graph = [](const std::vector<double>& x, const std::vector<double>& y,
+                  const char* name, int color, bool positiveX) {
+    auto* g = new TGraph(); g->SetName(name); g->SetLineColor(color); g->SetLineWidth(2);
+    for (std::size_t i = 0; i < x.size(); ++i)
+      if (std::isfinite(x[i]) && std::isfinite(y[i]) && (!positiveX || x[i] > 0.))
+        g->SetPoint(g->GetN(), x[i], y[i]);
+    return g;
+  };
+  auto* efficiency = graph(scan.cuts, scan.signalEfficiency, "PbarBGSignalEfficiency", kBlue, true);
+  auto* backgroundSurvival = graph(scan.cuts, scan.backgroundEfficiency, "PbarBGBackgroundEfficiency", kGreen + 2, true);
+  auto* purity = graph(scan.cuts, scan.purity, "PbarBGPurity", kRed, true);
+  auto* tradeoff = graph(scan.signalEfficiency, scan.purity, "PbarBGEfficiencyPurity", kBlue, true);
+  std::vector<double> rejection;
+  for (double eb : scan.backgroundEfficiency) rejection.push_back(1. - eb);
+  auto* roc = graph(scan.signalEfficiency, rejection, "PbarBGRejection", kRed, true);
+  auto* cuts = new TCanvas("PbarBGCuts", "P-value selection", 900, 650);
+  cuts->cd(); gPad->SetLogx();
+  gPad->DrawFrame(1.e-8, 0., 1., 1.05)->SetTitle(";P-value lower cut;Efficiency / purity");
+  efficiency->Draw("L same"); backgroundSurvival->Draw("L same"); purity->Draw("L same");
+  auto* legend = new TLegend(.20, .18, .65, .42);
+  legend->SetBorderSize(0); legend->SetFillStyle(0);
+  legend->AddEntry(efficiency, "Signal efficiency", "l");
+  legend->AddEntry(backgroundSurvival, "Background survival", "l");
+  legend->AddEntry(purity, TString::Format("Purity (f_{S}=%.3g)", signalFraction), "l"); legend->Draw();
+  cuts->SaveAs(directory + "/c_pval.pdf");
+  const double xmin = .5 / signal.size();
+  auto* efficiencyPurity = new TCanvas("PbarBGEffPur", "Efficiency versus purity", 900, 650);
+  efficiencyPurity->cd(); gPad->SetLogx();
+  gPad->DrawFrame(xmin, 0., 1., 1.05)->SetTitle(";Signal efficiency;Purity");
+  tradeoff->Draw("L same"); efficiencyPurity->SaveAs(directory + "/c_eff_pur.pdf");
+  auto* rejectionCanvas = new TCanvas("PbarBGROC", "Background rejection", 900, 650);
+  rejectionCanvas->cd(); gPad->SetLogx();
+  gPad->DrawFrame(xmin, 0., 1., 1.05)->SetTitle(";Signal efficiency;Background rejection (1-#epsilon_{B})");
+  roc->Draw("L same"); rejectionCanvas->SaveAs(directory + "/c_rejection.pdf");
+  TFile output(directory + "/separation.root", "RECREATE");
+  if (output.IsZombie()) throw std::runtime_error("Cannot create pbar background separation ROOT file");
+  for (auto* h : {&sChi2, &bChi2, &sPval, &bPval, &sEnergy, &bEnergy, &sMass1, &bMass1, &sMass2, &bMass2}) h->Write();
+  for (auto* g : {efficiency, backgroundSurvival, purity, tradeoff, roc}) g->Write();
+  for (auto* c : {comparison, masses, cuts, efficiencyPurity, rejectionCanvas}) c->Write();
+  std::cout << "No-PID separation: efficiencies relative to all signal events and all PRESELECTED background events.\n"
+            << "Assumed signal fraction in these samples: " << signalFraction
+            << " (a configurable mixture, not a branching-ratio prediction).\n"
+            << "Invalid/nonconserving fits fail all P-value cuts.\n"
+            << "P cut    signal efficiency    background survival    purity\n";
+  for (double cut : {0., .001, .01, .05, .1, .5}) {
+    const auto i = std::lower_bound(scan.cuts.begin(), scan.cuts.end(), cut) - scan.cuts.begin();
+    std::cout << scan.cuts[i] << "    " << scan.signalEfficiency[i] << "    "
+              << scan.backgroundEfficiency[i] << "    " << scan.purity[i] << '\n';
+  }
+}
+
+// pbar p -> phi phi -> 4K versus preselected, uniform four-body 4pi phase space.
+// No external PID: measured momenta in BOTH channels receive kaon masses.
+// BG selection is before smearing, using kaon-assigned masses by default.
+// Set useKaonMassWindow=false for the previous true-pion-mass selection.
+// nEvents is the number of signal events AND the number of accepted BG events.
+// signalFraction refers to these samples AFTER the BG-only preselection.
+void TestPbarBGSeparation(int nEvents = -1, double beamMomentum = -1.,
+                          double signalFraction = .5, double massWindow = .100,
+                          bool useKaonMassWindow = true) {
+  const int count = nEvents < 0 ? nev : nEvents;
+  const double momentum = beamMomentum < 0. ? pPbar : beamMomentum;
+  if (count <= 0 || !std::isfinite(momentum) || momentum <= 0. ||
+      !std::isfinite(signalFraction) || signalFraction <= 0. || signalFraction >= 1. ||
+      !std::isfinite(massWindow) || massWindow <= 0.)
+    throw std::invalid_argument("Invalid TestPbarBGSeparation arguments");
+  TVector3 direction(.1, .05, 1.); direction.SetMag(momentum);
+  const TLorentzVector beam(direction, std::hypot(momentum, mP));
+  const TLorentzVector target(0., 0., 0., mP);
+  TLorentzVector initialSystem = beam + target;
+  const double sqrtS = initialSystem.M();
+  if (!std::isfinite(mPhi) || !std::isfinite(mK) || mK <= 0. ||
+      !std::isfinite(mPi) || mPi <= 0. || !std::isfinite(WidthPhi) || WidthPhi < 0. ||
+      mPhi <= 2. * mK || sqrtS <= 4. * mK ||
+      (WidthPhi == 0. && sqrtS <= 2. * mPhi) || mK < mPi)
+    throw std::invalid_argument("Signal production or selected four-pion background is kinematically forbidden");
+  const TString directory = "figs/PbarBGSeparation";
+  // Generic track labels: the BG selection permits all disjoint pairings.
+  const auto variables = KFJoinVariables({
+      KFParticleVariables("beam", "#bar{p}_{beam}", .01, ResPbarBeam, ResThPbarBeam, ResPhPbarBeam),
+      KFParticleVariables("track1", "K_{1}", .15, ResP, ResThP, ResPhP),
+      KFParticleVariables("track2", "K_{2}", .15, ResP, ResThP, ResPhP),
+      KFParticleVariables("track3", "K_{3}", .15, ResP, ResThP, ResPhP),
+      KFParticleVariables("track4", "K_{4}", .15, ResP, ResThP, ResPhP)});
+  KFTestDiagnostics signal("PbarBGSignal", variables, {}, KFPbarBalanceConstraints());
+  KFTestDiagnostics background("PbarBGBackground", variables, {}, KFPbarBalanceConstraints());
+  for (auto* test : {&signal, &background}) {
+    test->AddObservable({"Pair1Mass", "M_{1} (4K hypothesis) [GeV/c^{2}]", {500, .7, 2.2}});
+    test->AddObservable({"Pair2Mass", "M_{2} (4K hypothesis) [GeV/c^{2}]", {500, .7, 2.2}});
+    test->AddObservable({"EnergyResidual", "#Sigma E_{K} - E_{beam} - m_{p} [GeV]", {500, -.5, 2.5}});
+  }
+  std::vector<KFPbarBGResult> signalResults, backgroundResults;
+  signalResults.reserve(count); backgroundResults.reserve(count);
+  KFPbarBalanceSummary signalSummary, backgroundSummary;
+  // These are ALL disjoint pairings of four tracks; no generated-order or
+  // charge-pairing restriction is imposed on the requested BG preselection.
+  const int pairings[3][4] = {{0, 1, 2, 3}, {0, 2, 1, 3}, {0, 3, 1, 2}};
+  // Restrict the TRUE intermediate pion-pair masses before generating angles.
+  // For identical daughters with their momenta held fixed,
+  // M_KK^2 >= M_pipi^2 + 4*(mK^2-mPi^2). Thus any KK pair below the upper
+  // window edge MUST have M_pipi below the bound used here, in any frame.
+  const double pairUpper = mPhi + massWindow;
+  double bgMassLow = std::max(2. * mPi, mPhi - massWindow);
+  double bgMassHigh = pairUpper;
+  if (useKaonMassWindow) {
+    bgMassLow = 2. * mPi;
+    if (pairUpper <= 2. * mK)
+      throw std::invalid_argument("The kaon-mass pair window lies below the KK threshold");
+    bgMassHigh = std::sqrt(pairUpper * pairUpper - 4. * (mK * mK - mPi * mPi));
+  }
+  bgMassHigh = std::min(bgMassHigh, sqrtS - bgMassLow);
+  if (bgMassHigh <= bgMassLow || sqrtS <= 2. * bgMassLow)
+    throw std::invalid_argument("No allowed intermediate masses for the BG selection");
+  // For uniform dM1 dM2 and isotropic decays, dPhi4 is proportional to
+  // p*(sqrtS,M1,M2) * p*(M1,mpi,mpi) * p*(M2,mpi,mpi).
+  // Bound each factor separately to obtain a safe rejection envelope.
+  // Reference: PDG Kinematics, recursive phase-space factorization.
+  const double bgProductionMax = .5 * std::sqrt(sqrtS * sqrtS - 4. * bgMassLow * bgMassLow);
+  const double bgDaughterMax = .5 * std::sqrt(std::max(0., bgMassHigh * bgMassHigh - 4. * mPi * mPi));
+  const double bgWeightMax = bgProductionMax * bgDaughterMax * bgDaughterMax;
+  if (!std::isfinite(bgWeightMax) || bgWeightMax <= 0.)
+    throw std::invalid_argument("Invalid sequential BG phase-space envelope");
+  double pionPairMasses[2] = {mPi, mPi};
+  TGenPhaseSpace evSignal, evPhi1, evPhi2, evBackground, evBG1, evBG2;
+  unsigned long long bgProposals = 0, bgPhaseSpaceEvents = 0, bgWindowCandidates = 0;
+  for (int event = 0; event < count; ++event) {
+    for (int channel = 0; channel < 2; ++channel) {
+      const bool isSignal = channel == 0;
+      KFTestDiagnostics& test = isSignal ? signal : background;
+      auto& results = isSignal ? signalResults : backgroundResults;
+      auto& summary = isSignal ? signalSummary : backgroundSummary;
+      TLorentzVector tracks[4];
+      if (isSignal) {
+        // 1a. Signal: finite-width phi phi production followed by two 2K decays.
+        double phiMass1 = mPhi, phiMass2 = mPhi;
+        if (WidthPhi > 0.) {
+          const double minimum = 2. * mK, s = sqrtS * sqrtS;
+          const double maxMomentum = .5 * std::sqrt(s - 4. * minimum * minimum);
+          bool accepted = false;
+          for (int attempt = 0; attempt < 1000000; ++attempt) {
+            phiMass1 = gRandom->BreitWigner(mPhi, WidthPhi);
+            phiMass2 = gRandom->BreitWigner(mPhi, WidthPhi);
+            if (!std::isfinite(phiMass1) || !std::isfinite(phiMass2) ||
+                phiMass1 <= minimum || phiMass2 <= minimum || phiMass1 + phiMass2 >= sqrtS)
+              continue;
+            const double sum = phiMass1 + phiMass2, difference = phiMass1 - phiMass2;
+            const double pStar = std::sqrt((s - sum * sum) * (s - difference * difference)) / (2. * sqrtS);
+            if (gRandom->Rndm() * maxMomentum < pStar) { accepted = true; break; }
+          }
+          if (!accepted) throw std::runtime_error("Unable to generate an allowed phi mass pair");
+        }
+        double phiMasses[2] = {phiMass1, phiMass2};
+        double kaonMasses[2] = {mK, mK};
+        if (!evSignal.SetDecay(initialSystem, 2, phiMasses))
+          throw std::runtime_error("Kinematically forbidden phi phi production");
+        evSignal.Generate();
+        TLorentzVector phi1 = *evSignal.GetDecay(0), phi2 = *evSignal.GetDecay(1);
+        if (!evPhi1.SetDecay(phi1, 2, kaonMasses) || !evPhi2.SetDecay(phi2, 2, kaonMasses))
+          throw std::runtime_error("Kinematically forbidden phi decay");
+        evPhi1.Generate(); evPhi2.Generate();
+        tracks[0] = *evPhi1.GetDecay(0); tracks[1] = *evPhi1.GetDecay(1);
+        tracks[2] = *evPhi2.GetDecay(0); tracks[3] = *evPhi2.GetDecay(1);
+      } else {
+        // 1b. BG: pbar p -> M1 M2, M1 -> pi pi, M2 -> pi pi.
+        // This is a phase-space factorization, not a new resonance model.
+        bool selected = false;
+        for (int attempt = 0; attempt < 1000000; ++attempt) {
+          ++bgProposals;
+          const double mass1 = bgMassLow + (bgMassHigh - bgMassLow) * gRandom->Rndm();
+          const double mass2 = bgMassLow + (bgMassHigh - bgMassLow) * gRandom->Rndm();
+          if (mass1 + mass2 >= sqrtS) continue;
+          const double sum = mass1 + mass2, difference = mass1 - mass2;
+          const double pProduction = std::sqrt((sqrtS * sqrtS - sum * sum) *
+                                               (sqrtS * sqrtS - difference * difference)) / (2. * sqrtS);
+          const double pDecay1 = .5 * std::sqrt(std::max(0., mass1 * mass1 - 4. * mPi * mPi));
+          const double pDecay2 = .5 * std::sqrt(std::max(0., mass2 * mass2 - 4. * mPi * mPi));
+          const double weight = pProduction * pDecay1 * pDecay2;
+          if (gRandom->Rndm() * bgWeightMax >= weight) continue;
+
+          double intermediateMasses[2] = {mass1, mass2};
+          if (!evBackground.SetDecay(initialSystem, 2, intermediateMasses))
+            throw std::runtime_error("Kinematically forbidden BG intermediate production");
+          evBackground.Generate();
+          TLorentzVector parent1 = *evBackground.GetDecay(0), parent2 = *evBackground.GetDecay(1);
+          if (!evBG1.SetDecay(parent1, 2, pionPairMasses) ||
+              !evBG2.SetDecay(parent2, 2, pionPairMasses))
+            throw std::runtime_error("Kinematically forbidden BG pion-pair decay");
+          evBG1.Generate(); evBG2.Generate();
+          ++bgPhaseSpaceEvents;
+          // Choose the generating partition uniformly among all three choices.
+          const auto& generatedPairing = pairings[int(3. * gRandom->Rndm())];
+          tracks[generatedPairing[0]] = *evBG1.GetDecay(0);
+          tracks[generatedPairing[1]] = *evBG1.GetDecay(1);
+          tracks[generatedPairing[2]] = *evBG2.GetDecay(0);
+          tracks[generatedPairing[3]] = *evBG2.GetDecay(1);
+
+          // Test the requested window under the selected mass hypothesis.
+          TLorentzVector massHypothesis[4];
+          for (int track = 0; track < 4; ++track) {
+            const auto& pion = tracks[track];
+            massHypothesis[track] = useKaonMassWindow
+                ? TLorentzVector(pion.Px(), pion.Py(), pion.Pz(), std::hypot(pion.P(), mK))
+                : pion;
+          }
+          int proposalMultiplicity = 0, passingPairings = 0;
+          const double tolerance = 1.e-10 * std::max(1., sqrtS);
+          for (const auto& pairing : pairings) {
+            const double pionMass1 = (tracks[pairing[0]] + tracks[pairing[1]]).M();
+            const double pionMass2 = (tracks[pairing[2]] + tracks[pairing[3]]).M();
+            if (pionMass1 >= bgMassLow - tolerance && pionMass1 <= bgMassHigh + tolerance &&
+                pionMass2 >= bgMassLow - tolerance && pionMass2 <= bgMassHigh + tolerance)
+              ++proposalMultiplicity;
+            const double assignedMass1 = (massHypothesis[pairing[0]] + massHypothesis[pairing[1]]).M();
+            const double assignedMass2 = (massHypothesis[pairing[2]] + massHypothesis[pairing[3]]).M();
+            if (std::abs(assignedMass1 - mPhi) < massWindow &&
+                std::abs(assignedMass2 - mPhi) < massWindow)
+              ++passingPairings;
+          }
+          if (proposalMultiplicity == 0)
+            throw std::runtime_error("Sequential BG event outside its proposal domain");
+          if (passingPairings == 0) continue;
+          ++bgWindowCandidates;
+          // The three generating partitions overlap. Divide by the number of
+          // proposal domains containing this event, NOT by passingPairings:
+          // the narrow pion-mass domain and the KK-mass cut differ. This keeps
+          // the original flat 4-body phase space conditioned on the final cut.
+          if (gRandom->Rndm() * proposalMultiplicity >= 1.) continue;
+          selected = true; break;
+        }
+        if (!selected) throw std::runtime_error("Unable to generate a sequential BG event passing both pair-mass windows");
+      }
+
+      // 2. Smear MOMENTUM measurements, independent of particle identification.
+      // Order: beam, track1, track2, track3, track4; (p,theta,phi) for each.
+      const TMatrixD truth = KFSphericalParameters({beam, tracks[0], tracks[1], tracks[2], tracks[3]});
+      const KFTestSample sample = test.Smear(truth);
+      const TLorentzVector measuredBeam = KFFourVector(sample.measurements, 0, mP);
+      // Assign KAON masses even when the true generated particles are pions.
+      const TLorentzVector k1 = KFFourVector(sample.measurements, 3, mK);
+      const TLorentzVector k2 = KFFourVector(sample.measurements, 6, mK);
+      const TLorentzVector k3 = KFFourVector(sample.measurements, 9, mK);
+      const TLorentzVector k4 = KFFourVector(sample.measurements, 12, mK);
+      const std::vector<TLorentzVector> measuredFinal = {k1, k2, k3, k4};
+      KFPbarBGResult result;
+      result.energyResidual = (k1 + k2 + k3 + k4 - measuredBeam - target).E();
+      // For the mass plots, choose the pairing closest to two phi masses under
+      // the KAON hypothesis. This does not impose another event selection.
+      int bestPairing = 0;
+      double bestDistance = std::numeric_limits<double>::infinity();
+      for (int p = 0; p < 3; ++p) {
+        const auto& pairing = pairings[p];
+        const double mass1 = (measuredFinal[pairing[0]] + measuredFinal[pairing[1]]).M();
+        const double mass2 = (measuredFinal[pairing[2]] + measuredFinal[pairing[3]]).M();
+        const double distance = std::max(std::abs(mass1 - mPhi), std::abs(mass2 - mPhi));
+        if (distance < bestDistance) {
+          bestDistance = distance; bestPairing = p;
+          result.pairMass1 = mass1; result.pairMass2 = mass2;
+        }
+      }
+
+      // 3. Same four-kaon 4C fit in both channels, with no phi mass constraints.
+      BalanceFitter fitter(measuredBeam, target, measuredFinal);
+      if (fitter.GetNDF() != 4)
+        throw std::runtime_error("BalanceFitter must have four constraints and no unknowns");
+      fitter.SetChi2DifCut(1.e-10);
+      std::vector<double> variance = sample.variances;
+      fitter.SetVariance(variance.data());
+      const double chi2 = fitter.DoKinematicFit();
+      result.chi2 = chi2; result.pvalue = fitter.GetPValue();
+      const bool finite = test.FillHist(fitter, chi2, truth);
+      if (finite) {
+        // 4. Extract the fitted measurements/four-vectors explicitly.
+        const TMatrixD best = fitter.GetBestMeasurements();
+        const auto fittedLV = fitter.GetFittedLV(); // beam, track1, track2, track3, track4
+        KFCheckColumn(best, 15, "Fitted balance measurements");
+        if (fittedLV.size() != 5) throw std::runtime_error("Unexpected fitted four-vector count");
+        const TLorentzVector fittedBeam = fittedLV[0];
+        const TLorentzVector fittedK1 = fittedLV[1], fittedK2 = fittedLV[2];
+        const TLorentzVector fittedK3 = fittedLV[3], fittedK4 = fittedLV[4];
+        const std::vector<TLorentzVector> fittedFinal = {fittedK1, fittedK2, fittedK3, fittedK4};
+        const auto previousNonconserving = summary.nonconserving;
+        KFCheckBalanceConservation(fittedBeam, target, fittedFinal, summary);
+        result.valid = summary.nonconserving == previousNonconserving;
+        const auto& pairing = pairings[bestPairing];
+        test.FillObservable("Pair1Mass", result.pairMass1,
+                             (fittedFinal[pairing[0]] + fittedFinal[pairing[1]]).M());
+        test.FillObservable("Pair2Mass", result.pairMass2,
+                             (fittedFinal[pairing[2]] + fittedFinal[pairing[3]]).M());
+        test.FillObservable("EnergyResidual", result.energyResidual,
+                             (fittedK1 + fittedK2 + fittedK3 + fittedK4 - fittedBeam - target).E());
+      } else ++summary.invalid;
+      results.push_back(result); // Preserve failed fits in the cut denominators.
+    }
+  }
+  const std::vector<KFTestDiagnostics::CanvasPage> measuredPages = {
+      {3, 1, {0, 1, 2}}, {4, 3, {3, 6, 9, 12, 4, 7, 10, 13, 5, 8, 11, 14}}};
+  gSystem->mkdir(directory, true);
+  signal.DrawHist(directory, {}, measuredPages);
+  background.DrawHist(directory, {}, measuredPages);
+  signal.WriteHist(directory + "/signal.root");
+  background.WriteHist(directory + "/background.root");
+  std::cout << "Sequential BG mass range: [" << bgMassLow << ", " << bgMassHigh << "] GeV/c^2\n"
+            << "BG mass proposals: " << bgProposals << ", generated sequential events: " << bgPhaseSpaceEvents
+            << ", window candidates: " << bgWindowCandidates << ", accepted events: " << count
+            << ", proposal efficiency: " << double(count) / bgProposals << '\n'
+            << "Selection: exists a disjoint pairing with both |M_pair - mPhi| < " << massWindow
+            << " GeV/c^2, " << (useKaonMassWindow ? "kaon-assigned" : "true pion")
+            << " masses before smearing.\n"
+            << "Proposal efficiency is NOT the selection acceptance of unrestricted 4pi phase space.\n"
+            << "Signal invalid/nonconserving fits: " << signalSummary.invalid << "/" << signalSummary.nonconserving
+            << "; BG invalid/nonconserving fits: " << backgroundSummary.invalid << "/" << backgroundSummary.nonconserving << '\n';
+  KFDrawPbarBGSeparation(signalResults, backgroundResults, directory, signalFraction);
+}
+
+// Histogram-only comparison. Reactions, generated four-vectors, smearing and
+// BalanceFitter calls are explicit in the two Test... functions below.
+class KFPbarMomentumComparison {
+public:
+  KFPbarMomentumComparison(const TString& prefix, const TString& exclusiveLabel,
+                           const TString& missingLabel, double momentumRange)
+      : prefix_(prefix), labels_{exclusiveLabel, missingLabel} {
+    const char* axes[7] = {
+        ";#Delta p_{x} [GeV/c];Fraction / bin", ";#Delta p_{y} [GeV/c];Fraction / bin",
+        ";#Delta p_{z} [GeV/c];Fraction / bin", ";|#Delta #vec{p}| [GeV/c];Fraction / bin",
+        ";|#Delta #vec{p}_{T}| [GeV/c];Fraction / bin", ";#Delta E [GeV];Fraction / bin",
+        ";M_{miss}^{2} [GeV^{2}/c^{4}];Fraction / bin"};
+    const double mass2Range = std::max(.2, .2 * momentumRange * momentumRange);
+    for (int stage = 0; stage < 3; ++stage)
+      for (int channel = 0; channel < 2; ++channel)
+        for (int variable = 0; variable < 7; ++variable) {
+          const double high = variable == 6 ? mass2Range : momentumRange;
+          const double low = variable == 3 || variable == 4 ? 0. : -high;
+          const TString name = TString::Format("%s_S%d_C%d_V%d", prefix_.Data(), stage, channel, variable);
+          std::unique_ptr<TH1D> h(new TH1D(name, axes[variable], 400, low, high));
+          h->SetDirectory(nullptr); h->Sumw2();
+          hist_[stage][channel].push_back(std::move(h));
+        }
+    for (int channel = 0; channel < 2; ++channel) {
+      chi2_[channel].reset(new TH1D(TString::Format("%s_Chi2_C%d", prefix_.Data(), channel),
+                                    ";#chi^{2} (exclusive 4C hypothesis);Fraction / bin", 1000, 0., 1000.));
+      pvalue_[channel].reset(new TH1D(TString::Format("%s_PValue_C%d", prefix_.Data(), channel),
+                                      ";P-value (exclusive 4C hypothesis);Fraction / bin", 200, 0., 1.));
+      chi2_[channel]->SetDirectory(nullptr); pvalue_[channel]->SetDirectory(nullptr);
+      chi2_[channel]->Sumw2(); pvalue_[channel]->Sumw2();
+    }
+  }
+
+  void FillBeforeFit(int channel, const TLorentzVector& generatedBalance,
+                     const TLorentzVector& measuredBalance, double weight) {
+    sumWeights_[channel] += weight;
+    FillBalance(0, channel, generatedBalance, weight);
+    FillBalance(1, channel, measuredBalance, weight);
+  }
+  void FillAfterFit(int channel, const TLorentzVector& fittedBalance,
+                    double chi2, double pvalue, bool conserved, double weight) {
+    FillBalance(2, channel, fittedBalance, weight);
+    finiteWeights_[channel] += weight;
+    if (!conserved || !std::isfinite(pvalue) || pvalue < 0. || pvalue > 1.) return;
+    usableWeights_[channel] += weight;
+    chi2_[channel]->Fill(chi2, weight);
+    pvalue_[channel]->Fill(pvalue == 1. ? std::nextafter(1., 0.) : pvalue, weight);
+    if (pvalue >= .05) retainedWeights_[channel] += weight;
+  }
+  void DrawAndWrite(const TString& directory) const {
+    gSystem->mkdir(directory, true);
+    const char* names[3] = {"truth_balance", "momentum_balance", "fitted_balance"};
+    const char* titles[3] = {"Generated charged-track balance", "Smeared charged-track balance",
+                             "Fitted balance under the exclusive 4C hypothesis"};
+    std::vector<TCanvas*> canvases;
+    for (int stage = 0; stage < 3; ++stage) {
+      auto* canvas = new TCanvas(prefix_ + "_" + names[stage], titles[stage], 1600, 850);
+      canvas->Divide(4, 2);
+      for (int variable = 0; variable < 7; ++variable) {
+        canvas->cd(variable + 1);
+        Overlay(*hist_[stage][0][variable], *hist_[stage][1][variable]);
+      }
+      canvas->SaveAs(directory + "/" + names[stage] + ".pdf");
+      canvases.push_back(canvas);
+    }
+    auto* fitCanvas = new TCanvas(prefix_ + "_FitComparison", "Exclusive 4C fit comparison", 1200, 600);
+    fitCanvas->Divide(2, 1);
+    fitCanvas->cd(1); Overlay(*chi2_[0], *chi2_[1]);
+    fitCanvas->cd(2); Overlay(*pvalue_[0], *pvalue_[1]);
+    fitCanvas->SaveAs(directory + "/fit_comparison.pdf"); canvases.push_back(fitCanvas);
+    TFile output(directory + "/momentum_balance.root", "RECREATE");
+    if (output.IsZombie()) throw std::runtime_error("Cannot create momentum-balance ROOT file");
+    for (int stage = 0; stage < 3; ++stage)
+      for (int channel = 0; channel < 2; ++channel)
+        for (const auto& hist : hist_[stage][channel]) hist->Write();
+    for (int channel = 0; channel < 2; ++channel) { chi2_[channel]->Write(); pvalue_[channel]->Write(); }
+    for (auto* canvas : canvases) canvas->Write();
+    std::cout << "Balance convention: charged final state minus measured beam and fixed target.\n"
+              << "The pi0 is omitted from reconstruction. Generated balance is zero for the exclusive channel\n"
+              << "and -p_pi0 for the missing-pi0 channel; true missing-mass squared is 0 or m_pi0^2.\n"
+              << "Plots are normalized per generated sample using phase-space weights; no production ratio is assumed.\n";
+    for (int channel = 0; channel < 2; ++channel) {
+      const double denominator = sumWeights_[channel];
+      if (denominator <= 0.) continue;
+      std::cout << labels_[channel] << ": finite fits = " << finiteWeights_[channel] / denominator
+                << ", usable conserving fits = " << usableWeights_[channel] / denominator
+                << ", retained at P >= 0.05 = " << retainedWeights_[channel] / denominator << '\n';
+    }
+  }
+private:
+  TString prefix_, labels_[2];
+  std::vector<std::unique_ptr<TH1D>> hist_[3][2];
+  std::unique_ptr<TH1D> chi2_[2], pvalue_[2];
+  double sumWeights_[2] = {0., 0.}, finiteWeights_[2] = {0., 0.};
+  double usableWeights_[2] = {0., 0.}, retainedWeights_[2] = {0., 0.};
+  void FillBalance(int stage, int channel, const TLorentzVector& delta, double weight) {
+    const double values[7] = {delta.Px(), delta.Py(), delta.Pz(), delta.P(),
+                              std::hypot(delta.Px(), delta.Py()), delta.E(), delta.M2()};
+    for (int i = 0; i < 7; ++i) hist_[stage][channel][i]->Fill(values[i], weight);
+  }
+  void Overlay(const TH1D& exclusive, const TH1D& missing) const {
+    TH1D first(exclusive), second(missing);
+    first.SetDirectory(nullptr); second.SetDirectory(nullptr);
+    if (sumWeights_[0] > 0.) first.Scale(1. / sumWeights_[0]);
+    if (sumWeights_[1] > 0.) second.Scale(1. / sumWeights_[1]);
+    first.SetLineColor(kBlue); second.SetLineColor(kRed);
+    first.SetMinimum(1.e-7);
+    first.SetMaximum(2. * std::max(1.e-6, std::max(first.GetMaximum(), second.GetMaximum())));
+    gPad->SetLogy();
+    auto* a = first.DrawCopy("hist"); auto* b = second.DrawCopy("hist same");
+    auto* legend = new TLegend(.42, .73, .92, .91);
+    legend->SetBorderSize(0); legend->SetFillStyle(0);
+    legend->AddEntry(a, labels_[0], "l"); legend->AddEntry(b, labels_[1], "l"); legend->Draw();
+  }
+};
+
+// Runtime histogram owner only; no ROOT I/O dictionary is needed.
+#ifdef __ROOTCLING__
+#pragma link off class KFPbarMomentumComparison;
+#endif
+
+// Compare pbar p -> pi- pi+ pi- pi+ with pbar p -> pi- pi+ pi- pi+ pi0.
+// Pion masses throughout: no phi production, mass-window selection, or kaon hypothesis.
+void TestPbar4PiPi0Fit(int nEvents = -1, double beamMomentum = -1.) {
+  const int count = nEvents < 0 ? nev : nEvents;
+  const double momentum = beamMomentum < 0. ? pPbar : beamMomentum;
+  if (count <= 0 || !std::isfinite(momentum) || momentum <= 0.)
+    throw std::invalid_argument("Invalid TestPbar4PiPi0Fit arguments");
+  TVector3 direction(.1, .05, 1.); direction.SetMag(momentum);
+  const TLorentzVector beam(direction, std::hypot(momentum, mP));
+  const TLorentzVector target(0., 0., 0., mP);
+  TLorentzVector initialSystem = beam + target;
+  const double sqrtS = initialSystem.M();
+  const auto variables = KFJoinVariables({
+      KFParticleVariables("beam", "#bar{p}_{beam}", .01, ResPbarBeam, ResThPbarBeam, ResPhPbarBeam),
+      KFParticleVariables("pi1", "#pi^{-}_{1}", .15, ResP, ResThP, ResPhP),
+      KFParticleVariables("pi2", "#pi^{+}_{1}", .15, ResP, ResThP, ResPhP),
+      KFParticleVariables("pi3", "#pi^{-}_{2}", .15, ResP, ResThP, ResPhP),
+      KFParticleVariables("pi4", "#pi^{+}_{2}", .15, ResP, ResThP, ResPhP)});
+  double finalMasses[5] = {mPi, mPi, mPi, mPi, mPi0};
+  const int nCharged = 4;
+  KFTestDiagnostics exclusive("FourPiExclusive", variables, {}, KFPbarBalanceConstraints());
+  KFTestDiagnostics missing("FourPiMissingPi0", variables, {}, KFPbarBalanceConstraints());
+  KFPbarMomentumComparison plots("Pbar4PiPi0", "4#pi", "4#pi + #pi^{0}", std::max(1., momentum + .5 * sqrtS));
+  TGenPhaseSpace generators[2];
+  // Check both thresholds before processing any events. No phi-related cuts.
+  if (!generators[0].SetDecay(initialSystem, nCharged, finalMasses) ||
+      !generators[1].SetDecay(initialSystem, nCharged + 1, finalMasses))
+    throw std::invalid_argument("Exclusive or missing-pi0 reaction is kinematically forbidden");
+  KFPbarBalanceSummary summaries[2];
+  for (int event = 0; event < count; ++event) {
+    for (int channel = 0; channel < 2; ++channel) {
+      KFTestDiagnostics& test = channel == 0 ? exclusive : missing;
+      auto& generator = generators[channel];
+      auto& summary = summaries[channel];
+      // 1. Generate directly and KEEP the phase-space weight. This avoids an
+      // unweighting/rejection loop for the multi-body comparison samples.
+      const double weight = generator.Generate();
+      if (!std::isfinite(weight) || weight < 0.)
+        throw std::runtime_error("Invalid phase-space weight");
+      if (weight == 0.) continue;
+      const TLorentzVector truePi1 = *generator.GetDecay(0);
+      const TLorentzVector truePi2 = *generator.GetDecay(1);
+      const TLorentzVector truePi3 = *generator.GetDecay(2);
+      const TLorentzVector truePi4 = *generator.GetDecay(3);
+      const TLorentzVector generatedBalance = truePi1 + truePi2 + truePi3 + truePi4 - beam - target;
+      const TMatrixD truth = KFSphericalParameters({beam, truePi1, truePi2, truePi3, truePi4});
+      const KFTestSample sample = test.Smear(truth);
+      const TLorentzVector measuredBeam = KFFourVector(sample.measurements, 0, mP);
+      const TLorentzVector pi1 = KFFourVector(sample.measurements, 3, mPi);
+      const TLorentzVector pi2 = KFFourVector(sample.measurements, 6, mPi);
+      const TLorentzVector pi3 = KFFourVector(sample.measurements, 9, mPi);
+      const TLorentzVector pi4 = KFFourVector(sample.measurements, 12, mPi);
+      const std::vector<TLorentzVector> measuredFinal = {pi1, pi2, pi3, pi4};
+      const TLorentzVector measuredBalance = pi1 + pi2 + pi3 + pi4 - measuredBeam - target;
+      // generator.GetDecay(nCharged) is the undetected pi0 in channel 1.
+      // It is deliberately absent from the measurement vector and fitter.
+      if (channel == 1) {
+        const TLorentzVector truePi0 = *generator.GetDecay(nCharged);
+        const TLorentzVector closure = generatedBalance + truePi0;
+        if (closure.P() > 1.e-8 || std::abs(closure.E()) > 1.e-8)
+          throw std::runtime_error("Generated missing-pi0 event violates four-momentum conservation");
+      } else if (generatedBalance.P() > 1.e-8 || std::abs(generatedBalance.E()) > 1.e-8)
+        throw std::runtime_error("Generated exclusive event violates four-momentum conservation");
+      plots.FillBeforeFit(channel, generatedBalance, measuredBalance, weight);
+
+      // 2. Fit the SAME exclusive charged-particle 4C hypothesis in both samples.
+      BalanceFitter fitter(measuredBeam, target, measuredFinal);
+      if (fitter.GetNDF() != 4) throw std::runtime_error("Expected a four-constraint balance fit");
+      fitter.SetChi2DifCut(1.e-10);
+      std::vector<double> variance = sample.variances;
+      fitter.SetVariance(variance.data());
+      const double chi2 = fitter.DoKinematicFit();
+      const double pvalue = fitter.GetPValue();
+      // Weighted histograms; no unknown parameters are introduced.
+      if (!test.FillHist(fitter, chi2, truth, TMatrixD(), weight)) { ++summary.invalid; continue; }
+
+      // 3. Extract fitted measurements and four-vectors explicitly.
+      const TMatrixD best = fitter.GetBestMeasurements();
+      const auto fittedLV = fitter.GetFittedLV();
+      KFCheckColumn(best, 15, "Fitted four-pion measurements");
+      if (fittedLV.size() != 5) throw std::runtime_error("Unexpected fitted four-vector count");
+      const TLorentzVector fittedBeam = fittedLV[0];
+      const TLorentzVector fittedPi1 = fittedLV[1], fittedPi2 = fittedLV[2];
+      const TLorentzVector fittedPi3 = fittedLV[3], fittedPi4 = fittedLV[4];
+      const std::vector<TLorentzVector> fittedFinal = {fittedPi1, fittedPi2, fittedPi3, fittedPi4};
+      const TLorentzVector fittedBalance = fittedPi1 + fittedPi2 + fittedPi3 + fittedPi4 - fittedBeam - target;
+      const auto before = summary.nonconserving;
+      KFCheckBalanceConservation(fittedBeam, target, fittedFinal, summary);
+      const bool conserved = summary.nonconserving == before;
+      plots.FillAfterFit(channel, fittedBalance, chi2, pvalue, conserved, weight);
+    }
+  }
+  const TString directory = "figs/Pbar4PiPi0Fit";
+  const std::vector<KFTestDiagnostics::CanvasPage> measuredPages = {
+      {3, 1, {0, 1, 2}}, {4, 3, {3, 6, 9, 12, 4, 7, 10, 13, 5, 8, 11, 14}}};
+  exclusive.DrawHist(directory, {}, measuredPages);
+  missing.DrawHist(directory, {}, measuredPages);
+  exclusive.WriteHist(directory + "/exclusive.root");
+  missing.WriteHist(directory + "/missing_pi0.root");
+  plots.DrawAndWrite(directory);
+}
+
+// Compare pbar-p elastic scattering with nonresonant pbar p -> pbar p pi0.
+// The pi0 is present in generation only; both channels are fitted as exclusive pbar-p.
+void TestPbarElasticPi0Fit(int nEvents = -1, double beamMomentum = -1.) {
+  const int count = nEvents < 0 ? nev : nEvents;
+  const double momentum = beamMomentum < 0. ? pPbar : beamMomentum;
+  if (count <= 0 || !std::isfinite(momentum) || momentum <= 0.)
+    throw std::invalid_argument("Invalid TestPbarElasticPi0Fit arguments");
+  TVector3 direction(.1, .05, 1.); direction.SetMag(momentum);
+  const TLorentzVector beam(direction, std::hypot(momentum, mP));
+  const TLorentzVector target(0., 0., 0., mP);
+  TLorentzVector initialSystem = beam + target;
+  const double sqrtS = initialSystem.M();
+  const auto variables = KFPbarBalanceMeasurements(false);
+  double finalMasses[3] = {mP, mP, mPi0};
+  const int nCharged = 2;
+  KFTestDiagnostics exclusive("PbarElasticExclusive", variables, {}, KFPbarBalanceConstraints());
+  KFTestDiagnostics missing("PbarElasticMissingPi0", variables, {}, KFPbarBalanceConstraints());
+  KFPbarMomentumComparison plots("PbarElasticPi0", "#bar{p}p elastic", "#bar{p}p + #pi^{0}",
+                                 std::max(1., momentum + .5 * sqrtS));
+  TGenPhaseSpace generators[2];
+  // Check both thresholds before processing any events. No phi-related cuts.
+  if (!generators[0].SetDecay(initialSystem, nCharged, finalMasses) ||
+      !generators[1].SetDecay(initialSystem, nCharged + 1, finalMasses))
+    throw std::invalid_argument("Exclusive or missing-pi0 reaction is kinematically forbidden");
+  KFPbarBalanceSummary summaries[2];
+  for (int event = 0; event < count; ++event) {
+    for (int channel = 0; channel < 2; ++channel) {
+      KFTestDiagnostics& test = channel == 0 ? exclusive : missing;
+      auto& generator = generators[channel];
+      auto& summary = summaries[channel];
+      // 1. Generate directly and KEEP the phase-space weight. This avoids an
+      // unweighting/rejection loop for the multi-body comparison samples.
+      const double weight = generator.Generate();
+      if (!std::isfinite(weight) || weight < 0.)
+        throw std::runtime_error("Invalid phase-space weight");
+      if (weight == 0.) continue;
+      const TLorentzVector truePbar = *generator.GetDecay(0);
+      const TLorentzVector trueProton = *generator.GetDecay(1);
+      const TLorentzVector generatedBalance = truePbar + trueProton - beam - target;
+      const TMatrixD truth = KFSphericalParameters({beam, truePbar, trueProton});
+      const KFTestSample sample = test.Smear(truth);
+      const TLorentzVector measuredBeam = KFFourVector(sample.measurements, 0, mP);
+      const TLorentzVector pbar = KFFourVector(sample.measurements, 3, mP);
+      const TLorentzVector proton = KFFourVector(sample.measurements, 6, mP);
+      const std::vector<TLorentzVector> measuredFinal = {pbar, proton};
+      const TLorentzVector measuredBalance = pbar + proton - measuredBeam - target;
+      // generator.GetDecay(nCharged) is the undetected pi0 in channel 1.
+      // It is deliberately absent from the measurement vector and fitter.
+      if (channel == 1) {
+        const TLorentzVector truePi0 = *generator.GetDecay(nCharged);
+        const TLorentzVector closure = generatedBalance + truePi0;
+        if (closure.P() > 1.e-8 || std::abs(closure.E()) > 1.e-8)
+          throw std::runtime_error("Generated missing-pi0 event violates four-momentum conservation");
+      } else if (generatedBalance.P() > 1.e-8 || std::abs(generatedBalance.E()) > 1.e-8)
+        throw std::runtime_error("Generated exclusive event violates four-momentum conservation");
+      plots.FillBeforeFit(channel, generatedBalance, measuredBalance, weight);
+
+      // 2. Fit the SAME exclusive charged-particle 4C hypothesis in both samples.
+      BalanceFitter fitter(measuredBeam, target, measuredFinal);
+      if (fitter.GetNDF() != 4) throw std::runtime_error("Expected a four-constraint balance fit");
+      fitter.SetChi2DifCut(1.e-10);
+      std::vector<double> variance = sample.variances;
+      fitter.SetVariance(variance.data());
+      const double chi2 = fitter.DoKinematicFit();
+      const double pvalue = fitter.GetPValue();
+      // Weighted histograms; no unknown parameters are introduced.
+      if (!test.FillHist(fitter, chi2, truth, TMatrixD(), weight)) { ++summary.invalid; continue; }
+
+      // 3. Extract fitted measurements and four-vectors explicitly.
+      const TMatrixD best = fitter.GetBestMeasurements();
+      const auto fittedLV = fitter.GetFittedLV();
+      KFCheckColumn(best, 9, "Fitted pbar-p measurements");
+      if (fittedLV.size() != 3) throw std::runtime_error("Unexpected fitted four-vector count");
+      const TLorentzVector fittedBeam = fittedLV[0];
+      const TLorentzVector fittedPbar = fittedLV[1], fittedProton = fittedLV[2];
+      const std::vector<TLorentzVector> fittedFinal = {fittedPbar, fittedProton};
+      const TLorentzVector fittedBalance = fittedPbar + fittedProton - fittedBeam - target;
+      const auto before = summary.nonconserving;
+      KFCheckBalanceConservation(fittedBeam, target, fittedFinal, summary);
+      const bool conserved = summary.nonconserving == before;
+      plots.FillAfterFit(channel, fittedBalance, chi2, pvalue, conserved, weight);
+    }
+  }
+  const TString directory = "figs/PbarElasticPi0Fit";
+  const std::vector<KFTestDiagnostics::CanvasPage> measuredPages = {
+      {3, 3, {0, 1, 2, 3, 4, 5, 6, 7, 8}}};
+  exclusive.DrawHist(directory, {}, measuredPages);
+  missing.DrawHist(directory, {}, measuredPages);
+  exclusive.WriteHist(directory + "/exclusive.root");
+  missing.WriteHist(directory + "/missing_pi0.root");
+  plots.DrawAndWrite(directory);
+}
+
 // Both tests default to the 1 GeV/c pbar beam configured by pPbar.
 void TestBalanceFit(int nEvents = -1, double beamMomentum = -1.) {
   TestPbarElasticFit(nEvents, beamMomentum);
@@ -907,6 +1649,9 @@ void TestKinfit() {
                "TestMissingEtaFit([nEvents])\n"
                "TestPbarElasticFit([nEvents], [beamMomentum])\n"
                "TestPbarPhiPhiFit([nEvents], [beamMomentum])\n"
+               "TestPbar4PiPi0Fit([nEvents], [beamMomentum])\n"
+               "TestPbarElasticPi0Fit([nEvents], [beamMomentum])\n"
+               "TestPbarBGSeparation([nEvents], [beamMomentum], [signalFraction=.5], [massWindow=.100], [useKaonMassWindow=true])\n"
                "TestBalanceFit([nEvents], [beamMomentum]) runs both pbar tests (default 1 GeV/c)\n"
                "Variable setup: KFTestVariable(name, axisTitle, {bins,min,max}, sigma, period)\n"
                "Residual convention: initial/fitted minus truth; matrix row order must match.\n";
