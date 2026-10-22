@@ -144,7 +144,7 @@
 	\end{block}
 \end{frame}
 
-\begin{frame}{$\chi^2$ Minimization}
+\begin{frame}{$\lag$ Minimization}
 	\begin{block}{}
 		We want to solve the equation
 		\begin{align}
@@ -302,7 +302,7 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 			That is, \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters. $E_\Lambda$ in Eq. \eqref{XiKFConstraint} is simply an abbreviation for $\sqrt{|\vec P_p+\vec P_\pi|^2+m_\Lambda^2}$. i.e. $\partial_{P_p}E_\Lambda!= 0$.
 	\end{block}
 \end{frame}
-\begin{frame}{Kinematics Restoration}
+\begin{frame}{Example: $\XI\to \Lambda\pi$, $\Lambda\to p\pi$ Kinematics Restoration}
 	\tcl{8}{8}{
 		\begin{figure}
 			\begin{picture}(200,150)
@@ -319,6 +319,7 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 	\end{figure}
 	}
 \end{frame}
+\section{Covariance Tricks}
 \begin{frame}{Pull Distribution}
 	\tcl{8}{8}{
 	\begin{figure}
@@ -339,6 +340,108 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 	\end{itemize}
 \end{block}
 }
+\end{frame}
+\begin{frame}{Iterative Covariance Tuning}
+	\begin{block}{}
+		\tcl{6}{8}{
+\centering
+\resizebox{!}{0.78\textheight}{%
+\begin{tikzpicture}[
+    >=latex,
+    every node/.style={align=center,font=\small},
+    box/.style={draw,rounded corners,fill=blue!8,
+                text width=2.8cm,minimum height=0.9cm}
+]
+\node[box] (start) at (0,0)
+    {Initial estimate\\$V^{(0)}$};
+
+\node[box] (fit) at (0,-1.8)
+    {Kinematic fit\\using $V^{(n)}$};
+
+\node[box] (pull) at (0,-3.6)
+    {Correction pulls\\Width $\sigma_{\rm pull}^{(n)}$};
+
+\node[draw,diamond,aspect=2,fill=orange!15] (check) at (0,-5.4)
+    {$\sigma_{\rm pull}^{(n)}\approx1$?};
+
+\node[box,fill=green!10] (done) at (0,-7.2)
+    {Use tuned covariance};
+
+\node[box,fill=orange!15] (update) at (-4.2,-5.4)
+    {Update uncertainties\\[4pt]
+     $\sigma_p^{(n+1)}
+      =\sigma_{\rm pull}^{(n)}\sigma_p^{(n)}$};
+
+\draw[->] (start) -- (fit);
+\draw[->] (fit) -- (pull);
+\draw[->] (pull) -- (check);
+\draw[->] (check) -- node[right]{Yes} (done);
+\draw[->] (check) -- node[above]{No} (update);
+\draw[->] (update.north) |-
+    node[pos=.75,above]{Refit} (fit.west);
+
+\end{tikzpicture}%
+}
+		}{
+\begin{figure}
+	\begin{picture}(200,90)
+		\put(-20,0){\includegraphics[width=\linewidth]{PullIteration}}
+		\put(20,20){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+	\end{picture}
+\end{figure}
+\normalfont
+\begin{itemize}
+	\item Initial resolution assumption is 0.5 times the true covariance.
+	\item Initial fit gives a pull width of 1.933, nearly 1/0.5.
+	\item The resolution assumption is updated by the pull width, and converges to the true resolution within 2 iteration.
+\end{itemize}
+		}
+	\end{block}
+\end{frame}
+\begin{frame}{Covariance Normalization}
+	\begin{block}{}
+		\begin{align}
+			V =
+			 \begin{pmatrix}
+				10^{12}&0.9\\
+				0.9&10^{-12}
+			\end{pmatrix}\to V^{-1} = ?
+		\end{align}
+		While taking an inverse of the variance, matrix elements with different order may be added together, leading to possible numerical unstability.
+		We introduce a normalized covariance matrix $\tilde V$ and a scaling matrix $S$ avoid floating point precision problem. 
+		\begin{align}
+			\tilde V = S V S^T; S\equiv 
+				\frac{1}{\sqrt{V_{ij}}}\delta_{ij}\to \tilde V=\begin{pmatrix}
+					1 & Cov(01)/\sigma_{1}\sigma_{2}&\cdots \\
+					Cov(01)/\sigma_{1}\sigma_{2}& 1& \\
+					\cdots&&\cdots
+				\end{pmatrix}
+		\end{align}
+		We can take out scaling factors in S. Measurement vectors could share the same problem, so they should also be scaled. We rewrite equation \eqref{KFChi2}
+		\begin{align}
+			\chi^2 = dM^\dagger V^{-1} dM +\cdots= d\tilde M^\dagger \tilde V^{-1}d\tilde M+\cdots;\quad d \tilde M = S(M-M_0) 
+		\end{align}
+	\end{block}
+\end{frame}
+\begin{frame}{Off-diagonal Reduction}
+	\begin{block}{}
+		\begin{align}{}
+			V = \begin{pmatrix}
+					1&-1\\
+					-1&1
+			\end{pmatrix}\to V^{-1} = ?
+		\end{align}
+		Adding off-diagonal term could make matrix uninvertable.  Also we require $\chi^2 = dM V^{-1} dM >0$; $V^{-1}$ (hence V)should be \textit{Positive Definite}. 
+		Then, we can 'damp' the offdiagonal elements.
+		\begin{align}
+			while(IsPositiveDefinite(V))\\
+			V_{ij} \to V_{ij}  - \alpha (1 -\delta_{ij}) V_{ij}
+		\end{align}
+		The damping factor $\alpha$ should be small, e.g. 0.1, to avoid losing too much information.
+		\begin{block}{Property of Positive Definite Matrix}
+			All Eigenvalues are Positive! TMatrixD well-supports eigenvalues, so we can just use it.
+		\end{block}
+	\end{block}
 \end{frame}
 \iffalse
 \begin{frame}{$\Xi^*(1530)\to \Xi \pi^0$ and $\Xi^*(1530)\to \Xi^0 \pi^-$ Separation}
@@ -690,57 +793,14 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 	}
 \end{frame}
 
-\section{Tricks}
-\begin{frame}{Variance Normalization}
-	\begin{block}{}
-		\begin{align}
-			V =
-			 \begin{pmatrix}
-				10^{12}&0.9\\
-				0.9&10^{-12}
-			\end{pmatrix}\to V^{-1} = ?
-		\end{align}
-		While taking an inverse of the variance, matrix elements with different order may be added together, leading to possible numerical unstability. 
-		\begin{align}
-			\tilde V = S V S^T; S\equiv 
-				\frac{1}{\sqrt{V_{ij}}}\delta_{ij}\to \tilde V=\begin{pmatrix}
-					1 & Cov(01)/\sigma_{1}\sigma_{2}&\cdots \\
-					Cov(01)/\sigma_{1}\sigma_{2}& 1& \\
-					\cdots&&\cdots
-				\end{pmatrix}
-		\end{align}
-		We can take out scaling factors in S. Measurement vectors could share the same problem, so they should also be scaled. We rewrite equation \eqref{KFChi2}
-		\begin{align}
-			\chi^2 = dM^\dagger V^{-1} dM +\cdots= d\tilde M^\dagger \tilde V^{-1}d\tilde M+\cdots;\quad d \tilde M = S(M-M_0) 
-		\end{align}
-	\end{block}
-\end{frame}
-\begin{frame}{Off-diagonal Reduction}
-	\begin{block}{}
-		\begin{align}{}
-			V = \begin{pmatrix}
-					1&-1\\
-					-1&1
-			\end{pmatrix}\to V^{-1} = ?
-		\end{align}
-		Adding off-diagonal term could make matrix uninvertable.  Also we require $\chi^2 = dM V^{-1} dM >0$; $V^{-1}$ (hence V)should be \textit{Positive Definite}. 
-		Then, we can 'damp' the offdiagonal elements.
-		\begin{align}
-			while(IsPositiveDefinite(V))\\
-			V_{ij} \to V_{ij}  - \alpha (\delta_{ij}-1) V_{ij}
-		\end{align}
-		\begin{block}{Property of Positive Definite Matrix}
-			All Eigenvalues are Positive! TMatrixD well-supports eigenvalues, so we can just use it.
-		\end{block}
-	\end{block}
-\end{frame}
 \begin{frame}{Summary}
 	\Large
 	\begin{block}{}
 		\begin{itemize}
 			\item Measurement error can be reduced by correlating the measurements with physical constraints; This process is Kinematic Fit.
-			\item By observing statistical parameters, we can estimate many physical context other than error reduction.(i.e. Bias estimation, S/N separation, etc...)
-			\item Proper understandings of covariance matrix is required for Kinematic Fit.
+			\item For each kinematics, we should define a proper set of parameters, constraints and covariance matrix to perform Kinematic Fit. 
+			\item The covariance of the measurement can be tuned iteratively by the pull distribution of the Kinematic Fit.
+			\item Additional perforance can be achieved by assigning proper off-diagonal elements in the covariance matrix. 
 		\end{itemize}
 	\end{block}
 	
@@ -849,7 +909,7 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 	\end{block}
 \end{frame}
 
-\begin{frame}{Variance of the Unknowns}
+\begin{frame}{Covariance of the Unknowns}
 	\begin{block}{}
 		Just like how we derived  Eq.\eqref{Vm} we can estimate the variance matrix of the unknowns. 
 		\begin{align}
