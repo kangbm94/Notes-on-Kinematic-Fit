@@ -6,12 +6,19 @@
 
 #include <TGenPhaseSpace.h>
 #include <TGraph.h>
+#include <TGraphErrors.h>
+#include <TLine.h>
+#include <TLatex.h>
+#include <TRandom3.h>
 #include <TROOT.h>
 #include <TStyle.h>
 #include <TPad.h>
 #include <limits>
+#include <fstream>
+#include <iomanip>
 #include <utility>
 
+double margin = 0.02;
 // Load with: .L TestKinfit.cc+
 // Existing fitter sources are used unchanged. Besides their existing API, they
 // must provide GetBestMeasurements(), GetInitialMeasurements(), GetBestUnknowns()
@@ -26,7 +33,11 @@ int nev = 100000;
 double mXi = 1.321, mXi0 = 1.315, mXi1530 = 1.535;
 double mL = 1.115, mP = .938, mK = .493, mPi = .139, mPi0 = .135, mEta = .5478;
 double pK18 = 1.8;
+// True relative momentum resolutions used to smear generated momenta.
 double ResP = .05, ResPi1 = .05, ResPi2 = .05;
+// Independent relative resolutions used only for the fitter covariance.
+// These start equal to the true resolutions; changing one does not change the other.
+double ResPEstm = ResP, ResPi1Estm = ResPi1, ResPi2Estm = ResPi2;
 double ResThP = .005, ResTh = .005, ResThPi2 = .005;
 double ResPhP = .01, ResPh = .02, ResPhPi2 = .02;
 double ScalePP = 1., ScalePPi1 = 1., ScalePPi2 = 1.;
@@ -36,6 +47,8 @@ double pPbar = 1.;
 double mPhi = 1.019461;
 double WidthPhi = .004249; // Full Breit-Wigner width in GeV (PDG: 4.249 MeV).
 double ResPbarBeam = .001, ResThPbarBeam = .001, ResPhPbarBeam = .005;
+double ResPbarBeamEstm = ResPbarBeam;
+double ResKBeam = .02, ResKBeamEstm = ResKBeam; // Missing-eta K- beam.
 
 // A particle helper is convenient for these examples. The generic tester also
 // accepts individual Cartesian components, energies, masses, etc.; no grouping
@@ -43,7 +56,7 @@ double ResPbarBeam = .001, ResThPbarBeam = .001, ResPhPbarBeam = .005;
 std::vector<KFTestVariable> KFParticleVariables(
     TString name, TString title, double momentumResidualRange,
     double relativeMomentumSigma = 0., double thetaSigma = 0., double phiSigma = 0.,
-    double momentumScale = 1.) {
+    double momentumScale = 1., double relativeMomentumSigmaEstm = -1.) {
   const double pi = std::acos(-1.);
   std::vector<KFTestVariable> vars = {
       {name + "_p", "p_{" + title + "} [GeV/c]",
@@ -54,6 +67,10 @@ std::vector<KFTestVariable> KFParticleVariables(
       {name + "_phi", "#phi_{" + title + "} [rad]", {100, -.3, .3},
        phiSigma > 0. ? KFAbsoluteResolution(phiSigma) : KFTestResolution(), 2. * pi}};
   vars[0].meanScale = momentumScale;
+  // The optional final argument sets the covariance resolution independently.
+  // Negative (omitted) means use the same sigma as smearing, as before.
+  if (relativeMomentumSigmaEstm >= 0.)
+    vars[0].resolutionEstm = KFRelativeResolution(relativeMomentumSigmaEstm);
   return vars;
 }
 
@@ -67,9 +84,9 @@ std::vector<KFTestVariable> KFJoinVariables(
 std::vector<KFTestVariable> KFCascadeMeasurements() {
   // Must match CascadeFitter's measured rows: p, pi1, pi2; (p,theta,phi) each.
   return KFJoinVariables({
-      KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP),
-      KFParticleVariables("pi1", "#pi_{1}", .1, ResPi1, ResTh, ResPh, ScalePPi1),
-      KFParticleVariables("pi2", "#pi_{2}", .1, ResPi2, ResThPi2, ResPhPi2, ScalePPi2)});
+      KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP, ResPEstm),
+      KFParticleVariables("pi1", "#pi_{1}", .1, ResPi1, ResTh, ResPh, ScalePPi1, ResPi1Estm),
+      KFParticleVariables("pi2", "#pi_{2}", .1, ResPi2, ResThPi2, ResPhPi2, ScalePPi2, ResPi2Estm)});
 }
 
 std::vector<KFTestVariable> KFCascadeUnknowns() {
@@ -407,7 +424,7 @@ void TestXiFit(int nEvents = -1) {
     fitter.SetInvMass(mL, mXi);
     fitter.SetMaximumStep(5);
     fitter.UpdateVariance(true);
-    std::vector<double> variance = sample.variances; // sigma^2 in measured-row order
+    std::vector<double> variance = sample.variances; // estimated sigma^2 in measured-row order
     fitter.SetVariance(variance.data());
     // For correlated measurements, also call fitter.AddOffdiagonals(covariance).
     const double chi2 = fitter.DoKinematicFit();
@@ -544,8 +561,8 @@ void TestXi1530Fit(int nEvents = -1, double signalFraction = 1. / 3.,
 // Fit Lambda -> p pi1 only; the generated Xi decay supplies Lambda kinematics.
 void TestFourVectorFit(int nEvents = -1) {
   const auto lambdaMeasured = KFJoinVariables({
-      KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP),
-      KFParticleVariables("pi1", "#pi_{1}", .1, ResPi1, ResTh, ResPh, ScalePPi1)});
+      KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP, ResPEstm),
+      KFParticleVariables("pi1", "#pi_{1}", .1, ResPi1, ResTh, ResPh, ScalePPi1, ResPi1Estm)});
   KFTestDiagnostics lambdaTest("LambdaFourVector", lambdaMeasured,
                                  KFParticleVariables("lambda", "#Lambda", .5));
   lambdaTest.AddObservable({"Mass", "M(p#pi_{1}) [GeV/c^{2}]", {500, 1.04, 1.2}});
@@ -598,9 +615,9 @@ void TestFourVectorFit(int nEvents = -1) {
 double pE72 = 0.78;
 void TestMissingEtaFit(int nEvents = -1) {
   auto variables = KFJoinVariables({
-      KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP),
-      KFParticleVariables("pion", "#pi", .1, ResPi1, ResTh, ResPh, ScalePPi1),
-      KFParticleVariables("beam", "K^{-}", .02, .001, .001, 1.)});
+      KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP, ResPEstm),
+      KFParticleVariables("pion", "#pi", .1, ResPi1, ResTh, ResPh, ScalePPi1, ResPi1Estm),
+      KFParticleVariables("beam", "K^{-}", .05, ResKBeam, .01, .01, 1., ResKBeamEstm)});
   KFTestDiagnostics test("MissingEta", variables, KFParticleVariables("lambda", "#Lambda", .5));
   test.AddObservable({"LambdaMass", "M(p#pi) [GeV/c^{2}]", {500, 1.04, 1.2}});
   test.AddObservable({"MissingMass", "M_{X} [GeV/c^{2}]", {500, mEta - .2, mEta + .2}});
@@ -651,16 +668,16 @@ void TestMissingEtaFit(int nEvents = -1) {
 // with (p,theta,phi) for each. There are no unknowns or intermediate phi rows.
 std::vector<KFTestVariable> KFPbarBalanceMeasurements(bool phiPhi) {
   auto variables = KFParticleVariables("beam", "#bar{p}_{beam}", .01,
-                                        ResPbarBeam, ResThPbarBeam, ResPhPbarBeam);
+                                        ResPbarBeam, ResThPbarBeam, ResPhPbarBeam, 1., ResPbarBeamEstm);
   const auto finals = phiPhi
       ? KFJoinVariables({
-          KFParticleVariables("km1", "K^{-}_{1}", .15, ResP, ResThP, ResPhP),
-          KFParticleVariables("kp1", "K^{+}_{1}", .15, ResP, ResThP, ResPhP),
-          KFParticleVariables("km2", "K^{-}_{2}", .15, ResP, ResThP, ResPhP),
-          KFParticleVariables("kp2", "K^{+}_{2}", .15, ResP, ResThP, ResPhP)})
+          KFParticleVariables("km1", "K^{-}_{1}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+          KFParticleVariables("kp1", "K^{+}_{1}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+          KFParticleVariables("km2", "K^{-}_{2}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+          KFParticleVariables("kp2", "K^{+}_{2}", .15, ResP, ResThP, ResPhP, 1., ResPEstm)})
       : KFJoinVariables({
-          KFParticleVariables("pbar", "#bar{p}", .2, ResP, ResThP, ResPhP),
-          KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP)});
+          KFParticleVariables("pbar", "#bar{p}", .2, ResP, ResThP, ResPhP, 1., ResPEstm),
+          KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, 1., ResPEstm)});
   variables.insert(variables.end(), finals.begin(), finals.end());
   return variables;
 }
@@ -1084,11 +1101,11 @@ void TestPbarBGSeparation(int nEvents = -1, double beamMomentum = -1.,
   const TString directory = "figs/PbarBGSeparation";
   // Generic track labels: the BG selection permits all disjoint pairings.
   const auto variables = KFJoinVariables({
-      KFParticleVariables("beam", "#bar{p}_{beam}", .01, ResPbarBeam, ResThPbarBeam, ResPhPbarBeam),
-      KFParticleVariables("track1", "K_{1}", .15, ResP, ResThP, ResPhP),
-      KFParticleVariables("track2", "K_{2}", .15, ResP, ResThP, ResPhP),
-      KFParticleVariables("track3", "K_{3}", .15, ResP, ResThP, ResPhP),
-      KFParticleVariables("track4", "K_{4}", .15, ResP, ResThP, ResPhP)});
+      KFParticleVariables("beam", "#bar{p}_{beam}", .01, ResPbarBeam, ResThPbarBeam, ResPhPbarBeam, 1., ResPbarBeamEstm),
+      KFParticleVariables("track1", "K_{1}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+      KFParticleVariables("track2", "K_{2}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+      KFParticleVariables("track3", "K_{3}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+      KFParticleVariables("track4", "K_{4}", .15, ResP, ResThP, ResPhP, 1., ResPEstm)});
   KFTestDiagnostics signal("PbarBGSignal", variables, {}, KFPbarBalanceConstraints());
   KFTestDiagnostics background("PbarBGBackground", variables, {}, KFPbarBalanceConstraints());
   for (auto* test : {&signal, &background}) {
@@ -1453,11 +1470,11 @@ void TestPbar4PiPi0Fit(int nEvents = -1, double beamMomentum = -1.) {
   TLorentzVector initialSystem = beam + target;
   const double sqrtS = initialSystem.M();
   const auto variables = KFJoinVariables({
-      KFParticleVariables("beam", "#bar{p}_{beam}", .01, ResPbarBeam, ResThPbarBeam, ResPhPbarBeam),
-      KFParticleVariables("pi1", "#pi^{-}_{1}", .15, ResP, ResThP, ResPhP),
-      KFParticleVariables("pi2", "#pi^{+}_{1}", .15, ResP, ResThP, ResPhP),
-      KFParticleVariables("pi3", "#pi^{-}_{2}", .15, ResP, ResThP, ResPhP),
-      KFParticleVariables("pi4", "#pi^{+}_{2}", .15, ResP, ResThP, ResPhP)});
+      KFParticleVariables("beam", "#bar{p}_{beam}", .01, ResPbarBeam, ResThPbarBeam, ResPhPbarBeam, 1., ResPbarBeamEstm),
+      KFParticleVariables("pi1", "#pi^{-}_{1}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+      KFParticleVariables("pi2", "#pi^{+}_{1}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+      KFParticleVariables("pi3", "#pi^{-}_{2}", .15, ResP, ResThP, ResPhP, 1., ResPEstm),
+      KFParticleVariables("pi4", "#pi^{+}_{2}", .15, ResP, ResThP, ResPhP, 1., ResPEstm)});
   double finalMasses[5] = {mPi, mPi, mPi, mPi, mPi0};
   const int nCharged = 4;
   KFTestDiagnostics exclusive("FourPiExclusive", variables, {}, KFPbarBalanceConstraints());
@@ -1641,6 +1658,663 @@ void TestBalanceFit(int nEvents = -1, double beamMomentum = -1.) {
   TestPbarPhiPhiFit(nEvents, beamMomentum);
 }
 
+// Iterative momentum-resolution calibration. The true variables are copied
+// once, and generated/smeared events are cached before any covariance update.
+// The first fit uses initialScale * true sigma, hence one quarter of the true
+// momentum variance for the default initialScale=0.5. Angular errors stay fixed.
+struct KFResolutionGroup {
+  TString name, title;
+  double trueResolution;
+  std::vector<int> rows;
+};
+
+struct KFResolutionEvent {
+  TMatrixD truth;
+  KFTestSample sample;
+};
+
+struct KFResolutionIteration {
+  int step = 0;
+  unsigned long finiteEvents = 0, failedEvents = 0;
+  std::vector<double> estimates, means, widths, widthErrors;
+  std::vector<bool> valid, stable;
+};
+
+struct KFResolutionTuningResult {
+  bool converged = false;
+  std::vector<KFResolutionGroup> groups;
+  std::vector<double> estimates;
+  std::vector<KFResolutionIteration> iterations;
+};
+
+// TGenPhaseSpace uses gRandom. Use a private generator and restore the previous
+// generator even if a forbidden decay or an I/O error raises an exception.
+class KFResolutionRandomScope {
+  TRandom* previous_;
+public:
+  explicit KFResolutionRandomScope(TRandom& random) : previous_(gRandom) { gRandom = &random; }
+  ~KFResolutionRandomScope() { gRandom = previous_; }
+  KFResolutionRandomScope(const KFResolutionRandomScope&) = delete;
+  KFResolutionRandomScope& operator=(const KFResolutionRandomScope&) = delete;
+};
+#ifdef __ROOTCLING__
+#pragma link off class KFResolutionRandomScope;
+#endif
+
+int KFCheckResolutionTuning(int nEvents, int maxIterations, double initialScale) {
+  const int count = nEvents < 0 ? nev : nEvents;
+  if (count <= 0 || maxIterations <= 0 ||
+      !std::isfinite(initialScale) || initialScale <= 0.)
+    throw std::invalid_argument("Resolution tuning requires positive events, iterations and initial scale");
+  return count;
+}
+
+// Reset estimates to the requested initial guess without altering true sigmas.
+void KFInitialTuningVariables(std::vector<KFTestVariable>& variables,
+                              const std::vector<KFResolutionGroup>& groups,
+                              double initialScale) {
+  for (const auto& group : groups) {
+    if (!std::isfinite(group.trueResolution) || group.trueResolution <= 0.)
+      throw std::invalid_argument("True momentum resolutions must be positive");
+    for (int row : group.rows) {
+      if (row < 0 || row >= static_cast<int>(variables.size()))
+        throw std::invalid_argument("Invalid momentum row for resolution tuning");
+      variables[row].resolutionEstm = KFRelativeResolution(initialScale * group.trueResolution);
+    }
+  }
+}
+
+// The leading entries are measured correction pulls and control momentum tuning.
+// Optional appended unknown truth pulls are diagnostic only. BalanceFitter uses
+// an empty unknown list and never queries unknown getters.
+template<class Fitter>
+std::vector<double> KFFitResolutionSample(Fitter& fitter, std::vector<double>& variances,
+    const TMatrixD& trueUnknown = TMatrixD(),
+    const std::vector<KFTestVariable>& unknownVariables = {}) {
+  fitter.SetVariance(variances.data());
+  fitter.UpdateVariance(false);
+  fitter.SetChi2DifCut(1.e-10);
+  const double chi2 = fitter.DoKinematicFit();
+  if (!std::isfinite(chi2) || chi2 < 0.) return {};
+  const TMatrixD best = fitter.GetBestMeasurements();
+  for (int row = 0; row < best.GetNrows(); ++row)
+    if (!std::isfinite(best(row, 0))) return {};
+  auto pulls = fitter.GetPull();
+  if (pulls.size() != variances.size()) return {};
+  if (!unknownVariables.empty()) {
+    const std::size_t first = pulls.size();
+    pulls.resize(first + unknownVariables.size(), std::numeric_limits<double>::quiet_NaN());
+    // A diagnostic getter must not remove an otherwise valid measured fit
+    // from the calibration sample if an unknown covariance is unavailable.
+    try {
+      const TMatrixD bestUnknown = fitter.GetBestUnknowns();
+      const TMatrixD covariance = fitter.GetUnmeasuredCovariance();
+      KFCheckColumn(bestUnknown, unknownVariables.size(), "Fitted unknowns for diagnostic pulls");
+      KFCheckColumn(trueUnknown, unknownVariables.size(), "True unknowns for diagnostic pulls");
+      if (covariance.GetNrows() == int(unknownVariables.size()) &&
+          covariance.GetNcols() == int(unknownVariables.size()))
+        for (std::size_t row = 0; row < unknownVariables.size(); ++row)
+          if (std::isfinite(covariance(row, row)) && covariance(row, row) > 0.)
+            pulls[first + row] = unknownVariables[row].Difference(bestUnknown(row, 0), trueUnknown(row, 0)) /
+                                 std::sqrt(covariance(row, row));
+    } catch (const std::exception&) { /* Keep undefined diagnostic pulls as NaN. */ }
+  }
+  return pulls;
+}
+
+TCanvas* KFDrawResolutionHistory(const TString& name, const KFResolutionTuningResult& result,
+                                  const TString& directory) {
+  const int count = static_cast<int>(result.groups.size());
+  const int steps = static_cast<int>(result.iterations.size());
+  auto* canvas = new TCanvas(name + "_ResolutionIterations", "Momentum resolution calibration",
+                             480 * count, 760);
+  canvas->Divide(count, 2);
+  const double xmin = .5, xmax = steps + .5;
+  auto drawFrame = [&](const TString& key, const TString& ytitle, double ymax) {
+    gPad->SetLeftMargin(.20); gPad->SetBottomMargin(.16);
+    TH1D frame(name + key, ";Fit iteration;" + ytitle, steps, xmin, xmax);
+    frame.SetDirectory(nullptr); frame.SetStats(false);
+    frame.SetMinimum(0.); frame.SetMaximum(ymax);
+    frame.GetXaxis()->SetTitleSize(.042); frame.GetYaxis()->SetTitleSize(.042);
+    frame.GetXaxis()->SetLabelSize(.038); frame.GetYaxis()->SetLabelSize(.038);
+    frame.GetYaxis()->SetTitleOffset(1.55);
+    for (int step = 1; step <= steps; ++step)
+      frame.GetXaxis()->SetBinLabel(step, TString::Format("%d", step));
+    frame.DrawCopy("axis");
+  };
+  for (int group = 0; group < count; ++group) {
+    const auto& spec = result.groups[group];
+    double maximum = spec.trueResolution;
+    for (const auto& step : result.iterations) maximum = std::max(maximum, step.estimates[group]);
+    canvas->cd(group + 1);
+    drawFrame(spec.name + "_ResolutionFrame", "ResEstm (#sigma_{p}/p)", 1.35 * maximum);
+    auto* estimate = new TGraph();
+    estimate->SetName(name + "_" + spec.name);
+    estimate->SetLineColor(kBlue + 1); estimate->SetMarkerColor(kBlue + 1);
+    estimate->SetMarkerStyle(20); estimate->SetLineWidth(2);
+    for (const auto& step : result.iterations)
+      estimate->SetPoint(estimate->GetN(), step.step, step.estimates[group]);
+    estimate->Draw("LP same");
+    auto* truth = new TLine(xmin, spec.trueResolution, xmax, spec.trueResolution);
+    truth->SetLineColor(kRed + 1); truth->SetLineStyle(2); truth->SetLineWidth(2); truth->Draw();
+    auto* legend = new TLegend(.32, .74, .93, .92);
+    legend->SetBorderSize(0); legend->SetFillStyle(0); legend->SetTextSize(.034);
+    legend->AddEntry(estimate, spec.name + " (" + spec.title + ")", "lp");
+    legend->AddEntry(truth, TString::Format("True = %.5g", spec.trueResolution), "l");
+    legend->Draw();
+
+    canvas->cd(count + group + 1);
+    maximum = 1.3;
+    for (const auto& step : result.iterations)
+      if (step.valid[group]) maximum = std::max(maximum, step.widths[group] + step.widthErrors[group]);
+    drawFrame(spec.name + "_PullFrame", "Correction-pull width", 1.3 * maximum);
+    auto* widths = new TGraphErrors();
+    widths->SetName(name + "_" + spec.name + "_PullWidth");
+    widths->SetLineColor(kBlue + 1); widths->SetMarkerColor(kBlue + 1); widths->SetMarkerStyle(20);
+    for (const auto& step : result.iterations) {
+      if (!step.valid[group]) continue;
+      const int point = widths->GetN();
+      widths->SetPoint(point, step.step, step.widths[group]);
+      widths->SetPointError(point, 0., step.widthErrors[group]);
+    }
+    widths->Draw("LP same");
+    for (double value : {.9, 1., 1.1}) {
+      auto* reference = new TLine(xmin, value, xmax, value);
+      reference->SetLineColor(value == 1. ? kRed + 1 : kGreen + 2);
+      reference->SetLineStyle(value == 1. ? 2 : 3); reference->Draw();
+    }
+    auto* label = new TPaveText(.34, .79, .93, .92, "NDC");
+    label->SetBorderSize(0); label->SetFillStyle(0); label->SetTextSize(.034);
+    label->AddText(result.converged ? "All widths stable: 0.9 < w < 1.1" : "Iteration limit: not all widths stable");
+    label->Draw();
+  }
+  canvas->SaveAs(directory + "/ResolutionIterations.pdf");
+  canvas->SaveAs(directory + "/ResolutionIterations.png");
+  return canvas;
+}
+
+struct KFResolutionMonitorVariable {
+  TString name;
+  std::size_t group;
+  std::vector<TH1D*> pulls; // One already-fitted histogram per completed round.
+};
+
+// One 2 x 1 canvas per momentum variable: all iteration pulls on the left,
+// the matching tested resolution history on the right. Fits are reused.
+std::vector<TCanvas*> KFDrawCombinedResolutionMonitor(
+    const TString& name, const KFResolutionTuningResult& result,
+    const std::vector<KFResolutionMonitorVariable>& variables, const TString& directory) {
+  if (result.iterations.empty() || variables.empty())
+    throw std::invalid_argument("Combined monitor requires pull histograms and resolution history");
+  const int steps = static_cast<int>(result.iterations.size());
+  for (const auto& variable : variables) {
+    if (variable.group >= result.groups.size() || variable.pulls.size() != result.iterations.size())
+      throw std::invalid_argument("Invalid variable history in combined resolution monitor");
+    for (const auto* pull : variable.pulls)
+      if (!pull) throw std::invalid_argument("Missing iteration pull in combined resolution monitor");
+  }
+  const int iteration = result.iterations.back().step;
+  const std::size_t pages = variables.size();
+  const double xmin = -.5, xmax = steps - .5;
+  const int colors[] = {kBlue + 1, kRed + 1, kGreen + 2, kMagenta + 1,
+                        kOrange + 7, kCyan + 2, kViolet + 1, kGray + 2};
+  const std::size_t colorCount = sizeof(colors) / sizeof(colors[0]);
+  std::vector<TCanvas*> canvases;
+  for (std::size_t page = 0; page < pages; ++page) {
+    const auto& variable = variables[page];
+    const auto& spec = result.groups[variable.group];
+    const TString key = name + TString::Format("_CombinedMonitor_Iteration%d_Page%zu", iteration, page + 1);
+    auto* canvas = new TCanvas(key, variable.name + TString::Format(" - iter0 through iter%d", steps - 1), 1500, 680);
+    canvas->Divide(2, 1, .005, .005);
+    canvas->cd(1);
+    {
+      const double topMargin = std::min(.60, .12 + .04 * (steps + 1));
+      gPad->SetLeftMargin(.16); gPad->SetRightMargin(.04);
+      gPad->SetBottomMargin(.14); gPad->SetTopMargin(topMargin);
+      double maximum = 1.;
+      for (const auto* pull : variable.pulls) {
+        maximum = std::max(maximum, pull->GetMaximum());
+        if (const auto* gaussian = pull->GetFunction(TString(pull->GetName()) + "_Gaussian"))
+          maximum = std::max(maximum, gaussian->GetParameter(0));
+      }
+      auto* fits = new TLegend(.16, 1. - topMargin + .015, .98, .985);
+      fits->SetBorderSize(0); fits->SetFillStyle(0); fits->SetTextFont(42);
+      fits->SetTextSize(std::min(.030, .42 / (steps + 1)));
+      fits->SetHeader("Gaussian fits: mean, width");
+      std::vector<TH1D*> displayed;
+      for (int step = 0; step < steps; ++step) {
+        auto* pull = variable.pulls[step];
+        const int color = colors[step % colorCount];
+        // DrawCopy gives the pad ownership of the histogram and its fit, so
+        // older iterations remain available after the tuning function returns.
+        auto* copy = static_cast<TH1D*>(pull->DrawCopy(step == 0 ? "hist" : "hist same"));
+        copy->SetName(key + "_" + variable.name + TString::Format("_P_Pull_iter%d", step));
+        copy->SetStats(false); copy->SetMinimum(0.); copy->SetMaximum(1.18 * maximum);
+        copy->SetLineColor(color); copy->SetLineWidth(2);
+        copy->GetXaxis()->SetTitleSize(.045); copy->GetYaxis()->SetTitleSize(.045);
+        copy->GetXaxis()->SetLabelSize(.04); copy->GetYaxis()->SetLabelSize(.04);
+        copy->GetYaxis()->SetTitleOffset(1.35);
+        displayed.push_back(copy);
+        const auto* gaussian = copy->GetFunction(TString(pull->GetName()) + "_Gaussian");
+        const TString label = gaussian
+          ? TString::Format("iter%d: %.3f #pm %.3f, %.3f #pm %.3f", step,
+              gaussian->GetParameter(1), gaussian->GetParError(1),
+              gaussian->GetParameter(2), gaussian->GetParError(2))
+          : TString::Format("iter%d: Gaussian fit unavailable", step);
+        fits->AddEntry(copy, label, "l");
+      }
+      // Draw fits last so no later histogram hides an earlier fitted curve.
+      for (int step = 0; step < steps; ++step)
+        if (auto* gaussian = displayed[step]->GetFunction(TString(variable.pulls[step]->GetName()) + "_Gaussian")) {
+          gaussian->SetLineColor(colors[step % colorCount]);
+          gaussian->SetLineStyle(2); gaussian->SetLineWidth(2);
+          gaussian->ResetBit(TF1::kNotDraw); gaussian->Draw("same");
+        }
+      fits->Draw();
+    }
+    canvas->cd(2);
+    gPad->SetLeftMargin(.20); gPad->SetRightMargin(.04);
+    gPad->SetBottomMargin(.14); gPad->SetTopMargin(.22);
+    gPad->SetGridx(); gPad->SetGridy();
+    double maximum = spec.trueResolution;
+    for (const auto& step : result.iterations) maximum = std::max(maximum, step.estimates[variable.group]);
+    TH1D frame(key + "_ResolutionFrame", ";Iteration (0 = initial guess);ResEstm", steps, xmin, xmax);
+    frame.SetDirectory(nullptr); frame.SetStats(false);
+    frame.SetMinimum(0.); frame.SetMaximum(1.3 * maximum);
+    frame.GetXaxis()->SetTitleSize(.045); frame.GetYaxis()->SetTitleSize(.045);
+    frame.GetXaxis()->SetLabelSize(.04); frame.GetYaxis()->SetLabelSize(.04);
+    frame.GetYaxis()->SetTitleOffset(1.8);
+    for (int step = 0; step < steps; ++step) frame.GetXaxis()->SetBinLabel(step + 1, TString::Format("%d", step));
+    frame.DrawCopy("axis");
+    auto* estimates = new TGraph(); estimates->SetName(key + "_" + spec.name);
+    estimates->SetLineColor(kBlue + 1); estimates->SetMarkerColor(kBlue + 1);
+    estimates->SetLineWidth(2); estimates->SetMarkerStyle(20); estimates->SetMarkerSize(1.15);
+    for (int step = 0; step < steps; ++step)
+      estimates->SetPoint(step, step, result.iterations[step].estimates[variable.group]);
+    estimates->Draw("LP same");
+    auto* truth = new TLine(xmin, spec.trueResolution, xmax, spec.trueResolution);
+    truth->SetLineColor(kRed + 1); truth->SetLineStyle(2); truth->SetLineWidth(2); truth->Draw();
+    auto* legend = new TLegend(.17, .80, .97, .985);
+    legend->SetBorderSize(0); legend->SetFillStyle(0); legend->SetTextFont(42); legend->SetTextSize(.034);
+    TString label = variable.name; label.ReplaceAll("_", " ");
+    legend->AddEntry(estimates, spec.name + " (" + label + ")", "lp");
+    legend->AddEntry(truth, TString::Format("True = %.5g", spec.trueResolution), "l");
+    legend->Draw();
+    TLatex values; values.SetTextFont(42); values.SetTextSize(.032);
+    values.SetTextColor(kBlue + 1); values.SetTextAlign(21);
+    for (int step = 0; step < steps; ++step) {
+      const double estimate = result.iterations[step].estimates[variable.group];
+      double labelY = estimate + .06 * maximum;
+      if (labelY <= spec.trueResolution && spec.trueResolution - labelY < .05 * maximum)
+        labelY = spec.trueResolution + .06 * maximum;
+      values.DrawLatex(step, labelY, TString::Format("%.5g", estimate));
+    }
+    const TString snapshot = directory + TString::Format("/CombinedMonitor_Iteration%d_Page%zu", iteration, page + 1);
+    canvas->SaveAs(snapshot + ".pdf");
+    canvas->SaveAs(directory + "/CombinedMonitor_" + variable.name + ".pdf");
+    canvases.push_back(canvas);
+  }
+  const TString latest = directory + "/CombinedMonitor.pdf";
+  if (canvases.size() == 1) canvases.front()->SaveAs(latest);
+  else
+    for (std::size_t page = 0; page < canvases.size(); ++page)
+      canvases[page]->Print(latest + (page == 0 ? "(" : (page + 1 == canvases.size() ? ")" : "")));
+  return canvases;
+}
+
+typedef std::function<std::vector<double>(const KFResolutionEvent&, std::vector<double>&)> KFResolutionFit;
+
+KFResolutionTuningResult KFRunResolutionTuning(
+    const TString& name, const std::vector<KFResolutionEvent>& events,
+    const std::vector<KFResolutionGroup>& groups, const KFResolutionFit& fit,
+    int maxIterations, double initialScale, const TString& directory,
+    const std::vector<KFTestVariable>& measuredVariables = {},
+    const std::vector<KFTestVariable>& unknownVariables = {},
+    const std::vector<KFTestDiagnostics::CanvasPage>& measuredPages = {}) {
+  KFCheckResolutionTuning(static_cast<int>(events.size()), maxIterations, initialScale);
+  if (groups.empty()) throw std::invalid_argument("No momentum resolutions to tune");
+  gSystem->mkdir(directory, true);
+  TFile output(directory + "/tuning.root", "RECREATE");
+  if (output.IsZombie()) throw std::runtime_error("Cannot create resolution-tuning output");
+  std::ofstream table((directory + "/ResolutionIterations.tsv").Data());
+  if (!table) throw std::runtime_error("Cannot create resolution-tuning table");
+  table << "iteration\tparameter\tResEstm\tResTrue\tpull_mean\tpull_width\twidth_error\tvalid\tstable\tfinite_events\tfailed_events\n";
+  table << std::setprecision(12);
+  KFResolutionTuningResult result;
+  result.groups = groups;
+  for (const auto& group : groups) result.estimates.push_back(initialScale * group.trueResolution);
+  static unsigned long serial = 0;
+  const TString prefix = name + TString::Format("_%lu", ++serial);
+  const double missing = std::numeric_limits<double>::quiet_NaN();
+  const std::size_t measuredCount = events.front().sample.variances.size();
+  std::vector<KFTestVariable> measuredSpecs = measuredVariables;
+  if (measuredSpecs.empty())
+    for (std::size_t row = 0; row < measuredCount; ++row)
+      measuredSpecs.emplace_back(TString::Format("row%zu", row), TString::Format("measurement %zu", row),
+                                KFTestRange(100, -1., 1.));
+  if (measuredSpecs.size() != measuredCount)
+    throw std::invalid_argument("Measured pull labels do not match the cached measurements");
+  std::vector<std::vector<std::unique_ptr<TH1D>>> momentumPullHistory(measuredCount);
+  std::cout << "\n" << name << ": " << events.size() << " fixed events, initial scale = " << initialScale
+            << ", maximum fit iterations = " << maxIterations << std::endl;
+  for (int iteration = 1; iteration <= maxIterations; ++iteration) {
+    KFResolutionIteration step;
+    step.step = iteration; step.estimates = result.estimates;
+    step.means.assign(groups.size(), missing); step.widths.assign(groups.size(), missing);
+    step.widthErrors.assign(groups.size(), missing);
+    step.valid.assign(groups.size(), false); step.stable.assign(groups.size(), false);
+    std::vector<std::unique_ptr<TH1D>> pulls;
+    std::vector<std::unique_ptr<TH1D>> measuredPulls, unknownPulls;
+    auto bookDiagnosticPulls = [&](const std::vector<KFTestVariable>& specs,
+                                   const TString& kind, std::vector<std::unique_ptr<TH1D>>& histograms) {
+      for (const auto& spec : specs) {
+        // Pulls are dimensionless. Keep the particle and coordinate explicit
+        // in the PDF labels, including theta/phi when symbol fonts differ.
+        TString coordinate = spec.name;
+        coordinate.ReplaceAll("_", " ");
+        histograms.emplace_back(new TH1D(prefix + TString::Format("_Iteration%d_", iteration) + kind + "_" + spec.name,
+          ";" + (kind == "Measured" ? TString("Correction pull: ") : TString("Truth pull: ")) + coordinate + ";Entries",
+          160, -8., 8.));
+        histograms.back()->SetDirectory(nullptr); histograms.back()->Sumw2();
+      }
+    };
+    bookDiagnosticPulls(measuredSpecs, "Measured", measuredPulls);
+    bookDiagnosticPulls(unknownVariables, "Unknown", unknownPulls);
+    for (const auto& group : groups) {
+      pulls.emplace_back(new TH1D(prefix + TString::Format("_Iteration%d_", iteration) + group.name,
+        ";Correction pull: " + group.title + ";Entries", 160, -8., 8.));
+      pulls.back()->SetDirectory(nullptr); pulls.back()->Sumw2();
+    }
+    for (const auto& event : events) {
+      std::vector<double> covariance = event.sample.variances;
+      for (std::size_t group = 0; group < groups.size(); ++group)
+        for (int row : groups[group].rows) {
+          const double sigma = result.estimates[group] * std::abs(event.truth(row, 0));
+          covariance.at(row) = sigma * sigma;
+        }
+      std::vector<double> correction;
+      try { correction = fit(event, covariance); }
+      catch (const std::exception&) { ++step.failedEvents; continue; }
+      if (correction.size() != covariance.size() + unknownVariables.size()) { ++step.failedEvents; continue; }
+      ++step.finiteEvents;
+      for (std::size_t group = 0; group < groups.size(); ++group)
+        for (int row : groups[group].rows)
+          if (std::isfinite(correction[row])) pulls[group]->Fill(correction[row]);
+      for (std::size_t row = 0; row < measuredPulls.size(); ++row)
+        if (std::isfinite(correction[row])) measuredPulls[row]->Fill(correction[row]);
+      for (std::size_t row = 0; row < unknownPulls.size(); ++row)
+        if (std::isfinite(correction[measuredCount + row])) unknownPulls[row]->Fill(correction[measuredCount + row]);
+    }
+    auto* canvas = new TCanvas(prefix + TString::Format("_Pulls_Iteration%d", iteration),
+                               "Momentum correction pulls", 480 * groups.size(), 380);
+    canvas->Divide(groups.size(), 1);
+    bool allStable = true;
+    std::cout << "  Fit iteration " << iteration << ": " << step.finiteEvents
+              << " finite, " << step.failedEvents << " failed fits\n";
+    for (std::size_t group = 0; group < groups.size(); ++group) {
+      canvas->cd(group + 1);
+      KFTestDiagnostics::DrawCorrectionPull(pulls[group].get());
+      const auto* gaussian = pulls[group]->GetFunction(TString(pulls[group]->GetName()) + "_Gaussian");
+      if (gaussian) {
+        step.valid[group] = true;
+        step.means[group] = gaussian->GetParameter(1);
+        step.widths[group] = gaussian->GetParameter(2);
+        step.widthErrors[group] = gaussian->GetParError(2);
+        step.stable[group] = step.widths[group] > 1 - margin && step.widths[group] < 1.+margin;
+      }
+      allStable = allStable && step.stable[group];
+      std::cout << "    " << groups[group].name << " = " << step.estimates[group]
+                << ", true = " << groups[group].trueResolution << ", pull width = "
+                << step.widths[group] << (step.stable[group] ? " (stable)" : " (not stable)") << '\n';
+      table << iteration << '\t' << groups[group].name << '\t' << step.estimates[group]
+            << '\t' << groups[group].trueResolution << '\t' << step.means[group]
+            << '\t' << step.widths[group] << '\t' << step.widthErrors[group]
+            << '\t' << step.valid[group] << '\t' << step.stable[group]
+            << '\t' << step.finiteEvents << '\t' << step.failedEvents << '\n';
+      output.cd(); pulls[group]->Write();
+    }
+    canvas->SaveAs(directory + TString::Format("/MomentumPulls_Iteration%d.pdf", iteration));
+    output.cd(); canvas->Write();
+    // Fit every displayed coordinate, but keep these results separate from
+    // step.widths/step.stable: only the original momentum groups may tune V.
+    std::ofstream diagnosticTable((directory + TString::Format("/PullFits_Iteration%d.tsv", iteration)).Data());
+    if (!diagnosticTable) throw std::runtime_error("Cannot create diagnostic pull-fit table");
+    diagnosticTable << "kind\tvariable\tentries\tvalid\tmean\tmean_error\twidth\twidth_error\n";
+    diagnosticTable << std::setprecision(12);
+    auto drawDiagnosticPages = [&](std::vector<std::unique_ptr<TH1D>>& histograms,
+        const std::vector<KFTestVariable>& specs, const TString& kind,
+        std::vector<KFTestDiagnostics::CanvasPage> pages) {
+      if (pages.empty())
+        for (std::size_t begin = 0; begin < histograms.size(); begin += 9) {
+          const int count = std::min<std::size_t>(9, histograms.size() - begin);
+          const int columns = std::min(3, count);
+          KFTestDiagnostics::CanvasPage page{columns, (count + columns - 1) / columns, {}};
+          for (int item = 0; item < count; ++item) page.variables.push_back(begin + item);
+          pages.push_back(page);
+        }
+      for (std::size_t page = 0; page < pages.size(); ++page) {
+        const auto& layout = pages[page];
+        auto* diagnostic = new TCanvas(prefix + TString::Format("_%sPulls_Iteration%d_Page%zu", kind.Data(), iteration, page + 1),
+                                       kind + " diagnostic pulls", 400 * layout.columns, 340 * layout.rows);
+        diagnostic->Divide(layout.columns, layout.rows);
+        for (std::size_t pad = 0; pad < layout.variables.size(); ++pad) {
+          const std::size_t row = layout.variables[pad];
+          auto* histogram = histograms.at(row).get();
+          diagnostic->cd(pad + 1); KFTestDiagnostics::DrawCorrectionPull(histogram);
+          const auto* gaussian = histogram->GetFunction(TString(histogram->GetName()) + "_Gaussian");
+          diagnosticTable << kind << '\t' << specs[row].name << '\t' << histogram->GetEntries() << '\t' << bool(gaussian)
+            << '\t' << (gaussian ? gaussian->GetParameter(1) : missing)
+            << '\t' << (gaussian ? gaussian->GetParError(1) : missing)
+            << '\t' << (gaussian ? gaussian->GetParameter(2) : missing)
+            << '\t' << (gaussian ? gaussian->GetParError(2) : missing) << '\n';
+          output.cd(); histogram->Write();
+        }
+        diagnostic->SaveAs(directory + TString::Format("/%sPulls_Iteration%d_Page%zu.pdf", kind.Data(), iteration, page + 1));
+        output.cd(); diagnostic->Write();
+      }
+    };
+    drawDiagnosticPages(measuredPulls, measuredSpecs, "Measured", measuredPages);
+    drawDiagnosticPages(unknownPulls, unknownVariables, "Unknown", {});
+    // Finish the numerical exports before rendering the monitor.
+    diagnosticTable.close();
+    table.flush();
+    if (!diagnosticTable || !table) throw std::runtime_error("Cannot write resolution-tuning tables");
+    std::cout.flush();
+    result.iterations.push_back(step);
+    std::vector<KFResolutionMonitorVariable> monitorVariables;
+    // Keep every fitted momentum histogram, not just the current round.
+    // PhiPhi's four kaons come first; each retains its own pull fit and page.
+    for (bool shared : {true, false})
+      for (std::size_t group = 0; group < groups.size(); ++group)
+        if ((groups[group].rows.size() > 1) == shared)
+          for (int row : groups[group].rows) {
+            auto& history = momentumPullHistory[row];
+            history.push_back(std::move(measuredPulls[row]));
+            output.cd();
+            history.back()->Write(prefix + "_" + measuredSpecs[row].name + TString::Format("_P_Pull_iter%d", iteration - 1));
+            KFResolutionMonitorVariable variable{measuredSpecs[row].name, group, {}};
+            for (const auto& pull : history) variable.pulls.push_back(pull.get());
+            monitorVariables.push_back(std::move(variable));
+          }
+    for (auto* monitor : KFDrawCombinedResolutionMonitor(prefix, result, monitorVariables, directory)) {
+      output.cd(); monitor->Write();
+    }
+    if (allStable) { result.converged = true; break; }
+    // Update sigma, not variance. A width of 2 doubles ResEstm. Keep a parameter
+    // inside the stable band unchanged, and recheck it after the other updates.
+    // The last recorded estimate is always one that was actually fitted.
+    if (iteration < maxIterations)
+      for (std::size_t group = 0; group < groups.size(); ++group)
+        if (step.valid[group] && !step.stable[group]) {
+          const double next = result.estimates[group] * step.widths[group];
+          if (std::isfinite(next) && next > 0.) result.estimates[group] = next;
+        }
+  }
+  auto* history = KFDrawResolutionHistory(prefix, result, directory);
+  output.cd(); history->Write();
+  for (auto* object : *history->GetListOfPrimitives()) {
+    auto* pad = dynamic_cast<TPad*>(object);
+    if (!pad) continue;
+    for (auto* primitive : *pad->GetListOfPrimitives())
+      if (auto* graph = dynamic_cast<TGraph*>(primitive)) graph->Write();
+  }
+  std::cout << name << (result.converged ? ": converged" : ": iteration limit reached; not converged")
+            << " after " << result.iterations.size() << " fit iterations.\n";
+  return result;
+}
+
+KFResolutionTuningResult TuneXiResolutions(int nEvents = 10000, int maxIterations = 4,
+                                          double initialScale = .5, UInt_t seed = 12345,
+                                          const TString& directory = "figs/TuneXiResolutions") {
+  const int count = KFCheckResolutionTuning(nEvents, maxIterations, initialScale);
+  SetStyle();
+  const std::vector<KFResolutionGroup> groups = {
+    {"ResPEstm", "p", ResP, {0}}, {"ResPi1Estm", "#pi_{#Lambda}", ResPi1, {3}},
+    {"ResPi2Estm", "#pi_{#Xi}", ResPi2, {6}}};
+  auto variables = KFCascadeMeasurements();
+  const auto unknownVariables = KFCascadeUnknowns();
+  KFInitialTuningVariables(variables, groups, initialScale);
+  TRandom3 random(seed); KFResolutionRandomScope randomScope(random);
+  const TLorentzVector beam(0., 0., pK18, std::hypot(mK, pK18)), target(0., 0., 0., mP);
+  TLorentzVector system = beam + target;
+  double productionMasses[2] = {mXi, mK}, xiMasses[2] = {mL, mPi}, lambdaMasses[2] = {mP, mPi};
+  TGenPhaseSpace production, xiDecay, lambdaDecay;
+  if (!production.SetDecay(system, 2, productionMasses))
+    throw std::runtime_error("Kinematically forbidden Xi production");
+  std::vector<KFResolutionEvent> events; events.reserve(count);
+  for (int event = 0; event < count; ++event) {
+    production.Generate(); TLorentzVector xi = *production.GetDecay(0);
+    if (!xiDecay.SetDecay(xi, 2, xiMasses)) throw std::runtime_error("Kinematically forbidden Xi decay");
+    xiDecay.Generate(); TLorentzVector lambda = *xiDecay.GetDecay(0);
+    if (!lambdaDecay.SetDecay(lambda, 2, lambdaMasses))
+      throw std::runtime_error("Kinematically forbidden Lambda decay");
+    lambdaDecay.Generate();
+    TMatrixD truth = KFSphericalParameters({*lambdaDecay.GetDecay(0), *lambdaDecay.GetDecay(1), *xiDecay.GetDecay(1)});
+    events.push_back({truth, KFSmear(truth, variables, random)});
+  }
+  auto result = KFRunResolutionTuning("TuneXiResolutions", events, groups,
+    [unknownVariables](const KFResolutionEvent& event, std::vector<double>& covariance) {
+      const TMatrixD& measured = event.sample.measurements;
+      CascadeFitter fitter(KFFourVector(measured, 0, mP), KFFourVector(measured, 3, mPi),
+                            KFFourVector(measured, 6, mPi));
+      fitter.SetInvMass(mL, mXi);
+      const TLorentzVector trueXi = KFFourVector(event.truth, 0, mP) + KFFourVector(event.truth, 3, mPi) +
+                                     KFFourVector(event.truth, 6, mPi);
+      return KFFitResolutionSample(fitter, covariance, KFSphericalParameters({trueXi}), unknownVariables);
+    }, maxIterations, initialScale, directory, variables, unknownVariables,
+       {{3, 3, {0, 3, 6, 1, 4, 7, 2, 5, 8}}});
+  ResPEstm = result.estimates[0]; ResPi1Estm = result.estimates[1]; ResPi2Estm = result.estimates[2];
+  return result;
+}
+
+KFResolutionTuningResult TuneMissingEtaResolutions(int nEvents = 10000, int maxIterations = 4,
+                                                  double initialScale = .5, UInt_t seed = 12345,
+                                                  const TString& directory = "figs/TuneMissingEtaResolutions") {
+  const int count = KFCheckResolutionTuning(nEvents, maxIterations, initialScale);
+  SetStyle();
+  const std::vector<KFResolutionGroup> groups = {
+    {"ResPEstm", "p", ResP, {0}}, {"ResPi1Estm", "#pi^{-}", ResPi1, {3}},
+    {"ResKBeamEstm", "K^{-} beam", ResKBeam, {6}}};
+  const auto unknownVariables = KFParticleVariables("lambda", "#Lambda", .5);
+  auto variables = KFJoinVariables({
+    KFParticleVariables("proton", "p", .2, ResP, ResThP, ResPhP, ScalePP),
+    KFParticleVariables("pion", "#pi", .1, ResPi1, ResTh, ResPh, ScalePPi1),
+    KFParticleVariables("beam", "K^{-}", .05, ResKBeam, .01, .01)});
+  KFInitialTuningVariables(variables, groups, initialScale);
+  TRandom3 random(seed); KFResolutionRandomScope randomScope(random);
+  TVector3 direction(.1, 0., 1.); direction.SetMag(pE72);
+  const TLorentzVector beam(direction, std::hypot(mK, pE72)), target(0., 0., 0., mP);
+  TLorentzVector system = beam + target;
+  double productionMasses[2] = {mL, mEta}, lambdaMasses[2] = {mP, mPi};
+  TGenPhaseSpace production, lambdaDecay;
+  if (!production.SetDecay(system, 2, productionMasses))
+    throw std::runtime_error("Kinematically forbidden Lambda eta production");
+  std::vector<KFResolutionEvent> events; events.reserve(count);
+  for (int event = 0; event < count; ++event) {
+    production.Generate(); TLorentzVector lambda = *production.GetDecay(0);
+    if (!lambdaDecay.SetDecay(lambda, 2, lambdaMasses))
+      throw std::runtime_error("Kinematically forbidden Lambda decay");
+    lambdaDecay.Generate();
+    TMatrixD truth = KFSphericalParameters({*lambdaDecay.GetDecay(0), *lambdaDecay.GetDecay(1), beam});
+    events.push_back({truth, KFSmear(truth, variables, random)});
+  }
+  auto result = KFRunResolutionTuning("TuneMissingEtaResolutions", events, groups,
+    [target, unknownVariables](const KFResolutionEvent& event, std::vector<double>& covariance) {
+      const TMatrixD& measured = event.sample.measurements;
+      const TLorentzVector p = KFFourVector(measured, 0, mP), pion = KFFourVector(measured, 3, mPi);
+      MissingMassFitter fitter(KFFourVector(measured, 6, mK), target, mEta, p, pion, p + pion);
+      fitter.SetInvMass(mL);
+      const TLorentzVector trueLambda = KFFourVector(event.truth, 0, mP) + KFFourVector(event.truth, 3, mPi);
+      return KFFitResolutionSample(fitter, covariance, KFSphericalParameters({trueLambda}), unknownVariables);
+    }, maxIterations, initialScale, directory, variables, unknownVariables,
+       {{3, 3, {0, 3, 6, 1, 4, 7, 2, 5, 8}}});
+  ResPEstm = result.estimates[0]; ResPi1Estm = result.estimates[1]; ResKBeamEstm = result.estimates[2];
+  return result;
+}
+
+KFResolutionTuningResult TunePhiPhiResolutions(int nEvents = 10000, int maxIterations = 4,
+                                              double initialScale = .5, UInt_t seed = 12345,
+                                              double beamMomentum = -1.,
+                                              const TString& directory = "figs/TunePhiPhiResolutions") {
+  const int count = KFCheckResolutionTuning(nEvents, maxIterations, initialScale);
+  SetStyle();
+  const double momentum = beamMomentum < 0. ? pPbar : beamMomentum;
+  if (!std::isfinite(momentum) || momentum <= 0.) throw std::invalid_argument("Invalid antiproton beam momentum");
+  TVector3 direction(.1, .05, 1.); direction.SetMag(momentum);
+  const TLorentzVector beam(direction, std::hypot(momentum, mP)), target(0., 0., 0., mP);
+  const double sqrtS = (beam + target).M(), minimum = 2. * mK;
+  if (!std::isfinite(mPhi) || !std::isfinite(mK) || mK <= 0. ||
+      !std::isfinite(WidthPhi) || WidthPhi < 0. || mPhi <= minimum ||
+      sqrtS <= 4. * mK || (WidthPhi == 0. && sqrtS <= 2. * mPhi))
+    throw std::runtime_error("Phi phi production or decay is kinematically forbidden");
+  const std::vector<KFResolutionGroup> groups = {
+    {"ResPbarBeamEstm", "#bar{p} beam", ResPbarBeam, {0}},
+    {"ResPEstm", "four K tracks (pooled)", ResP, {3, 6, 9, 12}}};
+  auto variables = KFPbarBalanceMeasurements(true);
+  KFInitialTuningVariables(variables, groups, initialScale);
+  TRandom3 random(seed); KFResolutionRandomScope randomScope(random);
+  TGenPhaseSpace production, decay1, decay2;
+  std::vector<KFResolutionEvent> events; events.reserve(count);
+  for (int event = 0; event < count; ++event) {
+    double phiMass1 = mPhi, phiMass2 = mPhi;
+    if (WidthPhi > 0.) {
+      const double s = sqrtS * sqrtS, maxMomentum = .5 * std::sqrt(s - 4. * minimum * minimum);
+      bool accepted = false;
+      for (int attempt = 0; attempt < 1000000; ++attempt) {
+        phiMass1 = random.BreitWigner(mPhi, WidthPhi); phiMass2 = random.BreitWigner(mPhi, WidthPhi);
+        if (!std::isfinite(phiMass1) || !std::isfinite(phiMass2) || phiMass1 <= minimum ||
+            phiMass2 <= minimum || phiMass1 + phiMass2 >= sqrtS) continue;
+        const double sum = phiMass1 + phiMass2, difference = phiMass1 - phiMass2;
+        const double pStar = std::sqrt((s - sum * sum) * (s - difference * difference)) / (2. * sqrtS);
+        if (random.Rndm() * maxMomentum < pStar) { accepted = true; break; }
+      }
+      if (!accepted) throw std::runtime_error("Unable to generate an allowed phi mass pair");
+    }
+    TLorentzVector system = beam + target;
+    double phiMasses[2] = {phiMass1, phiMass2}, kaonMasses[2] = {mK, mK};
+    if (!production.SetDecay(system, 2, phiMasses))
+      throw std::runtime_error("Kinematically forbidden phi phi production");
+    production.Generate(); TLorentzVector phi1 = *production.GetDecay(0), phi2 = *production.GetDecay(1);
+    if (!decay1.SetDecay(phi1, 2, kaonMasses) || !decay2.SetDecay(phi2, 2, kaonMasses))
+      throw std::runtime_error("Kinematically forbidden phi decay");
+    decay1.Generate(); decay2.Generate();
+    TMatrixD truth = KFSphericalParameters({beam, *decay1.GetDecay(0), *decay1.GetDecay(1),
+                                                 *decay2.GetDecay(0), *decay2.GetDecay(1)});
+    events.push_back({truth, KFSmear(truth, variables, random)});
+  }
+  auto result = KFRunResolutionTuning("TunePhiPhiResolutions", events, groups,
+    [target](const KFResolutionEvent& event, std::vector<double>& covariance) {
+      const TMatrixD& measured = event.sample.measurements;
+      BalanceFitter fitter(KFFourVector(measured, 0, mP), target,
+        {KFFourVector(measured, 3, mK), KFFourVector(measured, 6, mK),
+         KFFourVector(measured, 9, mK), KFFourVector(measured, 12, mK)});
+      return KFFitResolutionSample(fitter, covariance);
+    }, maxIterations, initialScale, directory, variables, {},
+       {{3, 1, {0, 1, 2}}, {4, 3, {3, 6, 9, 12, 4, 7, 10, 13, 5, 8, 11, 14}}});
+  ResPbarBeamEstm = result.estimates[0]; ResPEstm = result.estimates[1];
+  return result;
+}
+
 void TestKinfit() {
   SetStyle();
   std::cout << "TestXiFit([nEvents])\n"
@@ -1653,6 +2327,9 @@ void TestKinfit() {
                "TestPbarElasticPi0Fit([nEvents], [beamMomentum])\n"
                "TestPbarBGSeparation([nEvents], [beamMomentum], [signalFraction=.5], [massWindow=.100], [useKaonMassWindow=true])\n"
                "TestBalanceFit([nEvents], [beamMomentum]) runs both pbar tests (default 1 GeV/c)\n"
+               "TunePhiPhiResolutions([nEvents=10000], [maxIterations=4], [initialScale=.5], [seed=12345])\n"
+               "TuneXiResolutions([nEvents=10000], [maxIterations=4], [initialScale=.5], [seed=12345])\n"
+               "TuneMissingEtaResolutions([nEvents=10000], [maxIterations=4], [initialScale=.5], [seed=12345])\n"
                "Variable setup: KFTestVariable(name, axisTitle, {bins,min,max}, sigma, period)\n"
                "Residual convention: initial/fitted minus truth; matrix row order must match.\n";
 }

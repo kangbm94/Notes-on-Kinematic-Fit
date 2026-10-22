@@ -217,7 +217,7 @@ void KinematicFitter::ProcessStepWUnkn(){
 	VInv_next.SetTol(1e-26);
 	//VInv_next.Invert();
 	
-	double Chi2 = (dMT* (VInv)*dM)(0,0);
+	double Chi2 = (dMT* (VInv)*dM)(0,0);// + 2 * (LambdaT * FMat )(0,0);
 	Chi2s.push_back(Chi2);
 	TMatrixD CHI2_U = TMatrixD(nUnkn,nUnkn);
 	for(int iu=0;iu<nUnkn;++iu){

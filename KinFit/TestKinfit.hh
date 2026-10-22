@@ -18,10 +18,16 @@
 
 #include <TCanvas.h>
 #include <TFile.h>
+#include <TF1.h>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
 #include <TH1D.h>
 #include <TLegend.h>
+#include <TList.h>
 #include <TLorentzVector.h>
 #include <TMatrixD.h>
+#include <TPad.h>
+#include <TPaveText.h>
 #include <TRandom.h>
 #include <TString.h>
 #include <TSystem.h>
@@ -58,7 +64,10 @@ struct KFTestVariable {
   TString axisTitle;               // ROOT axis title, including units.
   KFTestRange residualRange;       // Range of initial/fitted minus true.
   KFTestRange pullRange;
-  KFTestResolution resolution;     // sigma(trueValue), in physical units.
+  KFTestResolution resolution;     // True sigma used only for smearing.
+  // Estimated sigma for the fit covariance, evaluated at the same true value.
+  // Leave empty to use the smearing sigma (backward-compatible default).
+  KFTestResolution resolutionEstm;
   double meanScale = 1.;           // Smearing mean = scale * truth + shift.
   double meanShift = 0.;
   double period = 0.;              // E.g. 2*pi for phi; zero = not periodic.
@@ -123,7 +132,7 @@ inline TLorentzVector KFFourVector(const TMatrixD& v, int first, double mass) {
 
 struct KFTestSample {
   TMatrixD measurements;
-  std::vector<double> variances; // The same sigmas used to generate this sample.
+  std::vector<double> variances; // Estimated sigmas squared, for SetVariance().
 
   template<class Fitter> void SetVariance(Fitter& fitter) const {
     std::vector<double> diagonal = variances; // Existing API accepts double*.
@@ -148,17 +157,20 @@ inline KFTestSample KFSmear(const TMatrixD& truth,
       throw std::invalid_argument(("Missing resolution for " + v.name).Data());
     const double value = truth(i, 0);
     const double sigma = v.resolution(value);
+    const double sigmaEstm = v.resolutionEstm ? v.resolutionEstm(value) : sigma;
     const double mean = v.meanScale * value + v.meanShift;
     if (!std::isfinite(value) || !std::isfinite(mean) ||
         !std::isfinite(sigma) || sigma <= 0.)
       throw std::invalid_argument(("Invalid smearing parameters for " + v.name).Data());
+    if (!std::isfinite(sigmaEstm) || sigmaEstm <= 0.)
+      throw std::invalid_argument(("Invalid covariance resolution for " + v.name).Data());
     double smeared = v.sampler ? v.sampler(mean, sigma, random)
                                : random.Gaus(mean, sigma);
     if (!std::isfinite(smeared))
       throw std::runtime_error(("Nonfinite smeared value for " + v.name).Data());
     if (v.period > 0.) smeared = std::remainder(smeared, v.period);
     out.measurements(i, 0) = smeared;
-    out.variances.push_back(sigma * sigma);
+    out.variances.push_back(sigmaEstm * sigmaEstm);
   }
   return out;
 }
@@ -331,6 +343,12 @@ public:
     return unknownHist_.at(i);
   }
 
+  // refit=false reuses the stored Gaussian for additional monitors.
+  static void DrawCorrectionPull(TH1D* histogram, bool refit = true) {
+    if (!histogram) throw std::invalid_argument("Missing correction-pull histogram");
+    DrawPull(histogram, true, refit);
+  }
+
   // Optionally prepend derived-observable overlays to the first unknown
   // residual canvas. Unknown parameter lists and pull canvases are unchanged.
   // Explicit measured pages override the default nine-variable pagination.
@@ -481,6 +499,75 @@ private:
     legend->AddEntry(second, "Fitted", "l");
     legend->Draw();
   }
+  static void DrawPull(TH1D* histogram, bool fitGaussian, bool refit = true) {
+    if (!fitGaussian) {
+      histogram->DrawCopy("hist");
+      return;
+    }
+    // Reserve a band above the axes for the fit result. Transparent text alone
+    // would still overlap a wide distribution if placed inside the plot.
+    if (gPad) gPad->SetTopMargin(std::max(.26, double(gPad->GetTopMargin())));
+    // Fit the complete displayed pull range. Use the stored bin errors, also
+    // for weighted samples; do not replace a failed fit by histogram moments.
+    const TString fitName = TString(histogram->GetName()) + "_Gaussian";
+    if (refit)
+      if (auto* previous = histogram->GetFunction(fitName)) {
+        histogram->GetListOfFunctions()->Remove(previous);
+        delete previous;
+      }
+    const double lo = histogram->GetXaxis()->GetXmin();
+    const double hi = histogram->GetXaxis()->GetXmax();
+    const double rms = histogram->GetRMS();
+    const bool enoughData = histogram->GetEffectiveEntries() >= 20. &&
+                            std::isfinite(rms) && rms > 0.;
+    TF1 gaussian(fitName, "gaus", lo, hi);
+    bool valid = false;
+    if (!refit) {
+      if (const auto* stored = histogram->GetFunction(fitName)) {
+        for (int parameter = 0; parameter < 3; ++parameter) {
+          gaussian.SetParameter(parameter, stored->GetParameter(parameter));
+          gaussian.SetParError(parameter, stored->GetParError(parameter));
+        }
+        valid = true;
+      }
+    } else if (enoughData) {
+      gaussian.SetParameters(histogram->GetMaximum(), histogram->GetMean(), rms);
+      gaussian.SetParLimits(2, 1.e-6 * (hi - lo), 10. * (hi - lo));
+      // ROOT owns the stored function; WriteHist() retains its fit parameters.
+      const TFitResultPtr result = histogram->Fit(&gaussian, "QRS0");
+      valid = result.Get() && int(result) == 0 && result->IsValid() &&
+              std::isfinite(gaussian.GetParameter(1)) &&
+              std::isfinite(gaussian.GetParameter(2)) && gaussian.GetParameter(2) > 0. &&
+              std::isfinite(gaussian.GetParError(1)) &&
+              std::isfinite(gaussian.GetParError(2));
+    }
+    if (auto* stored = histogram->GetFunction(fitName)) {
+      if (valid) {
+        stored->SetLineColor(kRed + 1);
+        stored->SetLineWidth(2);
+        stored->ResetBit(TF1::kNotDraw);
+      } else {
+        histogram->GetListOfFunctions()->Remove(stored);
+        delete stored;
+      }
+    }
+    TH1* displayed = histogram->DrawCopy("hist");
+    if (valid) displayed->GetFunction(fitName)->Draw("same");
+
+    auto* text = new TPaveText(.17, .77, .94, .98, "NDC");
+    text->SetBorderSize(0); text->SetFillStyle(0);
+    text->SetTextFont(42); text->SetTextAlign(12); text->SetTextSize(.035);
+    if (valid) {
+      text->AddText("Gaussian fit");
+      text->AddText(TString::Format("Mean = %.3f #pm %.3f",
+                                    gaussian.GetParameter(1), gaussian.GetParError(1)));
+      text->AddText(TString::Format("Width = %.3f #pm %.3f",
+                                    gaussian.GetParameter(2), gaussian.GetParError(2)));
+    } else {
+      text->AddText(enoughData ? "Gaussian fit failed" : "Too few entries for Gaussian fit");
+    }
+    text->Draw();
+  }
   void DrawMeasuredPages(const std::vector<CanvasPage>& pages,
                          const TString& directory) const {
     // Validate all pages before allocating canvases.
@@ -505,7 +592,7 @@ private:
         const auto& hist = measuredHist_[page.variables[pad]];
         residual->cd(pad + 1);
         DrawOverlay(hist.initialResidual.get(), hist.fittedResidual.get());
-        pull->cd(pad + 1); hist.pull->DrawCopy("hist");
+        pull->cd(pad + 1); DrawPull(hist.pull.get(), true);
       }
       SaveCanvas(residual, directory); SaveCanvas(pull, directory);
     }
@@ -535,7 +622,7 @@ private:
       for (int i = 0; i < count; ++i) {
         residual->cd(offset + i + 1);
         DrawOverlay(hist[begin + i].initialResidual.get(), hist[begin + i].fittedResidual.get());
-        pull->cd(i + 1); hist[begin + i].pull->DrawCopy("hist");
+        pull->cd(i + 1); DrawPull(hist[begin + i].pull.get(), true);
       }
       SaveCanvas(residual, directory); SaveCanvas(pull, directory);
     }
