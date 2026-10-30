@@ -233,7 +233,7 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 
 \end{frame}
 
-\begin{frame}{Example: $\Lambda\to p\pi$, Defining Variables and Constraints}
+\begin{frame}{Example: InvariantMass Constraint, Defining Variables and Constraints}
 	\begin{block}{}
 		Assume a decay of $\Lambda\to p\pi^-$. 
 		We introduce an unknowon parameter for this example.
@@ -258,7 +258,7 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 		Since we have 3 unknowns with 4 kinematic constraints, this is a 4-3 = 1-Constrained fit.
 	\end{block}
 \end{frame}
-\begin{frame}{Example: $\Lambda\to p\pi$, The Derivatives}
+\begin{frame}{Example: InvariantMass Constraint, The Derivatives}
 	\begin{block}{}
 		 We get $\mathbf{F_u}$ and $\mathbf{F_m}$ as
 		\begin{align}
@@ -273,15 +273,16 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 				\pdf{f_2}{P_p} &\cdots&\pdf{f_2}{\phi_\pi}\\
 				\pdf{f_3}{P_p} &\cdots&\pdf{f_3}{\phi_\pi}\\
 				\pdf{f_4}{P_p} &\cdots&\pdf{f_4}{\phi_\pi}
-			\end{pmatrix}
+			\end{pmatrix}\label{InvMassConstDeriv}
 		\end{align}
 		Together with the constraint equations, the fitter should evaluate these derivatives in each iteration step, and evaluate $\lag$ using the measurement covariance matrix.
 		The fit performance relies on the accuracy of the covariance matrix, and the $\chi^2$ probability of the resulting $\lag$.
 	\end{block}
 \end{frame}
-\begin{frame}{Example: $\Xi\to \Lambda\pi$, $\Lambda\to p\pi$}
+\begin{frame}{Example: Double InvariantMass Constraint in a Decay Chain}
 	\begin{block}{}
-		We require two mass constraints for $\Xi\to \Lambda\pi;\quad \Lambda\to p\pi$. There are some other options to define the measurements, unknowns and constraints. We choose
+		The decay chain $\Xi\to\Lambda \pi;\quad$ $\Lambda\to p\pi$ is a good example of a decay chain, with two invariant mass constraint can be applied.
+		We choose
 		\begin{align}
 			\mathbf{u} = \{P_\Xi,\theta_\Xi,\phi_\Xi\};\quad \mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi\}
 		\end{align}
@@ -302,7 +303,7 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 			That is, \textbf{we don't have explicit terms} related to $\vec P_\Lambda$, i.e.  $-P_{\Lambda,x}+P_{p,x}+P_{{\pi_\Lambda},x}$ etc., because $\vec P_\Lambda$ are neither unmeasured nor measured variables in our choice of parameters. $E_\Lambda$ in Eq. \eqref{XiKFConstraint} is simply an abbreviation for $\sqrt{|\vec P_p+\vec P_\pi|^2+m_\Lambda^2}$. i.e. $\partial_{P_p}E_\Lambda!= 0$.
 	\end{block}
 \end{frame}
-\begin{frame}{Example: $\XI\to \Lambda\pi$, $\Lambda\to p\pi$ Kinematics Restoration}
+\begin{frame}{Example: $\Xi\to \Lambda\pi$, $\Lambda\to p\pi$ Kinematics Restoration}
 	\tcl{8}{8}{
 		\begin{figure}
 			\begin{picture}(200,150)
@@ -314,6 +315,73 @@ Since four Kaons are emitted from the $\bar{p} p\to \phi\phi$ system, we can imp
 	\begin{figure}
 		\begin{picture}(200,150)
 			\put(-10,0){\includegraphics[width=.95\textwidth]{XiFit}}
+			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+		\end{picture}
+	\end{figure}
+	}
+\end{frame}
+\begin{frame}{Example: InvariantMass + MissingMass Constraint}
+	\begin{block}{}
+		Consider a decay $K^-p\to \Lambda\eta;\Lambda\to p\pi$ reaction.
+		In additional to the $\Lambda$ invariant mass constraint, we can impose additional missing mass constraint: $M_{p(K^-,\Lambda) X} = M_{\eta}$.
+		In additon to $p$ and $\pi$, we have another measurement: the Beam.
+		\begin{align}
+			\mathbf{m}=\{P_p,\theta_p,\phi_p,P_\pi,\theta_\pi,\phi_\pi,P_B,\theta_B,\phi_B\};\quad\mathbf{u} = \{P_\Lambda,\theta_\Lambda,\phi_\Lambda\}
+		\end{align}
+		\begin{align}
+			\begin{pmatrix}
+				f_1\\f_2\\f_3\\f_4\\f_5
+			\end{pmatrix}=
+			\begin{pmatrix}
+				-P_\Lambda\sin\theta_\Lambda\cos\phi_\Lambda+P_p\sin\theta_p\cos\phi_p+P_\pi\sin\theta_\pi\cos\phi_\pi\\
+				-P_\Lambda\sin\theta_\Lambda\sin\phi_\Lambda+P_p\sin\theta_p\sin\phi_p+P_\pi\sin\theta_\pi\sin\phi_\pi\\
+				-P_\Lambda\cos\theta_\Lambda+P_p\cos\theta_p+P_\pi\cos\theta_\pi\\
+				-\sqrt{P_\Lambda^2+m_\Lambda^2}+\sqrt{P_p^2+m_p^2}+\sqrt{P_\pi^2+m_\pi^2}\\
+				-E_X + \sqrt{P_X^2+M_\eta^2}
+			\end{pmatrix}.\label{FMat}
+		\end{align}
+		where the missing energy $E_X=\sqrt{P_B^2+m_{K^-}^2}+m_p - \sqrt{P_\Lambda^2+m_\Lambda^2}$ and $P_X = |\vec P_B-\vec P_\Lambda|$ is introduced.
+	\end{block}
+\end{frame}
+\begin{frame}{Example: Invarian + Missing Mass Constraint, the Derivatives}
+	\begin{block}{}
+	The derivatives are basically the same for $f_1-f_4$.
+	For $f_5$, we represented it as a function of the unknowns($\Lambda$ vairalbes) rather than direct functino of $p$ and $\pi$.
+	This choice is intended for simplicity.
+	In addition to the four derivatives in Eq. \eqref{InvMassConstDeriv}, we require the following derivatives for $f_5$:
+	\begin{align}
+		F_{5,\mathbf u}=\pdf{f_5}{\mathbf u} =
+		\begin{pmatrix}
+			\frac{P_\Lambda}{\sqrt{P_\Lambda^2+m_\Lambda^2}} + \frac{(\vec P_X\cdot \hat{P}_\Lambda)}{E_X}\\
+			\frac{\vec P_X\cdot \partial_{\theta}\vec P_\Lambda }{E_X}\\
+			\frac{\vec P_X\cdot \partial_{\phi}\vec P_\Lambda }{E_X}
+		\end{pmatrix};\quad 
+				F_{5,\mathbf m}=\pdf{f_5}{\mathbf m} =
+		\begin{pmatrix}
+			0\\
+			\cdots\\
+			0\\
+			\partial_{P_B}f_5\\
+			\partial_{\theta_B}f_5\\
+			\partial _{\phi_B}f_5
+		\end{pmatrix};
+	\end{align}
+	Generally, the beam momentum uncertainty is much smaller than the final state particles.
+	However, the vertex position uncertainty can lead to a significant uncertainty in the beam momentum at the reaction vertex, which should be considered in the covariance matrix.	 		
+	\end{block}
+\end{frame}
+\begin{frame}{Example: $p(K^-, \Lambda )\eta$ Kinematics Restoration}
+	\tcl{8}{8}{
+		\begin{figure}
+			\begin{picture}(200,150)
+				\put(-10,0){\includegraphics[width=.95\textwidth]{MissingEtaFit}}
+				\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
+			\end{picture}
+		\end{figure}
+	}{
+	\begin{figure}
+		\begin{picture}(200,150)
+			\put(-10,0){\includegraphics[width=.95\textwidth]{MissingEtaFit_Lambda}}
 			\put(20,40){\rotatebox{15}{\Huge\textcolor{tubsgray20}{ToySimulation}}}
 		\end{picture}
 	\end{figure}
